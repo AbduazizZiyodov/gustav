@@ -1,0 +1,3 @@
+/home/abduaziz/Projects/none/CMakeFiles/none.dir
+/home/abduaziz/Projects/none/CMakeFiles/edit_cache.dir
+/home/abduaziz/Projects/none/CMakeFiles/rebuild_cache.dir
