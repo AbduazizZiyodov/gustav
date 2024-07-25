@@ -1,1 +1,0 @@
-/usr/bin/cc CMakeFiles/none.dir/main.c.o -o none 
