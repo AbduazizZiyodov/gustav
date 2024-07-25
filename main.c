@@ -5,21 +5,22 @@
 #include <sysexits.h>
 
 #include "utils/logging.h"
+#include "utils/errors.h"
 
 #define MAX_LINE 1000
 #define REPL_PROMPT_SYMBOL "=>"
 
 bool had_error = false;
 
-void run(char *source);
 void run_from_prompt();
+void execute_source(char *source);
 void run_from_source(char *file_name);
-
-void error(int line, char *message);
-void report_error(int line, char *where, char *message);
 
 int main(int argc, char **argv)
 {
+
+    error(12, "fucking error");
+
     if (argc == 1)
     {
         log_debug("Running REPL (PRESS CTRL+D for exit)");
@@ -88,7 +89,7 @@ void run_from_prompt()
 {
     char line[MAX_LINE];
     printf("%s ", REPL_PROMPT_SYMBOL);
-    
+
     while (true)
     {
         fgets(line, MAX_LINE, stdin);

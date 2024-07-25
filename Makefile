@@ -142,6 +142,19 @@ logging/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/logging.dir/build.make CMakeFiles/logging.dir/build
 .PHONY : logging/fast
 
+#=============================================================================
+# Target rules for targets named errors
+
+# Build rule for target.
+errors: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 errors
+.PHONY : errors
+
+# fast build rule for target.
+errors/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/errors.dir/build.make CMakeFiles/errors.dir/build
+.PHONY : errors/fast
+
 main.o: main.c.o
 .PHONY : main.o
 
@@ -165,6 +178,30 @@ main.s: main.c.s
 main.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/none.dir/build.make CMakeFiles/none.dir/main.c.s
 .PHONY : main.c.s
+
+utils/errors.o: utils/errors.c.o
+.PHONY : utils/errors.o
+
+# target to build an object file
+utils/errors.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/errors.dir/build.make CMakeFiles/errors.dir/utils/errors.c.o
+.PHONY : utils/errors.c.o
+
+utils/errors.i: utils/errors.c.i
+.PHONY : utils/errors.i
+
+# target to preprocess a source file
+utils/errors.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/errors.dir/build.make CMakeFiles/errors.dir/utils/errors.c.i
+.PHONY : utils/errors.c.i
+
+utils/errors.s: utils/errors.c.s
+.PHONY : utils/errors.s
+
+# target to generate assembly for a file
+utils/errors.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/errors.dir/build.make CMakeFiles/errors.dir/utils/errors.c.s
+.PHONY : utils/errors.c.s
 
 utils/logging.o: utils/logging.c.o
 .PHONY : utils/logging.o
@@ -198,11 +235,15 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
+	@echo "... errors"
 	@echo "... logging"
 	@echo "... none"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
+	@echo "... utils/errors.o"
+	@echo "... utils/errors.i"
+	@echo "... utils/errors.s"
 	@echo "... utils/logging.o"
 	@echo "... utils/logging.i"
 	@echo "... utils/logging.s"
