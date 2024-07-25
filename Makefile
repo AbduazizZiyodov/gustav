@@ -129,6 +129,19 @@ none/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/none.dir/build.make CMakeFiles/none.dir/build
 .PHONY : none/fast
 
+#=============================================================================
+# Target rules for targets named logging
+
+# Build rule for target.
+logging: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 logging
+.PHONY : logging
+
+# fast build rule for target.
+logging/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/logging.dir/build.make CMakeFiles/logging.dir/build
+.PHONY : logging/fast
+
 main.o: main.c.o
 .PHONY : main.o
 
@@ -153,6 +166,30 @@ main.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/none.dir/build.make CMakeFiles/none.dir/main.c.s
 .PHONY : main.c.s
 
+utils/logging.o: utils/logging.c.o
+.PHONY : utils/logging.o
+
+# target to build an object file
+utils/logging.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/logging.dir/build.make CMakeFiles/logging.dir/utils/logging.c.o
+.PHONY : utils/logging.c.o
+
+utils/logging.i: utils/logging.c.i
+.PHONY : utils/logging.i
+
+# target to preprocess a source file
+utils/logging.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/logging.dir/build.make CMakeFiles/logging.dir/utils/logging.c.i
+.PHONY : utils/logging.c.i
+
+utils/logging.s: utils/logging.c.s
+.PHONY : utils/logging.s
+
+# target to generate assembly for a file
+utils/logging.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/logging.dir/build.make CMakeFiles/logging.dir/utils/logging.c.s
+.PHONY : utils/logging.c.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -161,10 +198,14 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
+	@echo "... logging"
 	@echo "... none"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
+	@echo "... utils/logging.o"
+	@echo "... utils/logging.i"
+	@echo "... utils/logging.s"
 .PHONY : help
 
 
