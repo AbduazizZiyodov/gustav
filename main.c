@@ -39,6 +39,7 @@ int main(int argc, char **argv)
 
     return EXIT_SUCCESS;
 }
+
 void execute_source(char *source)
 {
     log_debug("Executing source=%s", source);
