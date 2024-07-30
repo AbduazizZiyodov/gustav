@@ -102,7 +102,7 @@ class Token:
     ) -> None:
         self.type, self.lexeme, self.literal, self.line = (type, lexeme, literal, line)
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         return f"Token({self.type} {self.lexeme} {self.literal})"
 
 
@@ -121,9 +121,8 @@ class Scanner:
         self.current = 0
 
     def scan_tokens(self) -> list[Token]:
-        while not self.is_end:
+        while not self.is_end():
             self.start = self.current
-            log.info(f"{self.start=}")
             self.scan_token()
 
         eof_token: Token = Token(TokenType.EOF, "", None, self.line)
@@ -154,19 +153,51 @@ class Scanner:
                 self.add_token(type=TokenType.SEMICOLON)
             case "*":
                 self.add_token(type=TokenType.STAR)
+            # operators
+            case "!":
+                self.add_token(
+                    type=(TokenType.BANG, TokenType.BANG_EQUAL)[
+                        self.match_operator("=")
+                    ]
+                )
+            case "=":
+                self.add_token(
+                    type=(TokenType.EQUAL, TokenType.EQUAL_EQUAL)[
+                        self.match_operator("=")
+                    ]
+                )
+            case "<":
+                self.add_token(
+                    type=(TokenType.LESS, TokenType.LESS_EQUAL)[
+                        self.match_operator("=")
+                    ]
+                )
+            case ">":
+                self.add_token(
+                    type=(TokenType.GREATER, TokenType.GREATER_EQUAL)[
+                        self.match_operator("=")
+                    ]
+                )
             case _:
                 error(self.line, "Fuck you!")
 
     def add_token(self, **kwargs):
-        self.tokens.append(Token(type, None, None, self.line))
+        self.tokens.append(Token(kwargs.get("type"), None, None, self.line))
 
     def advance(self):
+        char: str = self.source[self.current]
         self.current += 1
-        return self.source[self.current]
+        return char
 
-    @property
-    def is_end(self):
+    def is_end(self) -> bool:
         return self.current >= len(self.source)
+
+    def match_operator(self, expected: str) -> bool:
+        if self.is_end() or self.source[self.current] != expected:
+            return False
+
+        self.current += 1
+        return True
 
 
 ###
@@ -188,7 +219,7 @@ def main():
 
 
 def execute(source: str) -> int:
-    log.info(f"Received {source=}")
+    log.info(f"Received {source=} {len(source)=}")
 
     scanner = Scanner(source)
     tokens: list[Token] = scanner.scan_tokens()
