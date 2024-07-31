@@ -130,8 +130,9 @@ class Scanner:
 
         return self.tokens
 
-    def scan_token(self):
+    def scan_token(self) -> None:
         char = self.advance()
+
         match char:
             case "(":
                 self.add_token(type=TokenType.LEFT_PAREN)
@@ -156,35 +157,75 @@ class Scanner:
             # operators
             case "!":
                 self.add_token(
-                    type=(TokenType.BANG, TokenType.BANG_EQUAL)[
-                        self.match_operator("=")
-                    ]
+                    type=(TokenType.BANG, TokenType.BANG_EQUAL)[self.match_token("=")]
                 )
             case "=":
                 self.add_token(
-                    type=(TokenType.EQUAL, TokenType.EQUAL_EQUAL)[
-                        self.match_operator("=")
-                    ]
+                    type=(TokenType.EQUAL, TokenType.EQUAL_EQUAL)[self.match_token("=")]
                 )
             case "<":
                 self.add_token(
-                    type=(TokenType.LESS, TokenType.LESS_EQUAL)[
-                        self.match_operator("=")
-                    ]
+                    type=(TokenType.LESS, TokenType.LESS_EQUAL)[self.match_token("=")]
                 )
             case ">":
                 self.add_token(
                     type=(TokenType.GREATER, TokenType.GREATER_EQUAL)[
-                        self.match_operator("=")
+                        self.match_token("=")
                     ]
                 )
+            case "/":
+                self.comment_or_slash()
+
+            case " " | "\r" | "\t":
+                pass  # ignore whitespaces
+            case "\n":
+                self.line += 1
+            case '"':
+                self.string()
             case _:
-                error(self.line, "Fuck you!")
+                error(self.line, f"Fuck you! {char=}")
 
-    def add_token(self, **kwargs):
-        self.tokens.append(Token(kwargs.get("type"), None, None, self.line))
+    def comment_or_slash(self) -> None:
+        if self.match_token("/"):
+            while self.peek() != "\n" and not self.is_end():
+                self.advance()
+        else:
+            self.add_token(type=TokenType.SLASH)
 
-    def advance(self):
+    def string(self) -> None:
+        while self.peek() != '"' and not self.is_end():
+            if self.peek() == "\n":
+                self.line += 1
+            self.advance()
+
+        if self.is_end():
+            return error(self.line, "Terminate strings nigga")
+
+        self.advance()
+        string_value: str = self.source[self.start + 1 : self.current - 1]
+        self.add_token(type=TokenType.STRING, literal=string_value)
+
+    def add_token(self, **kwargs) -> None:
+        lexeme = None
+        type = kwargs.get("type")
+        if (literal := kwargs.get("literal")) is not None:
+            lexeme = self.source[self.start : self.current]
+
+        self.tokens.append(
+            Token(
+                type,
+                lexeme,
+                literal,
+                self.line,
+            )
+        )
+
+    def peek(self) -> str:
+        if self.is_end():
+            return "\0"
+        return self.source[self.current]
+
+    def advance(self) -> str:
         char: str = self.source[self.current]
         self.current += 1
         return char
@@ -192,7 +233,7 @@ class Scanner:
     def is_end(self) -> bool:
         return self.current >= len(self.source)
 
-    def match_operator(self, expected: str) -> bool:
+    def match_token(self, expected: str) -> bool:
         if self.is_end() or self.source[self.current] != expected:
             return False
 
