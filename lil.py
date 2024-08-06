@@ -6,17 +6,29 @@ import sys
 import logging
 from enum import StrEnum
 
-
 ###
 # LOGGING
 ###
 log = logging.getLogger(__name__)
 
+DEBUG: bool = os.getenv("DEBUG", "").lower() in ["y", "true", "yes"]
+
 logging.basicConfig(
-    level=logging.DEBUG if os.getenv("DEBUG_LOGGING") else logging.INFO,
-    format="%(asctime)s [%(levelname)s]: %(message)s",
-    datefmt="%Y-%m-%d %H:%M",
+    level=logging.DEBUG if DEBUG else logging.INFO,
+    format="%(asctime)s %(levelname)s: %(message)s",
+    datefmt="%Y-%m-%d/%H:%M",
 )
+
+try:
+    import colorama
+    from colorama import Fore, Style
+
+    colorama.init()
+    COLORED_OUTPUT: bool = True
+except ImportError:
+    COLORED_OUTPUT: bool = False
+    log.debug("Coloroma not found")
+
 
 had_error = False
 
@@ -25,18 +37,28 @@ had_error = False
 ###
 
 
-def error(line: int, message: str) -> None:
+def error(
+    line: int,
+    message: str,
+) -> None:
     report(line, "", message)
 
 
 def report(line: int, where: str, message: str) -> None:
     global had_error
-    print(f"[line {line}] Error {where}: {message}", file=sys.stderr)
+    if not COLORED_OUTPUT:
+        print(f"[line {line}] Error {where}: {message}", file=sys.stderr)
+    else:
+        print(
+            f"{Fore.BLUE}[line {line}]{Style.RESET_ALL} {Fore.RED}Error{Style.RESET_ALL} {where}: {message}",
+            file=sys.stderr,
+        )
+
     had_error = True
 
 
 ###
-# ENUMS
+# ENUMS & keywords
 ###
 
 
@@ -90,6 +112,25 @@ class TokenType(StrEnum):
 
     EOF = "EOF"
 
+
+KEYWORDS: dict[str, str] = {
+    "klass": TokenType.CLASS,
+    "super": TokenType.SUPER,
+    "this": TokenType.THIS,
+    "fn": TokenType.FUN,
+    "return": TokenType.RETURN,
+    "false": TokenType.FALSE,
+    "true": TokenType.TRUE,
+    "nil": TokenType.NIL,
+    "for": TokenType.FOR,
+    "while": TokenType.WHILE,
+    "if": TokenType.IF,
+    "else": TokenType.ELSE,
+    "and": TokenType.AND,
+    "or": TokenType.OR,
+    "log": TokenType.PRINT,
+    "var": TokenType.VAR,
+}
 
 ###
 # TYPES
@@ -176,14 +217,46 @@ class Scanner:
             case "/":
                 self.comment_or_slash()
 
-            case " " | "\r" | "\t":
-                pass  # ignore whitespaces
             case "\n":
                 self.line += 1
+            case " " | "\r" | "\t":
+                pass  # ignore whitespaces
             case '"':
                 self.string()
-            case _:
-                error(self.line, f"Fuck you! {char=}")
+            case _:  # default case
+                if char.isdigit():
+                    self.number()
+                elif char.isalpha():
+                    self.identifier()
+                else:
+                    error(self.line, "Unexpected character")
+
+    def identifier(self):
+        while self.peek().isalpha() or self.peek().isnumeric():
+            self.advance()
+
+        text = self.source[self.start : self.current]
+        type = KEYWORDS.get(text)
+
+        if type is None:
+            type = TokenType.IDENTIFIER
+
+        self.add_token(type=type)
+
+    def number(self) -> None:
+        while self.peek().isdigit():
+            self.advance()
+
+        if self.peek() == "." and self.peek_next().isdigit():
+            self.advance()
+
+            while self.peek().isdigit():
+                self.advance()
+
+        self.add_token(
+            type=TokenType.NUMBER,
+            literal=float(self.source[self.start : self.current]),
+        )
 
     def comment_or_slash(self) -> None:
         if self.match_token("/"):
@@ -199,7 +272,7 @@ class Scanner:
             self.advance()
 
         if self.is_end():
-            return error(self.line, "Terminate strings nigga")
+            return error(self.line, "Unterminated string")
 
         self.advance()
         string_value: str = self.source[self.start + 1 : self.current - 1]
@@ -208,6 +281,7 @@ class Scanner:
     def add_token(self, **kwargs) -> None:
         lexeme = None
         type = kwargs.get("type")
+
         if (literal := kwargs.get("literal")) is not None:
             lexeme = self.source[self.start : self.current]
 
@@ -224,6 +298,11 @@ class Scanner:
         if self.is_end():
             return "\0"
         return self.source[self.current]
+
+    def peek_next(self):
+        if self.current + 1 >= len(self.source):
+            return "\0"
+        return self.source[self.current + 1]
 
     def advance(self) -> str:
         char: str = self.source[self.current]
@@ -250,7 +329,7 @@ def main():
     log.debug(f"{sys.executable=} {sys.argv[1:]=}")
 
     if len(sys.argv) > 2:
-        print("Usage: python3 -m none [script]")
+        print("Usage: python3 -m lil.py [script]")
         return os.EX_USAGE
 
     if len(sys.argv) == 2:
@@ -260,13 +339,13 @@ def main():
 
 
 def execute(source: str) -> int:
-    log.info(f"Received {source=} {len(source)=}")
+    log.debug(f"Received: {len(source)=} \n{source=}")
 
     scanner = Scanner(source)
     tokens: list[Token] = scanner.scan_tokens()
 
     for token in tokens:
-        log.info(f"{token=}")
+        log.debug(f"{token=}")
 
 
 def run_file(file_name: str) -> int:
@@ -291,8 +370,8 @@ def run_prompt() -> int:
             line = input("=> ")
             execute(line)
             had_error = False
-        except KeyboardInterrupt as exc:
-            log.debug(f"Received keyboard interrupt(sigint): {exc=}")
+        except (KeyboardInterrupt, EOFError) as exc:
+            log.debug(f"Received keyboard interrupt/eof: {exc=}")
             return os.EX_OK
 
 
