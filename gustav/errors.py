@@ -2,7 +2,7 @@ import sys
 
 from ._logging import log
 
-COLORED_OUTPUT: bool
+COLORED_OUTPUT: bool = False
 
 try:
     import colorama
@@ -12,17 +12,14 @@ try:
     COLORED_OUTPUT = True
 
 except ImportError:
-    COLORED_OUTPUT = False
     log.debug("Coloroma not found")
 
 
-had_error = False
+had_error: bool = False
 
 
-def error(
-    line: int,
-    message: str,
-) -> None:
+def panic(line: int, message: str) -> None:
+    # fatal situation, report & exit
     report(line, "", message)
 
 

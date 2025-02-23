@@ -1,2 +1,8 @@
 test:
-	DEBUG=yes ./.venv/bin/python3.13 -m gustav file.gu
+	DEBUG=yes ./.venv/bin/python3.13 -m gustav examples/file.gu
+
+check:
+	ruff format && mypy --strict --ignore-missing-imports --explicit-package-bases .
+
+repl:
+	DEBUG=yes ./.venv/bin/python3.13 -m gustav
