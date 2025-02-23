@@ -1,12 +1,12 @@
 import sys
 
-from _logging import log
+from ._logging import log
 
 COLORED_OUTPUT: bool
 
 try:
-    import colorama  # type: ignore
-    from colorama import Fore, Style  # type: ignore
+    import colorama
+    from colorama import Fore, Style
 
     colorama.init()
     COLORED_OUTPUT = True

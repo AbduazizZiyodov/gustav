@@ -1,9 +1,9 @@
 import os
 import sys
 
-from _logging import log
-from scanner import Scanner
-from errors import had_error
+from ._logging import log
+from .scanner import Scanner
+from .errors import had_error
 
 
 def repl_main() -> int:
@@ -19,7 +19,7 @@ def repl_main() -> int:
     return run_prompt()
 
 
-def execute(source: str):
+def execute(source: str) -> None:
     log.debug(f"Received: {len(source)=} \n{source=}")
 
     scanner = Scanner(source)
