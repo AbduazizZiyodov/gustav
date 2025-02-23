@@ -50,3 +50,14 @@ class TokenType(StrEnum):
     WHILE = "WHILE"
 
     EOF = "EOF"
+
+
+class ReplCommands(StrEnum):
+    CLEAR = "clear"
+    HELP = "help"
+    EXIT = "exit"
+
+
+class ReplStatus(StrEnum):
+    HANDLED = "handled"
+    NOT_HANDLED = "not_handled"
