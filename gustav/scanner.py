@@ -125,23 +125,14 @@ class Scanner:
                 else:
                     error(self.line, "Unexpected character")
 
-    def add_token(self, **kwargs: str | t.Any) -> None:
-        type: str
-        lexeme: str | None
+    def add_token(self, type: TokenType, literal: t.Optional[t.Any] = None) -> None:
+        lexeme: str | None = None
 
-        lexeme, type = None, kwargs["type"]
-
-        if literal := kwargs.get("literal"):
+        if literal:
             lexeme = self.source[self.start : self.current]
 
-        self.tokens.append(
-            Token(
-                type,
-                lexeme,
-                literal,
-                self.line,
-            )
-        )
+        token = Token(type, lexeme, literal, self.line)
+        self.tokens.append(token)
 
     def peek(self) -> str:
         if self.is_end():
