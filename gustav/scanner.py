@@ -1,10 +1,12 @@
-from _logging import log
-from _token import Token
-from errors import error
-from enums import TokenType
+import typing as t
+
+from ._logging import log
+from ._token import Token
+from .errors import error
+from .enums import TokenType
 
 
-KEYWORDS: dict[str, str] = {
+KEYWORDS: dict[str, TokenType] = {
     "klass": TokenType.CLASS,
     "super": TokenType.SUPER,
     "this": TokenType.THIS,
@@ -123,10 +125,13 @@ class Scanner:
                 else:
                     error(self.line, "Unexpected character")
 
-    def add_token(self, **kwargs) -> None:
+    def add_token(self, **kwargs: str | t.Any) -> None:
+        type: str
+        lexeme: str | None
+
         lexeme, type = None, kwargs["type"]
 
-        if (literal := kwargs["literal"]) is not None:
+        if literal := kwargs.get("literal"):
             lexeme = self.source[self.start : self.current]
 
         self.tokens.append(
@@ -143,7 +148,7 @@ class Scanner:
             return "\0"
         return self.source[self.current]
 
-    def peek_next(self):
+    def peek_next(self) -> str:
         if self.current + 1 >= len(self.source):
             return "\0"
         return self.source[self.current + 1]
@@ -163,15 +168,12 @@ class Scanner:
         self.current += 1
         return True
 
-    def identifier(self):
+    def identifier(self) -> None:
         while self.peek().isalpha() or self.peek().isnumeric():
             self.advance()
 
-        text = self.source[self.start : self.current]
-        type = KEYWORDS.get(text)
-
-        if type is None:
-            type = TokenType.IDENTIFIER
+        text: str = self.source[self.start : self.current]
+        type: TokenType = KEYWORDS.get(text) or TokenType.IDENTIFIER
 
         self.add_token(type=type)
 
