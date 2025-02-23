@@ -1,1 +1,0 @@
-DEBUG=yes ./.venv/bin/python3 -m src

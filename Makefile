@@ -1,0 +1,2 @@
+test:
+	DEBUG=yes ./.venv/bin/python3.13 -m gustav file.gu

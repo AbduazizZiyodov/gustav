@@ -1,17 +1,18 @@
 import sys
-import logging
 
-log = logging.getLogger(__name__)
+from _logging import log
+
+COLORED_OUTPUT: bool
 
 try:
-    import colorama
-    from colorama import Fore, Style
+    import colorama  # type: ignore
+    from colorama import Fore, Style  # type: ignore
 
     colorama.init()
-    COLORED_OUTPUT: bool = True
+    COLORED_OUTPUT = True
 
 except ImportError:
-    COLORED_OUTPUT: bool = False
+    COLORED_OUTPUT = False
     log.debug("Coloroma not found")
 
 
