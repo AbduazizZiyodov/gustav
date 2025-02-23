@@ -1,9 +1,9 @@
-from src.enums import TokenType
+from enums import TokenType
 
 
 class Token:
     def __init__(
-        self, type: "TokenType", lexeme: str, literal: object, line: int
+        self, type: "TokenType", lexeme: str | None, literal: object, line: int
     ) -> None:
         self.type, self.lexeme, self.literal, self.line = (type, lexeme, literal, line)
 

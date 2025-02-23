@@ -1,32 +1,12 @@
-###
-# Imports
-###
 import os
 import sys
-import logging
 
-from src.scanner import Scanner
-
-###
-# LOGGING
-###
-log = logging.getLogger(__name__)
-
-DEBUG: bool = os.getenv("DEBUG", "").lower() in ["y", "true", "yes"]
-
-logging.basicConfig(
-    level=logging.DEBUG if DEBUG else logging.INFO,
-    format="%(asctime)s %(levelname)s: %(message)s",
-    datefmt="%Y-%m-%d/%H:%M",
-)
+from _logging import log
+from scanner import Scanner
+from errors import had_error
 
 
-###
-# Main entrypoint
-###
-
-
-def main():
+def repl_main() -> int:
     log.debug(f"{sys.executable=} {sys.argv[1:]=}")
 
     if len(sys.argv) > 2:
@@ -39,14 +19,16 @@ def main():
     return run_prompt()
 
 
-def execute(source: str) -> int:
+def execute(source: str):
     log.debug(f"Received: {len(source)=} \n{source=}")
 
     scanner = Scanner(source)
     tokens = scanner.scan_tokens()
 
+    log.debug(f"{'#' * 10} SCANNING COMPLETED {'#' * 10}")
+
     for token in tokens:
-        log.debug(f"{token=}")
+        log.debug(token)
 
 
 def run_file(file_name: str) -> int:
@@ -74,7 +56,3 @@ def run_prompt() -> int:
         except (KeyboardInterrupt, EOFError) as exc:
             log.debug(f"Received keyboard interrupt/eof: {exc=}")
             return os.EX_OK
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())

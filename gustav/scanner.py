@@ -1,6 +1,7 @@
-from src.errors import error
-from src.token import Token
-from src.enums import TokenType
+from _logging import log
+from _token import Token
+from errors import error
+from enums import TokenType
 
 
 KEYWORDS: dict[str, str] = {
@@ -48,22 +49,31 @@ class Scanner:
         match char:
             case "(":
                 self.add_token(type=TokenType.LEFT_PAREN)
+
             case ")":
                 self.add_token(type=TokenType.RIGHT_PAREN)
+
             case "{":
                 self.add_token(type=TokenType.LEFT_BRACE)
+
             case "}":
                 self.add_token(type=TokenType.RIGHT_BRACE)
+
             case ",":
                 self.add_token(type=TokenType.COMMA)
+
             case ".":
                 self.add_token(type=TokenType.DOT)
+
             case "-":
                 self.add_token(type=TokenType.MINUS)
+
             case "+":
                 self.add_token(type=TokenType.PLUS)
+
             case ";":
                 self.add_token(type=TokenType.SEMICOLON)
+
             case "*":
                 self.add_token(type=TokenType.STAR)
             # operators
@@ -71,42 +81,52 @@ class Scanner:
                 self.add_token(
                     type=(TokenType.BANG, TokenType.BANG_EQUAL)[self.match_token("=")]
                 )
+
             case "=":
                 self.add_token(
                     type=(TokenType.EQUAL, TokenType.EQUAL_EQUAL)[self.match_token("=")]
                 )
+
             case "<":
                 self.add_token(
                     type=(TokenType.LESS, TokenType.LESS_EQUAL)[self.match_token("=")]
                 )
+
             case ">":
                 self.add_token(
                     type=(TokenType.GREATER, TokenType.GREATER_EQUAL)[
                         self.match_token("=")
                     ]
                 )
+
             case "/":
-                self.comment_or_slash()
+                if not (self.match_token("/") or self.match_token("*")):
+                    self.add_token(type=TokenType.SLASH)
+                else:
+                    self.comment()
 
             case "\n":
                 self.line += 1
+
             case " " | "\r" | "\t":
                 pass  # ignore whitespaces
+
             case '"':
                 self.string()
+
             case _:  # default case
                 if char.isdigit():
                     self.number()
+
                 elif char.isalpha():
                     self.identifier()
                 else:
                     error(self.line, "Unexpected character")
 
     def add_token(self, **kwargs) -> None:
-        lexeme = None
-        type = kwargs.get("type")
+        lexeme, type = None, kwargs["type"]
 
-        if (literal := kwargs.get("literal")) is not None:
+        if (literal := kwargs["literal"]) is not None:
             lexeme = self.source[self.start : self.current]
 
         self.tokens.append(
@@ -170,13 +190,19 @@ class Scanner:
             literal=float(self.source[self.start : self.current]),
         )
 
-    def comment_or_slash(self) -> None:
-        if not self.match_token("/"):
-            self.add_token(type=TokenType.SLASH)
-            return
+    def comment(self) -> None:
+        if self.source[self.current - 1] == "*":
+            log.debug("Handling c style comments")
+            while not self.is_end() and (
+                self.peek() != "*" and self.peek_next() != "/"
+            ):
+                log.debug(f"Skipping comment(c style): {self.source[self.current]}")
+                self.advance()
 
-        while self.peek() != "\n" and not self.is_end():
-            self.advance()
+        else:
+            while self.peek() != "\n" and not self.is_end():
+                log.debug(f"Skipping comment: {self.source[self.current]}")
+                self.advance()
 
     def string(self) -> None:
         while self.peek() != '"' and not self.is_end():
