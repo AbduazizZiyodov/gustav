@@ -6,15 +6,15 @@ from .errors import panic
 from .enums import TokenType
 
 
-KEYWORDS: dict[str, TokenType] = {
+KEYWORDS: t.Final[dict[str, TokenType]] = {
     "class": TokenType.CLASS,
     "super": TokenType.SUPER,
-    "self": TokenType.THIS,
-    "fn": TokenType.FUN,
+    "@": TokenType.THIS,
+    "fn": TokenType.FUNCTION,
     "ret": TokenType.RETURN,
     "false": TokenType.FALSE,
     "true": TokenType.TRUE,
-    "nil": TokenType.NIL,
+    "null": TokenType.NIL,
     "for": TokenType.FOR,
     "while": TokenType.WHILE,
     "if": TokenType.IF,
@@ -75,9 +75,11 @@ class Scanner:
             case ";":
                 self.add_token(type=TokenType.SEMICOLON)
 
+            # operators
+
             case "*":
                 self.add_token(type=TokenType.STAR)
-            # operators
+
             case "!":
                 self.add_token(
                     type=(TokenType.BANG, TokenType.BANG_EQUAL)[self.match_token("=")]
@@ -101,10 +103,7 @@ class Scanner:
                 )
 
             case "/":
-                if not (
-                    self.match_token("/", just_check=True)
-                    or self.match_token("*", just_check=True)
-                ):
+                if not self.match_token("/"):
                     self.add_token(type=TokenType.SLASH)
                 else:
                     self.comment()
@@ -113,7 +112,6 @@ class Scanner:
                 self.line += 1
 
             case " " | "\r" | "\t":
-                # ignore whitespaces
                 pass
 
             case '"':
@@ -122,8 +120,10 @@ class Scanner:
             case _:
                 if char.isdigit():
                     self.number()
-                elif char.isalpha():
+
+                elif char.isalpha() or char == "_":
                     self.identifier()
+
                 else:
                     panic(self.line, "Unexpected character")
 
@@ -145,24 +145,23 @@ class Scanner:
         return self.current >= len(self.source)
 
     def add_token(self, type: TokenType, literal: t.Optional[t.Any] = None) -> None:
-        lexeme: str | None = None
+        text = self.source[self.start : self.current]
 
-        if literal:
-            lexeme = self.source[self.start : self.current]
-
-        token = Token(type, lexeme, literal, self.line)
+        token = Token(type, text, literal, self.line)
         self.tokens.append(token)
 
-    def match_token(self, expected: str, just_check: bool = False) -> bool:
-        if self.is_end or self.source[self.current] != expected:
+    def match_token(self, expected: str) -> bool:
+        if self.is_end:
             return False
 
-        if not just_check:
-            self.current += 1
+        if self.source[self.current] != expected:
+            return False
+
+        self.current += 1
         return True
 
     def identifier(self) -> None:
-        while self.peek().isalpha() or self.peek().isnumeric():
+        while self.peek().isalnum():
             self.advance()
 
         text: str = self.source[self.start : self.current]
@@ -180,22 +179,13 @@ class Scanner:
             while self.peek().isdigit():
                 self.advance()
 
-        self.add_token(
-            type=TokenType.NUMBER,
-            literal=float(self.source[self.start : self.current]),
-        )
+        part = self.source[self.start : self.current]
+        self.add_token(type=TokenType.NUMBER, literal=float(part))
 
     def comment(self) -> None:
-        if self.source[self.current - 1] == "*":
-            log.debug("Handling c style comments")
-
-            while not self.is_end and (self.peek() != "*" and self.peek_next() != "/"):
-                log.debug(f"Skipping C style comments: {self.source[self.current]}")
-                self.advance()
-        else:
-            while self.peek() != "\n" and not self.is_end:
-                log.debug(f"Skipping comment: {self.source[self.current]}")
-                self.advance()
+        while self.peek() != "\n" and not self.is_end:
+            log.debug(f"Skipping comment: {self.source[self.current]}")
+            self.advance()
 
     def string(self) -> None:
         while self.peek() != '"' and not self.is_end:
@@ -204,7 +194,8 @@ class Scanner:
             self.advance()
 
         if self.is_end:
-            return panic(self.line, "Unterminated string")
+            panic(self.line, "Unterminated string")
+            return
 
         self.advance()
 

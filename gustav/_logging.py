@@ -1,7 +1,6 @@
 import os
 import logging
 
-
 DEBUG: bool = os.getenv("DEBUG", "").lower() in ["y", "true", "yes"]
 
 logging.basicConfig(

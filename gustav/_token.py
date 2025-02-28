@@ -1,11 +1,18 @@
+import typing as t
+from dataclasses import dataclass
+
 from .enums import TokenType
 
 
+@dataclass
 class Token:
-    def __init__(
-        self, type: TokenType, lexeme: str | None, literal: object, line: int
-    ) -> None:
-        self.type, self.lexeme, self.literal, self.line = (type, lexeme, literal, line)
+    type: TokenType
+    lexeme: str
+    literal: t.Any
+    line: int
 
     def __repr__(self) -> str:
-        return f"Token({self.type} {self.lexeme} {self.literal})"
+        return (
+            f"Token(type => {self.type} lexeme => '{self.lexeme}' "
+            f"literal => {self.literal}  line => {self.line})"
+        )
