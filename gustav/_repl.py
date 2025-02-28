@@ -9,10 +9,8 @@ from .enums import ReplCommands, ReplStatus
 
 
 def repl_main() -> int:
-    log.debug(f"{sys.executable=} {sys.argv[1:]=}")
-
     if len(sys.argv) > 2:
-        print("Usage: /.venv/bin/python3.13 -m gustav [script]")
+        print(f"Usage: {sys.executable} -m gustav [script]")
         return os.EX_USAGE
 
     if len(sys.argv) == 2:
@@ -39,16 +37,17 @@ def run_prompt() -> int:
     global had_error
 
     line_no: int = 1
+    is_running: bool = True
 
-    while True:
+    while is_running:
         try:
             line = input(f"[{line_no}] => ")
 
-            if not (line := line.strip()):
+            if not (line.strip()):
                 log.debug(f"Ignoring empty lines: {line}")
                 continue
 
-            match handle_if_command(line):
+            match handle_if_command(line.strip()):
                 case ReplStatus.NOT_HANDLED, None:
                     exec_source(line)
                     had_error = False
@@ -65,10 +64,8 @@ def run_prompt() -> int:
             sys.stdout.write("\n")
             log.debug(f"Received keyboard interrupt/eof: {exc=}")
             return os.EX_OK
-        except Exception as exc:
-            sys.stdout.write("\n")
-            log.error(f"Unexpected exception occurred: {exc=}")
-            return -1
+
+    return os.EX_OK
 
 
 def handle_if_command(line: str) -> tuple[ReplStatus, int | None]:
