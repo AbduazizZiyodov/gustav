@@ -10,7 +10,7 @@ KEYWORDS: t.Final[dict[str, TokenType]] = {
     "class": TokenType.CLASS,
     "super": TokenType.SUPER,
     "this": TokenType.THIS,
-    "fun": TokenType.FUNCTION,
+    "fun": TokenType.FUN,
     "return": TokenType.RETURN,
     "false": TokenType.FALSE,
     "true": TokenType.TRUE,
@@ -45,7 +45,7 @@ class Scanner:
         return self.tokens
 
     def next_token(self) -> None:
-        char = self.advance()
+        char = self.move_current()
 
         match char:
             case "(":
@@ -123,7 +123,7 @@ class Scanner:
                 if char.isdigit():
                     self.number()
 
-                elif char.isalpha() or char == "_":
+                elif self.is_alpha_numeric(char):
                     self.identifier()
 
                 else:
@@ -137,24 +137,14 @@ class Scanner:
             return "\0"
         return self.source[self.current + 1]
 
-    def advance(self) -> str:
+    def move_current(self) -> str:
         char: str = self.current_char
         self.current += 1
         return char
 
-    @property
-    def current_char(self) -> str:
-        return self.source[self.current]
-
-    @property
-    def is_end(self) -> bool:
-        return self.current >= len(self.source)
-
     def add_token(self, type: TokenType, literal: t.Optional[t.Any] = None) -> None:
         text = self.source[self.start : self.current]
-
-        token = Token(type, text, literal, self.line)
-        self.tokens.append(token)
+        self.tokens.append(Token(type, text, literal, self.line))
 
     def match_token(self, expected: str) -> bool:
         if self.is_end:
@@ -167,8 +157,8 @@ class Scanner:
         return True
 
     def identifier(self) -> None:
-        while self.peek().isalnum():
-            self.advance()
+        while self.is_alpha_numeric(self.peek()):
+            self.move_current()
 
         text: str = self.source[self.start : self.current]
         type: TokenType = KEYWORDS.get(text) or TokenType.IDENTIFIER
@@ -177,13 +167,13 @@ class Scanner:
 
     def number(self) -> None:
         while self.peek().isdigit():
-            self.advance()
+            self.move_current()
 
         if self.peek() == "." and self.peek_next().isdigit():
-            self.advance()
+            self.move_current()
 
             while self.peek().isdigit():
-                self.advance()
+                self.move_current()
 
         part = self.source[self.start : self.current]
         self.add_token(type=TokenType.NUMBER, literal=float(part))
@@ -192,26 +182,26 @@ class Scanner:
         while not (self.peek() == "*" and self.peek_next() == "/"):
             if self.peek() == "\n":
                 self.line += 1
-            self.advance()
+            self.move_current()
 
-        self.advance()
-        self.advance()
+        self.move_current()
+        self.move_current()
 
     def comment(self) -> None:
         while self.peek() != "\n" and not self.is_end:
-            self.advance()
+            self.move_current()
 
     def string(self) -> None:
         while self.peek() != '"' and not self.is_end:
             if self.peek() == "\n":
                 self.line += 1
-            self.advance()
+            self.move_current()
 
         if self.is_end:
             panic(self.line, "Unterminated string")
             return
 
-        self.advance()
+        self.move_current()
 
         self.add_token(
             type=TokenType.STRING,
@@ -219,5 +209,16 @@ class Scanner:
         )
 
     def eof(self) -> None:
-        eof_token: Token = Token(TokenType.EOF, "", None, self.line)
-        self.tokens.append(eof_token)
+        self.tokens.append(Token(TokenType.EOF, "", None, self.line))
+
+    @property
+    def current_char(self) -> str:
+        return self.source[self.current]
+
+    @property
+    def is_end(self) -> bool:
+        return self.current >= len(self.source)
+
+    @staticmethod
+    def is_alpha_numeric(char: str) -> bool:
+        return char.isalnum() or char == "_"
