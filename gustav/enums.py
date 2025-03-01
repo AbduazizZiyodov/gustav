@@ -15,7 +15,6 @@ class TokenType(StrEnum):
     SLASH = "SLASH"
     STAR = "STAR"
 
-    # One or two character tokens.
     BANG = "BANG"
     BANG_EQUAL = "BANG_EQUAL"
     EQUAL = "EQUAL"
@@ -25,12 +24,10 @@ class TokenType(StrEnum):
     LESS = "LESS"
     LESS_EQUAL = "LESS_EQUAL"
 
-    # Literals.
     IDENTIFIER = "IDENTIFIER"
     STRING = "STRING"
     NUMBER = "NUMBER"
 
-    # Keywords.
     AND = "AND"
     CLASS = "CLASS"
     ELSE = "ELSE"

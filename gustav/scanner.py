@@ -1,6 +1,6 @@
 import typing as t
 
-from ._logging import log
+from ._logging import log  # noqa: F401
 from ._token import Token
 from .errors import panic
 from .enums import TokenType
@@ -9,19 +9,19 @@ from .enums import TokenType
 KEYWORDS: t.Final[dict[str, TokenType]] = {
     "class": TokenType.CLASS,
     "super": TokenType.SUPER,
-    "@": TokenType.THIS,
-    "fn": TokenType.FUNCTION,
-    "ret": TokenType.RETURN,
+    "this": TokenType.THIS,
+    "fun": TokenType.FUNCTION,
+    "return": TokenType.RETURN,
     "false": TokenType.FALSE,
     "true": TokenType.TRUE,
-    "null": TokenType.NIL,
+    "nil": TokenType.NIL,
     "for": TokenType.FOR,
     "while": TokenType.WHILE,
     "if": TokenType.IF,
     "else": TokenType.ELSE,
     "and": TokenType.AND,
     "or": TokenType.OR,
-    "log": TokenType.PRINT,
+    "print": TokenType.PRINT,
     "var": TokenType.VAR,
 }
 
@@ -103,10 +103,12 @@ class Scanner:
                 )
 
             case "/":
-                if not self.match_token("/"):
-                    self.add_token(type=TokenType.SLASH)
-                else:
+                if self.match_token("/"):
                     self.comment()
+                elif self.match_token("*"):
+                    self.multiline_comment()
+                else:
+                    self.add_token(type=TokenType.SLASH)
 
             case "\n":
                 self.line += 1
@@ -128,7 +130,7 @@ class Scanner:
                     panic(self.line, "Unexpected character")
 
     def peek(self) -> str:
-        return "\0" if self.is_end else self.source[self.current]
+        return "\0" if self.is_end else self.current_char
 
     def peek_next(self) -> str:
         if self.current + 1 >= len(self.source):
@@ -136,9 +138,13 @@ class Scanner:
         return self.source[self.current + 1]
 
     def advance(self) -> str:
-        char: str = self.source[self.current]
+        char: str = self.current_char
         self.current += 1
         return char
+
+    @property
+    def current_char(self) -> str:
+        return self.source[self.current]
 
     @property
     def is_end(self) -> bool:
@@ -154,7 +160,7 @@ class Scanner:
         if self.is_end:
             return False
 
-        if self.source[self.current] != expected:
+        if self.current_char != expected:
             return False
 
         self.current += 1
@@ -182,9 +188,17 @@ class Scanner:
         part = self.source[self.start : self.current]
         self.add_token(type=TokenType.NUMBER, literal=float(part))
 
+    def multiline_comment(self) -> None:
+        while not (self.peek() == "*" and self.peek_next() == "/"):
+            if self.peek() == "\n":
+                self.line += 1
+            self.advance()
+
+        self.advance()
+        self.advance()
+
     def comment(self) -> None:
         while self.peek() != "\n" and not self.is_end:
-            log.debug(f"Skipping comment: {self.source[self.current]}")
             self.advance()
 
     def string(self) -> None:

@@ -90,7 +90,8 @@ def handle_if_command(line: str) -> tuple[ReplStatus, int | None]:
 
 
 def exec_source(source: str) -> None:
-    log.debug(f"Received: {len(source)=} \n{source=}")
+    source += "\n"
+    log.debug(f"Received source's length{len(source)} & contents of source:\n {source}")
 
     tokens = Scanner(source).scan_tokens()
 
