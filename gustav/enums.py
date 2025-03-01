@@ -32,7 +32,7 @@ class TokenType(StrEnum):
     CLASS = "CLASS"
     ELSE = "ELSE"
     FALSE = "FALSE"
-    FUNCTION = "FUNCTION"
+    FUN = "FUN"
     FOR = "FOR"
     IF = "IF"
     NIL = "NIL"
