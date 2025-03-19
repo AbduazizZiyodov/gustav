@@ -1,12 +1,13 @@
 import os
 import sys
 import subprocess
-from rich import print
+from rich import print as printr
+from difflib import HtmlDiff
 
 
 def main() -> int:
     if len(sys.argv) != 2:
-        print(f"Usage: {sys.executable} test.py <TEST_FILE_NAME>")
+        printr(f"Usage: {sys.executable} test.py <TEST_FILE_NAME>")
         return os.EX_DATAERR
 
     filename: str = sys.argv[1]
@@ -23,15 +24,15 @@ def main() -> int:
 
     cmd = f"DEBUG=yes {sys.executable} -m gustav {filename}"
 
-    print(f"TRACE: {cmd=}")
-    print(f"INFO : Test results should be: {test_cases}")
+    printr(f"TRACE: {cmd=}")
+    printr(f"INFO : Test results should be: {test_cases}")
 
     result: bytes = subprocess.run(cmd, shell=True, capture_output=True).stderr
 
     output: str = result.decode()
-    print("[bold blue][OUTPUT][/bold blue]")
-    print(output)
-    print("[bold blue][END OUTPUT][/bold blue]")
+    printr("[bold blue][OUTPUT][/bold blue]")
+    printr(output)
+    printr("[bold blue][END OUTPUT][/bold blue]")
 
     output_lines: list[str] = list()
 
@@ -46,11 +47,21 @@ def main() -> int:
             splitted = line.split("DEBUG: ")
             output_lines.append(splitted[1])
 
-    print("[DEBUG INFO]")
-    print(f"{test_cases=}\n{output_lines=}\n{len(test_cases)=}\n{len(output_lines)=}")
-    print("[END DEBUG INFO]")
+    printr("[DEBUG INFO]")
+    printr(f"{test_cases=}\n{output_lines=}\n{len(test_cases)=}\n{len(output_lines)=}")
+    printr("[END DEBUG INFO]")
 
-    assert len(output_lines) == len(test_cases), "Not enough lines produced"
+    if len(output_lines) != len(test_cases):
+        diff = HtmlDiff()
+        html_diff = diff.make_file(test_cases, output_lines)
+
+        with open("diff.html", "w", encoding="utf-8") as diff_file:
+            diff_file.write(html_diff)
+
+        printr(
+            "[bold red][ERROR][/bold red] Not enough lines produced, check diff.html (test cases diff output lines)"
+        )
+        return os.EX_DATAERR
 
     passed_count, failed_count = 0, 0
 
@@ -61,14 +72,14 @@ def main() -> int:
             if passed
             else "[bold red]FAILED[/bold red]"
         )
-        print(f"[{status}] {expected=} {got=}")
+        printr(f"[{status}] {expected=} {got=}")
 
         if passed:
             passed_count += 1
         else:
             failed_count += 1
 
-    print(
+    printr(
         f"[bold blue]Results[/bold blue] => Passed [bold green]{passed_count}[/bold green] Failed [bold red]{failed_count}[/bold red]"
     )
 
