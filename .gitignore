@@ -1,6 +1,7 @@
 # Custom
 examples/
 .vscode
+diff.html
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
