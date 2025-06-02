@@ -1,8 +1,8 @@
 import os
 import sys
 import subprocess
-from rich import print as printr
 from difflib import HtmlDiff
+from rich import print as printr
 
 
 def main() -> int:
