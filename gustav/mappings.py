@@ -3,7 +3,7 @@ import typing as t
 from .enums import TokenType
 
 
-KEYWORDS: t.Final[dict[str, TokenType]] = {
+RESERVED_KEYWORDS: t.Final[dict[str, TokenType]] = {
     "class": TokenType.CLASS,
     "super": TokenType.SUPER,
     "this": TokenType.THIS,

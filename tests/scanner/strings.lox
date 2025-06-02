@@ -3,4 +3,4 @@
 
 // expect: STRING "" 
 // expect: STRING "string" string
-// expect: EOF  null
+// expect: EOF  None
