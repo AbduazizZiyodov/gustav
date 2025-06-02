@@ -2,6 +2,7 @@ import typing as t
 
 from .enums import TokenType
 
+__all__ = ["RESERVED_KEYWORDS"]
 
 RESERVED_KEYWORDS: t.Final[dict[str, TokenType]] = {
     "class": TokenType.CLASS,

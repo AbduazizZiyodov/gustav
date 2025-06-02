@@ -19,3 +19,6 @@ class Token:
             f"Token(type => {self.type} lexeme => '{self.lexeme}' "
             f"literal => {self.literal}  line => {self.line})"
         )
+
+
+__all__ = ["Token"]
