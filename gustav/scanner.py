@@ -6,6 +6,22 @@ from .errors import panic
 from .enums import TokenType
 from .mappings import RESERVED_KEYWORDS
 
+__all__ = ["Scanner"]
+
+
+SINGLE_TOKEN_MAPPING: t.Final[dict[str, TokenType]] = {
+    "(": TokenType.LEFT_PAREN,
+    ")": TokenType.RIGHT_PAREN,
+    "{": TokenType.LEFT_BRACE,
+    "}": TokenType.RIGHT_BRACE,
+    ",": TokenType.COMMA,
+    ".": TokenType.DOT,
+    "-": TokenType.MINUS,
+    "+": TokenType.PLUS,
+    ";": TokenType.SEMICOLON,
+    "*": TokenType.STAR,
+}
+
 
 class Scanner:
     def __init__(self, source: str) -> None:
@@ -28,38 +44,11 @@ class Scanner:
     def next_token(self) -> None:
         char: str = self.move_current()
 
+        if char in SINGLE_TOKEN_MAPPING:
+            self.add_token(type=SINGLE_TOKEN_MAPPING[char])
+            return
+
         match char:
-            case "(":
-                self.add_token(type=TokenType.LEFT_PAREN)
-
-            case ")":
-                self.add_token(type=TokenType.RIGHT_PAREN)
-
-            case "{":
-                self.add_token(type=TokenType.LEFT_BRACE)
-
-            case "}":
-                self.add_token(type=TokenType.RIGHT_BRACE)
-
-            case ",":
-                self.add_token(type=TokenType.COMMA)
-
-            case ".":
-                self.add_token(type=TokenType.DOT)
-
-            case "-":
-                self.add_token(type=TokenType.MINUS)
-
-            case "+":
-                self.add_token(type=TokenType.PLUS)
-
-            case ";":
-                self.add_token(type=TokenType.SEMICOLON)
-
-            # operators
-            case "*":
-                self.add_token(type=TokenType.STAR)
-
             case "!":
                 self.add_token(
                     type=(TokenType.BANG, TokenType.BANG_EQUAL)[self.match_token("=")]

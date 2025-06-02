@@ -7,6 +7,8 @@ from .scanner import Scanner
 from .errors import had_error
 from .enums import ReplCommands, ReplStatus
 
+__all__ = ["repl_main"]
+
 
 def repl_main() -> int:
     if len(sys.argv) > 2:
