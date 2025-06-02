@@ -1,0 +1,21 @@
+(){};,+-*!===<=>=!=<>/.
+
+// expect: LEFT_PAREN ( None
+// expect: RIGHT_PAREN ) None
+// expect: LEFT_BRACE { None
+// expect: RIGHT_BRACE } None
+// expect: SEMICOLON ; None
+// expect: COMMA , None
+// expect: PLUS + None
+// expect: MINUS - None
+// expect: STAR * None
+// expect: BANG_EQUAL != None
+// expect: EQUAL_EQUAL == None
+// expect: LESS_EQUAL <= None
+// expect: GREATER_EQUAL >= None
+// expect: BANG_EQUAL != None
+// expect: LESS < None
+// expect: GREATER > None
+// expect: SLASH / None
+// expect: DOT . None
+// expect: EOF  None

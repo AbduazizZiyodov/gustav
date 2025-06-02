@@ -4,7 +4,7 @@ from ._logging import log  # noqa: F401
 from ._token import Token
 from .errors import panic
 from .enums import TokenType
-from .mappings import KEYWORDS
+from .mappings import RESERVED_KEYWORDS
 
 
 class Scanner:
@@ -26,7 +26,7 @@ class Scanner:
         return self.tokens
 
     def next_token(self) -> None:
-        char = self.move_current()
+        char: str = self.move_current()
 
         match char:
             case "(":
@@ -57,7 +57,6 @@ class Scanner:
                 self.add_token(type=TokenType.SEMICOLON)
 
             # operators
-
             case "*":
                 self.add_token(type=TokenType.STAR)
 
@@ -103,10 +102,8 @@ class Scanner:
             case _:
                 if char.isdigit():
                     self.number()
-
                 elif self.is_alpha_numeric(char):
                     self.identifier()
-
                 else:
                     panic(self.line, "Unexpected character")
 
@@ -125,7 +122,8 @@ class Scanner:
 
     def add_token(self, type: TokenType, literal: t.Optional[t.Any] = None) -> None:
         text = self.source[self.start : self.current]
-        self.tokens.append(Token(type, text, literal, self.line))
+        new_token = Token(type, text, literal, self.line)
+        self.tokens.append(new_token)
 
     def match_token(self, expected: str) -> bool:
         if self.is_end:
@@ -135,6 +133,7 @@ class Scanner:
             return False
 
         self.current += 1
+
         return True
 
     def identifier(self) -> None:
@@ -142,7 +141,7 @@ class Scanner:
             self.move_current()
 
         text: str = self.source[self.start : self.current]
-        type: TokenType = KEYWORDS.get(text) or TokenType.IDENTIFIER
+        type: TokenType = RESERVED_KEYWORDS.get(text) or TokenType.IDENTIFIER
 
         self.add_token(type=type)
 

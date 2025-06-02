@@ -1,0 +1,18 @@
+print
+
+
+if //.... hello
+
+
+/// hello world
+
+
+/*
+hello world
+*/
+
+
+
+// expect: PRINT print None
+// expect: IF if None
+// expect: EOF  None
