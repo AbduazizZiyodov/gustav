@@ -4,7 +4,7 @@ from .logging import LOG  # noqa: F401
 from .types import Token
 from .errors import error
 from .enums import TokenType
-from .exceptions import ParseError
+from .exceptions import GusParseError
 from .ast import Expression, Binary, Groupping, Literal, Unary
 
 __all__ = ["Parser"]
@@ -31,7 +31,7 @@ class Parser:
     def parse(self) -> Expression | None:
         try:
             return self.expression()
-        except ParseError:
+        except GusParseError:
             return None
 
     def expression(self) -> Expression:
@@ -104,7 +104,9 @@ class Parser:
             return Literal(self.previous().literal)
 
         if self.match(TokenType.LEFT_PAREN):
+            LOG.debug("inside left paren")
             expr: Expression = self.expression()
+            LOG.debug(f"{expr=}, needs right paren")
             self.consume(TokenType.RIGHT_PAREN, "Expect ')' after expression")
             return Groupping(expr)
 
@@ -116,9 +118,9 @@ class Parser:
 
         raise self.error(self.peek(), message)
 
-    def error(self, token: Token, message: str) -> ParseError:
+    def error(self, token: Token, message: str) -> GusParseError:
         error(token, message)
-        return ParseError()
+        return GusParseError()
 
     def synchronize(self) -> None:
         self.advance()
