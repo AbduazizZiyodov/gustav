@@ -1,4 +1,4 @@
-from ._repl import repl_main as main
+from .cli import cli_handler as main
 
 
 if __name__ == "__main__":

@@ -3,13 +3,18 @@ import typing as t
 
 from rich import print as printr
 
-from ._token import Token
+from .types import Token
 from .enums import TokenType
 from .ast import Visitor, Expression, Binary, Groupping, Unary, Literal
 
+__all__ = ["AstPrinter"]
+
 
 class AstPrinter(Visitor[str]):
-    def print(self, expression: Expression) -> str:
+    def get_string_repr(self, expression: Expression | None) -> str:
+        if not expression:
+            return str()
+
         return expression.accept(self)
 
     def parenthesize(self, name: str, *expressions: Expression) -> str:
@@ -46,13 +51,14 @@ class AstPrinter(Visitor[str]):
 
 
 def main() -> int:
+    # test expression
     expression = Binary(
         Unary(Token(TokenType.MINUS, "-", None, 1), Literal(123)),
         Token(TokenType.STAR, "*", None, 1),
         Groupping(Literal(45.67)),
     )
 
-    printr(AstPrinter().print(expression))
+    printr(AstPrinter().get_string_repr(expression))
     return os.EX_OK
 
 

@@ -41,7 +41,9 @@ import typing as t
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
-from ._token import Token
+from .types import Token
+
+__all__ = {[type for type in ["Expression", *TYPES.keys()]]}
 
 
 @dataclass

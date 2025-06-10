@@ -2,7 +2,7 @@ import typing as t
 
 from .enums import TokenType
 
-__all__ = ["RESERVED_KEYWORDS"]
+__all__ = ["RESERVED_KEYWORDS", "SINGLE_TOKEN_MAPPING"]
 
 RESERVED_KEYWORDS: t.Final[dict[str, TokenType]] = {
     "class": TokenType.CLASS,
@@ -21,4 +21,18 @@ RESERVED_KEYWORDS: t.Final[dict[str, TokenType]] = {
     "or": TokenType.OR,
     "print": TokenType.PRINT,
     "var": TokenType.VAR,
+}
+
+
+SINGLE_TOKEN_MAPPING: t.Final[dict[str, TokenType]] = {
+    "(": TokenType.LEFT_PAREN,
+    ")": TokenType.RIGHT_PAREN,
+    "{": TokenType.LEFT_BRACE,
+    "}": TokenType.RIGHT_BRACE,
+    ",": TokenType.COMMA,
+    ".": TokenType.DOT,
+    "-": TokenType.MINUS,
+    "+": TokenType.PLUS,
+    ";": TokenType.SEMICOLON,
+    "*": TokenType.STAR,
 }
