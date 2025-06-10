@@ -1,40 +1,37 @@
 import sys
 
-from ._logging import log
+from .types import Token
+from .enums import TokenType
 
-COLORED_OUTPUT: bool = False
-
-try:
-    import colorama
-    from colorama import Fore, Style
-
-    colorama.init()
-    COLORED_OUTPUT = True
-
-except ImportError:
-    log.debug("Coloroma not found")
+__all__ = ["had_error", "panic", "error", "reset_had_error", "get_had_error"]
 
 
 had_error: bool = False
 
 
 def panic(line: int, message: str) -> None:
-    # fatal situation, report & exit
     report(line, "", message)
 
 
 def report(line: int, where: str, message: str) -> None:
     global had_error
-
-    if not COLORED_OUTPUT:
-        print(f"[line {line}] Error {where}: {message}", file=sys.stderr)
-    else:
-        print(
-            f"{Fore.BLUE}[line {line}]{Style.RESET_ALL} {Fore.RED}Error{Style.RESET_ALL} {where}: {message}",
-            file=sys.stderr,
-        )
-
     had_error = True
 
+    print(f"[line {line}] Error {where}: {message}", file=sys.stderr)
 
-__all__ = ["had_error", "panic"]
+
+def error(token: Token, message: str) -> None:
+    if token.type != TokenType.EOF:
+        report(token.line, " at the end", message)
+    else:
+        report(token.line, f" at '{token.lexeme}'", message)
+
+
+def reset_had_error() -> None:
+    global had_error
+    had_error = False
+
+
+def get_had_error() -> bool:
+    global had_error
+    return had_error

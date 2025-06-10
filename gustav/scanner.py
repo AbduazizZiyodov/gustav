@@ -1,26 +1,12 @@
 import typing as t
 
-from ._logging import log  # noqa: F401
-from ._token import Token
+from .logging import log  # noqa: F401
+from .types import Token
 from .errors import panic
 from .enums import TokenType
-from .mappings import RESERVED_KEYWORDS
+from .mappings import RESERVED_KEYWORDS, SINGLE_TOKEN_MAPPING
 
 __all__ = ["Scanner"]
-
-
-SINGLE_TOKEN_MAPPING: t.Final[dict[str, TokenType]] = {
-    "(": TokenType.LEFT_PAREN,
-    ")": TokenType.RIGHT_PAREN,
-    "{": TokenType.LEFT_BRACE,
-    "}": TokenType.RIGHT_BRACE,
-    ",": TokenType.COMMA,
-    ".": TokenType.DOT,
-    "-": TokenType.MINUS,
-    "+": TokenType.PLUS,
-    ";": TokenType.SEMICOLON,
-    "*": TokenType.STAR,
-}
 
 
 class Scanner:
@@ -32,7 +18,7 @@ class Scanner:
         self.start: int = 0
         self.current: int = 0
 
-    def scan_tokens(self) -> list[Token]:
+    def get_tokens(self) -> list[Token]:
         while not self.is_end:
             self.start = self.current
             self.next_token()
@@ -74,8 +60,10 @@ class Scanner:
             case "/":
                 if self.match_token("/"):
                     self.comment()
+
                 elif self.match_token("*"):
                     self.multiline_comment()
+
                 else:
                     self.add_token(type=TokenType.SLASH)
 
@@ -91,8 +79,10 @@ class Scanner:
             case _:
                 if char.isdigit():
                     self.number()
+
                 elif self.is_alpha_numeric(char):
                     self.identifier()
+
                 else:
                     panic(self.line, "Unexpected character")
 
@@ -102,15 +92,18 @@ class Scanner:
     def peek_next(self) -> str:
         if self.current + 1 >= len(self.source):
             return "\0"
+
         return self.source[self.current + 1]
 
     def move_current(self) -> str:
         char: str = self.current_char
         self.current += 1
+
         return char
 
     def add_token(self, type: TokenType, literal: t.Optional[t.Any] = None) -> None:
         text = self.source[self.start : self.current]
+
         new_token = Token(type, text, literal, self.line)
         self.tokens.append(new_token)
 

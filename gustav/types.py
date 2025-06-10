@@ -3,6 +3,8 @@ from dataclasses import dataclass
 
 from .enums import TokenType
 
+__all__ = ["Token"]
+
 
 @dataclass
 class Token:
@@ -15,10 +17,4 @@ class Token:
         return f"{self.type} {self.lexeme} {self.literal}"
 
     def __repr__(self) -> str:
-        return (
-            f"Token(type => {self.type} lexeme => '{self.lexeme}' "
-            f"literal => {self.literal}  line => {self.line})"
-        )
-
-
-__all__ = ["Token"]
+        return f"Token(type={self.type} lexeme='{self.lexeme}' literal={self.literal})"
