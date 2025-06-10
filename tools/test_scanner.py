@@ -2,12 +2,11 @@ import os
 import sys
 import subprocess
 from difflib import HtmlDiff
-from rich import print as printr
 
 
 def main() -> int:
     if len(sys.argv) != 2:
-        printr(f"Usage: {sys.executable} test.py <TEST_FILE_NAME>")
+        print(f"Usage: {sys.executable} test.py <TEST_FILE_NAME>")
         return os.EX_DATAERR
 
     filename: str = sys.argv[1]
@@ -24,15 +23,15 @@ def main() -> int:
 
     cmd = f"DEBUG=yes {sys.executable} -m gustav {filename}"
 
-    printr(f"TRACE: {cmd=}")
-    printr(f"INFO : Test results should be: {test_cases}")
+    print(f"TRACE: {cmd=}")
+    print(f"INFO : Test results should be: {test_cases}")
 
     result: bytes = subprocess.run(cmd, shell=True, capture_output=True).stderr
 
     output: str = result.decode()
-    printr("[bold blue][OUTPUT][/bold blue]")
-    printr(output)
-    printr("[bold blue][END OUTPUT][/bold blue]")
+    print("[OUTPUT]")
+    print(output)
+    print("[END OUTPUT]")
 
     output_lines: list[str] = list()
 
@@ -47,9 +46,9 @@ def main() -> int:
             splitted = line.split("DEBUG: ")
             output_lines.append(splitted[1])
 
-    printr("[DEBUG INFO]")
-    printr(f"{test_cases=}\n{output_lines=}\n{len(test_cases)=}\n{len(output_lines)=}")
-    printr("[END DEBUG INFO]")
+    print("[DEBUG INFO]")
+    print(f"{test_cases=}\n{output_lines=}\n{len(test_cases)=}\n{len(output_lines)=}")
+    print("[END DEBUG INFO]")
 
     if len(output_lines) != len(test_cases):
         diff = HtmlDiff()
@@ -58,8 +57,8 @@ def main() -> int:
         with open("diff.html", "w", encoding="utf-8") as diff_file:
             diff_file.write(html_diff)
 
-        printr(
-            "[bold red][ERROR][/bold red] Not enough lines produced, check diff.html (test cases diff output lines)"
+        print(
+            "[ERROR] Not enough lines produced, check diff.html (test cases diff output lines)"
         )
         return os.EX_DATAERR
 
@@ -67,21 +66,15 @@ def main() -> int:
 
     for expected, got in zip(test_cases, output_lines):
         passed: bool = expected == got
-        status = (
-            "[bold green]PASSED[/bold green]"
-            if passed
-            else "[bold red]FAILED[/bold red]"
-        )
-        printr(f"[{status}] {expected=} {got=}")
+        status = "PASSED" if passed else "FAILED"
+        print(f"[{status}] {expected=} {got=}")
 
         if passed:
             passed_count += 1
         else:
             failed_count += 1
 
-    printr(
-        f"[bold blue]Results[/bold blue] => Passed [bold green]{passed_count}[/bold green] Failed [bold red]{failed_count}[/bold red]"
-    )
+    print(f"Results => Passed {passed_count} Failed {failed_count}")
 
     return os.EX_OK
 
