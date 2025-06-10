@@ -1,7 +1,7 @@
 import os
 import logging
 
-__all__ = ["log"]
+__all__ = ["LOG"]
 
 DEBUG: bool = os.getenv("DEBUG", default=str()).lower() in ["y", "true", "yes"]
 
@@ -11,4 +11,4 @@ logging.basicConfig(
 )
 
 
-log = logging.getLogger(__name__)
+LOG = logging.getLogger(__name__)

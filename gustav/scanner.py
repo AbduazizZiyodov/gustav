@@ -1,6 +1,6 @@
 import typing as t
 
-from .logging import log  # noqa: F401
+from .logging import LOG  # noqa: F401
 from .types import Token
 from .errors import panic
 from .enums import TokenType

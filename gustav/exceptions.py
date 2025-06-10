@@ -1,1 +1,2 @@
-class ParseError(RuntimeError): ...
+class ParseError(RuntimeError):
+    pass

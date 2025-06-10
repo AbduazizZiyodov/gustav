@@ -1,6 +1,5 @@
-from .cli import cli_handler as main
+from .main import Gustav
 
 
 if __name__ == "__main__":
-    # do not put anything here
-    raise SystemExit(main())
+    raise SystemExit(Gustav().main())

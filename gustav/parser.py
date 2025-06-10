@@ -1,11 +1,13 @@
 import typing as t  # noqa: F401
 
-from .logging import log  # noqa: F401
+from .logging import LOG  # noqa: F401
 from .types import Token
 from .errors import error
 from .enums import TokenType
 from .exceptions import ParseError
 from .ast import Expression, Binary, Groupping, Literal, Unary
+
+__all__ = ["Parser"]
 
 
 class Parser:
@@ -25,11 +27,6 @@ class Parser:
     def __init__(self, tokens: list[Token]) -> None:
         self.current: int = 0
         self.tokens: list[Token] = tokens
-
-        log.debug("TOKENS passed on parser")
-
-        for index, token in enumerate(self.tokens):
-            print(f"{index} => {token}")
 
     def parse(self) -> Expression | None:
         try:

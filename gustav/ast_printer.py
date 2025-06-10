@@ -1,8 +1,6 @@
 import os
 import typing as t
 
-from rich import print as printr
-
 from .types import Token
 from .enums import TokenType
 from .ast import Visitor, Expression, Binary, Groupping, Unary, Literal
@@ -58,7 +56,7 @@ def main() -> int:
         Groupping(Literal(45.67)),
     )
 
-    printr(AstPrinter().get_string_repr(expression))
+    print(AstPrinter().get_string_repr(expression))
     return os.EX_OK
 
 
