@@ -69,7 +69,6 @@ def define_ast(output_dir: str, base_name: str, types: NodeDefinitionMapping) ->
     define_visitor(file, base_name, types)
 
     for class_name, properties in types.items():
-        print(f"[bold cyan]DEBUG: [/bold cyan] {class_name=} {properties=}")
         define_type(
             file,
             base_name,
@@ -88,7 +87,7 @@ def define_type(
 ) -> None:
     file.write(f"@dataclass(slots=True)\nclass {class_name}({base_name}):\n")
 
-    for index, field_type_pair in enumerate(field_type_pairs):
+    for field_type_pair in field_type_pairs:
         field_type, field_name = field_type_pair["type"], field_type_pair["name"]
         file.write(f"\t{field_name}: {field_type}\n")
 
@@ -115,13 +114,15 @@ def define_visitor(
 
 def main() -> int:
     output_dir: str = "gustav/ast.py"
+    print(f"Generating AST, output => {output_dir}")
 
-    print("[bold cyan]Generating AST ...[/bold cyan]")
-    print(f"Output directory => [bold green]{output_dir}[/bold green]")
-
-    define_ast(output_dir, BASE_NAME, TYPES)
-
-    return os.EX_OK
+    try:
+        define_ast(output_dir, BASE_NAME, TYPES)
+    except Exception as exc:
+        print(f"Error: {exc}")
+        return os.EX_DATAERR
+    else:
+        return os.EX_OK
 
 
 if __name__ == "__main__":

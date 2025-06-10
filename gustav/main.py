@@ -7,7 +7,8 @@ from .logging import LOG
 from .parser import Parser
 from .scanner import Scanner
 from .ast_printer import AstPrinter
-from .errors import has_error, reset_error
+from .interpreter import Interpreter
+from .errors import has_error, reset_error, has_runtime_error
 
 __all__ = ["Gustav"]
 
@@ -34,7 +35,12 @@ class Gustav:
             LOG.debug(f"File with {file_name=} is not found: {exc=}")
             return os.EX_NOINPUT
         else:
-            return os.EX_DATAERR if has_error() else os.EX_OK
+            if has_error():
+                return os.EX_DATAERR
+            if has_runtime_error():
+                return 70  # yes
+
+        return os.EX_OK
 
     def run_from_repl(self) -> int:
         line_no: int = 1
@@ -90,3 +96,7 @@ class Gustav:
         representation: str = printer.get_string_repr(expression)
 
         LOG.debug(f"Result of ast printer:\n{representation}")
+        LOG.debug("Firing interpreter !")
+
+        interpreter = Interpreter()
+        interpreter.interpret(expression)

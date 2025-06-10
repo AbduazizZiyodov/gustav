@@ -2,8 +2,10 @@ import sys
 
 from .types import Token
 from .enums import TokenType
+from .exceptions import GusRuntimeError
 
 had_error: bool = False
+had_runtime_error: bool = False
 
 
 def panic(line: int, message: str) -> None:
@@ -35,3 +37,23 @@ def reset_error() -> None:
 def has_error() -> bool:  # yes
     global had_error
     return had_error
+
+
+def set_runtime_error() -> None:
+    global had_runtime_error
+    had_runtime_error = True
+
+
+def reset_runtime_error() -> None:
+    global had_runtime_error
+    had_runtime_error = False
+
+
+def has_runtime_error() -> bool:  # yes
+    global had_runtime_error
+    return had_runtime_error
+
+
+def runtime_error(exc: GusRuntimeError) -> None:
+    print(f"{exc.error_message} at [line {exc.token.line}]", file=sys.stderr)
+    set_runtime_error()
