@@ -2,18 +2,35 @@ import os
 import sys
 import typing as t  # noqa: F401
 
+from pprint import pformat
+
 from .types import Token
-from .logging import LOG
+from .ast import Statement
 from .parser import Parser
 from .scanner import Scanner
-from .ast_printer import AstPrinter
+from .logging import LOG, DEBUG
 from .interpreter import Interpreter
+from .exceptions import GusParseError
 from .errors import has_error, reset_error, has_runtime_error
+
+rich_installed = False
+
+try:
+    from rich import print as printr
+
+    rich_installed = True
+except ImportError:
+    LOG.debug("Rich is not installed, to install run 'uv add --dev rich'")
+
 
 __all__ = ["Gustav"]
 
 
 class Gustav:
+    line_no: int = 1
+    exit_code: int = os.EX_OK  # default
+    repl_is_running: bool = False
+
     def main(self) -> int:
         if len(sys.argv) > 2:
             print(f"Usage: {sys.executable} -m gustav [script]")
@@ -31,6 +48,9 @@ class Gustav:
             with open(file_name, "r") as source_file:
                 self.exec_source(source_file.read())
 
+        except GusParseError as exc:
+            print(f"ParseError occurred: {exc=}")
+
         except FileNotFoundError as exc:
             LOG.debug(f"File with {file_name=} is not found: {exc=}")
             return os.EX_NOINPUT
@@ -43,31 +63,38 @@ class Gustav:
         return os.EX_OK
 
     def run_from_repl(self) -> int:
-        line_no: int = 1
-        is_running: bool = True
+        self.repl_is_running = True
 
-        while is_running:
-            try:
-                line = input(f"[{line_no}] => ")
+        while self.repl_is_running:
+            self.repl_main_loop()
 
-                if not (line.strip()):
-                    LOG.debug(f"Ignoring empty lines: {line}")
-                    continue
+        return self.exit_code
 
-                self.exec_source(line)
+    def repl_main_loop(self) -> None:
+        try:
+            line = input(f"[{self.line_no}] => ")
 
-                reset_error()
+            if not (line.strip()):
+                LOG.debug(f"Ignoring empty input: {line}")
+                return
 
-                line_no += 1
+            self.exec_source(line)
 
-            except (KeyboardInterrupt, EOFError) as exc:
-                sys.stdout.write("\n")
-                LOG.debug(f"Received keyboard interrupt/eof: {exc=}")
-                return os.EX_OK
+        except GusParseError as exc:
+            print(f"ParseError occurred: {exc=}")
 
-        return os.EX_OK
+        except (KeyboardInterrupt, EOFError) as exc:
+            sys.stdout.write("\n")
+            LOG.debug(f"Received keyboard interrupt/eof: {exc=}")
+            self.repl_is_running = False
+
+        finally:
+            reset_error()
+            self.line_no += 1
 
     def exec_source(self, source: str) -> None:
+        global DEBUG, rich_installed
+
         source += "\n"
         LOG.debug(
             f"Received source's length is {len(source)} chars & contents of source:\n{source}"
@@ -76,27 +103,30 @@ class Gustav:
         scanner = Scanner(source)
         tokens: list[Token] = scanner.get_tokens()
 
+        if has_error():
+            LOG.debug("Scanning failed, returning ...")
+            return
+
         LOG.debug(f"Scanning completed, {len(tokens)} tokens scanned:")
 
         for index, token in enumerate(tokens):
-            print(f"{index} => {token}")
+            LOG.debug(f"{index} => {token}")
 
         parser: Parser = Parser(tokens)
-        expression = parser.parse()
 
-        LOG.debug("Parsing completed")
+        statements: list[Statement] = parser.parse()
+        LOG.debug("Parsing finished\n")
 
-        if has_error():
-            LOG.debug("Parsing failed, returning ...")
-            return
+        if DEBUG:
+            for index, statement in enumerate(statements):
+                if rich_installed:
+                    printr(f"[bold green]Statement[/bold green] {index}:")
+                    printr(statement)
+                    print()
+                else:
+                    formatted_statement = pformat(statement)
+                    LOG.debug(f"{index} => {formatted_statement}")
 
-        LOG.debug(f"Resulting expression after parsing:\n{expression=}")
-
-        printer = AstPrinter()
-        representation: str = printer.get_string_repr(expression)
-
-        LOG.debug(f"Result of ast printer:\n{representation}")
-        LOG.debug("Firing interpreter !")
-
+        LOG.debug("Interpreter result:")
         interpreter = Interpreter()
-        interpreter.interpret(expression)
+        interpreter.interpret(statements)
