@@ -62,12 +62,15 @@ class Interpreter(Visitor[object]):
             case TokenType.GREATER:
                 self.check_number_operands(expression.operator, left, right)
                 return left > right
+
             case TokenType.GREATER_EQUAL:
                 self.check_number_operands(expression.operator, left, right)
                 return left >= right
+
             case TokenType.LESS:
                 self.check_number_operands(expression.operator, left, right)
                 return left < right
+
             case TokenType.LESS_EQUAL:
                 self.check_number_operands(expression.operator, left, right)
                 return left <= right
@@ -75,21 +78,35 @@ class Interpreter(Visitor[object]):
             case TokenType.MINUS:
                 self.check_number_operands(expression.operator, left, right)
                 return left - right
-            case TokenType.PLUS:  # TODO: string concatenation operator
-                if type(left) is type(right):
-                    return left + right
+
+            case TokenType.PLUS:
+                self.check_number_operands(expression.operator, left, right)
+                return left + right
+
+            case TokenType.PLUS_PLUS:  # concatenation operator
+                if isinstance(left, str) and isinstance(right, str):
+                    return "".join((left, right))
+
                 raise GusRuntimeError(
-                    expression.operator, "Operands must be two numbers or strings"
+                    expression.operator,
+                    "Both operands must be string to use concatenation(++) operator",
                 )
+
             case TokenType.STAR:
                 self.check_number_operands(expression.operator, left, right)
                 return left * right
+
             case TokenType.SLASH:
                 self.check_number_operands(expression.operator, left, right)
+
+                if right == 0:
+                    return float("inf")
+
                 return left / right
             # equality
             case TokenType.BANG_EQUAL:
                 return not self.is_equal(left, right)
+
             case TokenType.EQUAL_EQUAL:
                 return self.is_equal(left, right)
 
@@ -101,7 +118,8 @@ class Interpreter(Visitor[object]):
             for operand in operands
         ):
             return None
-        raise GusRuntimeError(operator, "Operand must be a number")
+
+        raise GusRuntimeError(operator, "Operands must be a number")
 
     def is_equal(self, a: t.Any, b: t.Any) -> bool:
         return bool(a == b)

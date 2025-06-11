@@ -65,7 +65,7 @@ class Parser:
     def term(self) -> Expression:
         expr = self.factor()
 
-        while self.match(TokenType.MINUS, TokenType.PLUS):
+        while self.match(TokenType.MINUS, TokenType.PLUS, TokenType.PLUS_PLUS):
             operator: Token = self.previous()
             right: Expression = self.factor()
             expr = Binary(expr, operator, right)
@@ -104,9 +104,7 @@ class Parser:
             return Literal(self.previous().literal)
 
         if self.match(TokenType.LEFT_PAREN):
-            LOG.debug("inside left paren")
             expr: Expression = self.expression()
-            LOG.debug(f"{expr=}, needs right paren")
             self.consume(TokenType.RIGHT_PAREN, "Expect ')' after expression")
             return Groupping(expr)
 
