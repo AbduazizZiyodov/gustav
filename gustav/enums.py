@@ -49,4 +49,6 @@ class TokenType(StrEnum):
     VAR = "VAR"
     WHILE = "WHILE"
 
+    PIPE = "PIPE"
+
     EOF = "EOF"

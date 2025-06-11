@@ -83,7 +83,10 @@ class Scanner:
                 self.string()
 
             case _:
-                if char.isdigit():
+                if char == "|" and self.match_token(">"):
+                    self.add_token(TokenType.PIPE)
+
+                elif char.isdigit():
                     self.number()
 
                 elif self.is_alpha_numeric(char):

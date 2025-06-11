@@ -5,35 +5,62 @@ from .logging import LOG
 from .enums import TokenType
 from .errors import runtime_error
 from .exceptions import GusRuntimeError
-from .ast import Expression, Binary, Groupping, Literal, Unary, Visitor
+from .ast import (
+    Expression,
+    Binary,
+    Groupping,
+    Literal,
+    Variable,
+    Unary,
+    ExpressionVisitor,
+    Statement,
+    Expr,
+    Print,
+    Var,
+    StatementVisitor,
+)
 
 
 __all__ = ["Interpreter"]
 
 
-class Interpreter(Visitor[object]):
-    def interpret(self, expression: Expression | None) -> None:
-        if not expression:
-            return None
-
+class Interpreter(ExpressionVisitor[t.Any], StatementVisitor[None]):
+    def interpret(self, statements: list[Statement]) -> None:
         try:
-            value = self.evaluate(expression)
+            for statement in statements:
+                self.execute(statement)
         except GusRuntimeError as exc:
-            LOG.debug(f"Runtime error occurred: {exc=}")
+            LOG.error(f"Runtime error occurred: {exc=}")
             runtime_error(exc)
-        else:
-            LOG.debug("Printing the result of interpretation")
-            result: str = self.stringfy(value)
-            print(result)
 
-    def stringfy(self, value: t.Any) -> str:
-        if value is None:
-            return "nihil"
+        return None
 
-        if value in (True, False):
-            return str(value).lower()
+    def execute(self, statement: Statement) -> None:
+        statement.accept(self)
 
-        return str(value)
+        return None
+
+    # statements
+    @t.override
+    def visit_expr_statement(self, statement: Expr) -> None:
+        self.evaluate(statement.expression)
+        return None
+
+    @t.override
+    def visit_print_statement(self, statement: Print) -> None:
+        value: t.Any = self.evaluate(statement.expression)
+        print(self.stringfy(value))
+
+        return None
+
+    @t.override
+    def visit_var_statement(self, statement: Var) -> None:
+        return None
+
+    # expressions
+    @t.override
+    def visit_variable_expression(self, expression: Variable) -> None:
+        return None
 
     @t.override
     def visit_literal_expression(self, expression: Literal) -> t.Any:
@@ -59,30 +86,33 @@ class Interpreter(Visitor[object]):
         left = self.evaluate(expression.left)
         right = self.evaluate(expression.right)
 
+        def check_for_number() -> t.NoReturn | None:
+            return self.check_number_operands(expression.operator, left, right)
+
         match expression.operator.type:
             # comparision
             case TokenType.GREATER:
-                self.check_number_operands(expression.operator, left, right)
+                check_for_number()
                 return left > right
 
             case TokenType.GREATER_EQUAL:
-                self.check_number_operands(expression.operator, left, right)
+                check_for_number()
                 return left >= right
 
             case TokenType.LESS:
-                self.check_number_operands(expression.operator, left, right)
+                check_for_number()
                 return left < right
 
             case TokenType.LESS_EQUAL:
-                self.check_number_operands(expression.operator, left, right)
+                check_for_number()
                 return left <= right
             # arithmetic
             case TokenType.MINUS:
-                self.check_number_operands(expression.operator, left, right)
+                check_for_number()
                 return left - right
 
             case TokenType.PLUS:
-                self.check_number_operands(expression.operator, left, right)
+                check_for_number()
                 return left + right
 
             case TokenType.PLUS_PLUS:  # concatenation operator
@@ -95,16 +125,17 @@ class Interpreter(Visitor[object]):
                 )
 
             case TokenType.STAR:
-                self.check_number_operands(expression.operator, left, right)
+                check_for_number()
                 return left * right
 
             case TokenType.SLASH:
-                self.check_number_operands(expression.operator, left, right)
+                check_for_number()
 
                 if right == 0:
                     return float("inf")
 
                 return left / right
+
             # equality
             case TokenType.BANG_EQUAL:
                 return not self.is_equal(left, right)
@@ -114,7 +145,7 @@ class Interpreter(Visitor[object]):
 
     def check_number_operands(
         self, operator: Token, *operands: t.Any
-    ) -> None | t.NoReturn:
+    ) -> t.NoReturn | None:
         if all(
             isinstance(operand, int) or isinstance(operand, float)
             for operand in operands
@@ -133,3 +164,12 @@ class Interpreter(Visitor[object]):
 
     def evaluate(self, expression: Expression) -> t.Any:
         return expression.accept(self)
+
+    def stringfy(self, value: t.Any) -> str:
+        if value is None:
+            return "nihil"
+
+        if value in (True, False):
+            return str(value).lower()
+
+        return str(value)

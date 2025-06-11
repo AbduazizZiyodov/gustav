@@ -8,4 +8,4 @@ repl:
 	./gus
 
 generate_ast:
-	python3 tools/generate_ast.py
+	python3 -m tools generate_ast

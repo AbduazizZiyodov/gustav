@@ -5,7 +5,18 @@ from .types import Token
 from .errors import error
 from .enums import TokenType
 from .exceptions import GusParseError
-from .ast import Expression, Binary, Groupping, Literal, Unary
+from .ast import (
+    Expression,
+    Binary,
+    Groupping,
+    Literal,
+    Variable,
+    Unary,
+    Statement,
+    Expr,
+    Print,
+    Var,
+)
 
 __all__ = ["Parser"]
 
@@ -28,11 +39,54 @@ class Parser:
         self.current: int = 0
         self.tokens: list[Token] = tokens
 
-    def parse(self) -> Expression | None:
+    def parse(self) -> list[Statement]:
+        statements: list[Statement] = list()
+
+        while not self.is_at_end():
+            # TODO: if error occurs, thats right here:
+            if (result := self.declaration()) is not None:
+                statements.append(result)
+
+        return statements
+
+    def declaration(self) -> Statement | Var | None:
         try:
-            return self.expression()
+            if self.match(TokenType.VAR):
+                return self.var_declaration()
+            return self.statement()
+
         except GusParseError:
+            self.synchronize()
             return None
+
+    def var_declaration(self) -> Var:
+        name: Token = self.consume(TokenType.IDENTIFIER, "Expect variable name.")
+        initializer: Expression | None = None
+
+        if self.match(TokenType.EQUAL):
+            initializer = self.expression()
+
+        self.consume(TokenType.SEMICOLON, "Expect ';' after variables declaration.")
+
+        return Var(name, initializer)
+
+    def statement(self) -> Statement:
+        if self.match(TokenType.PRINT):
+            return self.print_statement()
+
+        return self.expression_statement()
+
+    def print_statement(self) -> Print:
+        value: Expression = self.expression()
+        self.consume(TokenType.SEMICOLON, "Expect ';' after value")
+
+        return Print(value)
+
+    def expression_statement(self) -> Expr:
+        expression = self.expression()
+        self.consume(TokenType.SEMICOLON, "Expect ';' after value")
+
+        return Expr(expression)
 
     def expression(self) -> Expression:
         return self.equality()
@@ -102,6 +156,9 @@ class Parser:
 
         if self.match(TokenType.NUMBER, TokenType.STRING):
             return Literal(self.previous().literal)
+
+        if self.match(TokenType.IDENTIFIER):
+            return Variable(self.previous())
 
         if self.match(TokenType.LEFT_PAREN):
             expr: Expression = self.expression()
