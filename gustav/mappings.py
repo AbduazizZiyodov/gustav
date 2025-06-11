@@ -36,4 +36,5 @@ SINGLE_TOKEN_MAPPING: t.Final[dict[str, TokenType]] = {
     "-": TokenType.MINUS,
     ";": TokenType.SEMICOLON,
     "*": TokenType.STAR,
+    "^": TokenType.CARET,
 }

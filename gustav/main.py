@@ -77,7 +77,11 @@ class Gustav:
             if not (line.strip()):
                 LOG.debug(f"Ignoring empty input: {line}")
                 return
-
+            if not line.endswith(";"):
+                line += ";"  # only supported for repl
+                print(
+                    "Warning: do not forget about semicolon(';') at the end of your statement"
+                )
             self.exec_source(line)
 
         except GusParseError as exc:

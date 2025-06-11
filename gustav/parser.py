@@ -119,7 +119,12 @@ class Parser:
     def term(self) -> Expression:
         expr = self.factor()
 
-        while self.match(TokenType.MINUS, TokenType.PLUS, TokenType.PLUS_PLUS):
+        while self.match(
+            TokenType.MINUS,
+            TokenType.PLUS,
+            TokenType.PLUS_PLUS,
+            TokenType.CARET,
+        ):
             operator: Token = self.previous()
             right: Expression = self.factor()
             expr = Binary(expr, operator, right)
