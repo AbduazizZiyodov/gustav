@@ -22,7 +22,9 @@ class Interpreter(Visitor[object]):
             LOG.debug(f"Runtime error occurred: {exc=}")
             runtime_error(exc)
         else:
-            LOG.debug(f"Interpret result {self.stringfy(value)=}")
+            LOG.debug("Printing the result of interpretation")
+            result: str = self.stringfy(value)
+            print(result)
 
     def stringfy(self, value: t.Any) -> str:
         if value is None:
