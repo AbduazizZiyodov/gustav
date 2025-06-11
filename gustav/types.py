@@ -6,7 +6,7 @@ from .enums import TokenType
 __all__ = ["Token"]
 
 
-@dataclass
+@dataclass(slots=True)
 class Token:
     type: TokenType
     lexeme: str

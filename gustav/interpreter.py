@@ -106,6 +106,7 @@ class Interpreter(ExpressionVisitor[t.Any], StatementVisitor[None]):
             case TokenType.LESS_EQUAL:
                 check_for_number()
                 return left <= right
+
             # arithmetic
             case TokenType.MINUS:
                 check_for_number()
@@ -142,6 +143,9 @@ class Interpreter(ExpressionVisitor[t.Any], StatementVisitor[None]):
 
             case TokenType.EQUAL_EQUAL:
                 return self.is_equal(left, right)
+
+            case TokenType.CARET:
+                return pow(left, right)
 
     def check_number_operands(
         self, operator: Token, *operands: t.Any

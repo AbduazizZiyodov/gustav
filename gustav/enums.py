@@ -1,54 +1,55 @@
-from enum import StrEnum
+from enum import StrEnum, auto
 
 __all__ = ["TokenType"]
 
 
 class TokenType(StrEnum):
-    LEFT_PAREN = "LEFT_PAREN"
-    RIGHT_PAREN = "RIGHT_PAREN"
-    LEFT_BRACE = "LEFT_BRACE"
-    RIGHT_BRACE = "RIGHT_BRACE"
+    LEFT_PAREN = auto()
+    RIGHT_PAREN = auto()
+    LEFT_BRACE = auto()
+    RIGHT_BRACE = auto()
 
-    COMMA = "COMMA"
-    DOT = "DOT"
-    MINUS = "MINUS"
-    PLUS = "PLUS"
-    PLUS_PLUS = "PLUS_PLUS"
-    SEMICOLON = "SEMICOLON"
-    SLASH = "SLASH"
-    STAR = "STAR"
+    COMMA = auto()
+    DOT = auto()
+    MINUS = auto()
+    PLUS = auto()
+    PLUS_PLUS = auto()
+    SEMICOLON = auto()
+    SLASH = auto()
+    STAR = auto()
 
-    BANG = "BANG"
-    BANG_EQUAL = "BANG_EQUAL"
-    EQUAL = "EQUAL"
-    EQUAL_EQUAL = "EQUAL_EQUAL"
-    GREATER = "GREATER"
-    GREATER_EQUAL = "GREATER_EQUAL"
-    LESS = "LESS"
-    LESS_EQUAL = "LESS_EQUAL"
+    BANG = auto()
+    BANG_EQUAL = auto()
+    EQUAL = auto()
+    EQUAL_EQUAL = auto()
+    GREATER = auto()
+    GREATER_EQUAL = auto()
+    LESS = auto()
+    LESS_EQUAL = auto()
 
-    IDENTIFIER = "IDENTIFIER"
-    STRING = "STRING"
-    NUMBER = "NUMBER"
+    IDENTIFIER = auto()
+    STRING = auto()
+    NUMBER = auto()
 
-    AND = "AND"
-    CLASS = "CLASS"
-    ELSE = "ELSE"
-    FALSE = "FALSE"
-    FUN = "FUN"
-    FOR = "FOR"
-    IF = "IF"
-    NIL = "NIL"
-    OR = "OR"
+    AND = auto()
+    CLASS = auto()
+    ELSE = auto()
+    FALSE = auto()
+    FUN = auto()
+    FOR = auto()
+    IF = auto()
+    NIL = auto()
+    OR = auto()
 
-    PRINT = "PRINT"
-    RETURN = "RETURN"
-    SUPER = "SUPER"
-    THIS = "THIS"
-    TRUE = "TRUE"
-    VAR = "VAR"
-    WHILE = "WHILE"
+    PRINT = auto()
+    RETURN = auto()
+    SUPER = auto()
+    THIS = auto()
+    TRUE = auto()
+    VAR = auto()
+    WHILE = auto()
 
-    PIPE = "PIPE"
+    PIPE = auto()
+    CARET = auto()
 
-    EOF = "EOF"
+    EOF = auto()
