@@ -13,6 +13,7 @@ class TokenType(StrEnum):
     DOT = "DOT"
     MINUS = "MINUS"
     PLUS = "PLUS"
+    PLUS_PLUS = "PLUS_PLUS"
     SEMICOLON = "SEMICOLON"
     SLASH = "SLASH"
     STAR = "STAR"

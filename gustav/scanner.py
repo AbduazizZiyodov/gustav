@@ -57,6 +57,12 @@ class Scanner:
                     ]
                 )
 
+            case "+":
+                if self.match_token("+"):
+                    self.add_token(type=TokenType.PLUS_PLUS)
+                else:
+                    self.add_token(type=TokenType.PLUS)
+
             case "/":
                 if self.match_token("/"):
                     self.comment()
