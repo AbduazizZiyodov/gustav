@@ -28,3 +28,4 @@ Challenges (by me + book):
 - [x] Handle zero division "error"
 - [x] Consider yes/no as true/false
 - [ ] Pipe operator support
+- [~] Caret (`^`) operator support
