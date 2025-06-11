@@ -10,6 +10,8 @@ RESERVED_KEYWORDS: t.Final[dict[str, TokenType]] = {
     "this": TokenType.THIS,
     "fun": TokenType.FUN,
     "return": TokenType.RETURN,
+    "yes": TokenType.TRUE,  # yes
+    "no": TokenType.FALSE,  # no
     "false": TokenType.FALSE,
     "true": TokenType.TRUE,
     "nil": TokenType.NIL,
