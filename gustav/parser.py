@@ -55,7 +55,8 @@ class Parser:
                 return self.var_declaration()
             return self.statement()
 
-        except GusParseError:
+        except GusParseError as exc:
+            LOG.debug(f"Syncing ... {exc=}")
             self.synchronize()
             return None
 
@@ -124,6 +125,8 @@ class Parser:
             TokenType.PLUS,
             TokenType.PLUS_PLUS,
             TokenType.CARET,
+            TokenType.AND,
+            TokenType.OR,
         ):
             operator: Token = self.previous()
             right: Expression = self.factor()
