@@ -30,7 +30,7 @@ import typing as t
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
 
-from .types import Token
+from .token import Token
 
 __all__ = {[type for type in ["Expression", "Statement", *EXPRESSION_TYPES.keys(), *STATEMENT_TYPES.keys()]]}
 
