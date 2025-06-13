@@ -76,7 +76,7 @@ class Interpreter(ExpressionVisitor[t.Any], StatementVisitor[None]):
 
         match expression.operator.type:
             case TokenType.BANG:
-                return self.is_truthy(right)
+                return not self.is_truthy(right)
 
             case TokenType.MINUS:
                 return -1 * right
@@ -90,7 +90,6 @@ class Interpreter(ExpressionVisitor[t.Any], StatementVisitor[None]):
             return self.check_number_operands(expression.operator, left, right)
 
         match expression.operator.type:
-            # comparision
             case TokenType.GREATER:
                 check_for_number()
                 return left > right
@@ -107,7 +106,12 @@ class Interpreter(ExpressionVisitor[t.Any], StatementVisitor[None]):
                 check_for_number()
                 return left <= right
 
-            # arithmetic
+            case TokenType.AND:
+                return self.is_truthy(left) and self.is_truthy(right)
+
+            case TokenType.OR:
+                return self.is_truthy(left) or self.is_truthy(right)
+
             case TokenType.MINUS:
                 check_for_number()
                 return left - right
