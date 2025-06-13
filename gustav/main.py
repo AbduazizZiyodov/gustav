@@ -4,12 +4,11 @@ import typing as t  # noqa: F401
 
 from pprint import pformat
 
-from .types import Token
 from .ast import Statement
 from .parser import Parser
-from .enums import TokenType
 from .scanner import Scanner
 from .logging import LOG, DEBUG
+from .token import Token, TokenType
 from .interpreter import Interpreter
 from .exceptions import GusRuntimeError
 

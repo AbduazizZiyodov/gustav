@@ -1,8 +1,7 @@
 import typing as t
 
-from .types import Token
 from .logging import LOG
-from .enums import TokenType
+from .token import Token, TokenType
 from .exceptions import GusRuntimeError
 from .ast import (
     Expression,

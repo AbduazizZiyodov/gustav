@@ -1,4 +1,4 @@
-from .types import Token
+from .token import Token
 
 
 class GusParseError(BaseException):
