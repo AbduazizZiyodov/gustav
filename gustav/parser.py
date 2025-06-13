@@ -2,7 +2,6 @@ import typing as t  # noqa: F401
 
 from .logging import LOG  # noqa: F401
 from .types import Token
-from .errors import error
 from .enums import TokenType
 from .exceptions import GusParseError
 from .ast import (
@@ -16,6 +15,8 @@ from .ast import (
     Expr,
     Print,
     Var,
+    Assign,
+    Block,
 )
 
 __all__ = ["Parser"]
@@ -35,17 +36,17 @@ class Parser:
         TokenType.WHILE,
     )
 
-    def __init__(self, tokens: list[Token]) -> None:
+    def __init__(self, tokens: list[Token], gustav_instance: t.Any) -> None:
         self.current: int = 0
         self.tokens: list[Token] = tokens
+        self.gustav = gustav_instance
 
     def parse(self) -> list[Statement]:
         statements: list[Statement] = list()
 
         while not self.is_at_end():
-            # TODO: if error occurs, thats right here:
-            if (result := self.declaration()) is not None:
-                statements.append(result)
+            if declaration := self.declaration():
+                statements.append(declaration)
 
         return statements
 
@@ -53,11 +54,13 @@ class Parser:
         try:
             if self.match(TokenType.VAR):
                 return self.var_declaration()
+
             return self.statement()
 
         except GusParseError as exc:
             LOG.debug(f"Syncing ... {exc=}")
             self.synchronize()
+
             return None
 
     def var_declaration(self) -> Var:
@@ -75,7 +78,20 @@ class Parser:
         if self.match(TokenType.PRINT):
             return self.print_statement()
 
+        if self.match(TokenType.LEFT_BRACE):
+            return Block(self.block())
+
         return self.expression_statement()
+
+    def block(self) -> list[Statement]:
+        statements: list[Statement] = list()
+
+        while not self.check(TokenType.RIGHT_BRACE) and not self.is_at_end():
+            if declaration := self.declaration():
+                statements.append(declaration)
+
+        self.consume(TokenType.RIGHT_BRACE, "Expect '}' after block.")
+        return statements
 
     def print_statement(self) -> Print:
         value: Expression = self.expression()
@@ -90,7 +106,22 @@ class Parser:
         return Expr(expression)
 
     def expression(self) -> Expression:
-        return self.equality()
+        return self.assignment()
+
+    def assignment(self) -> Expression:
+        expr: Expression = self.equality()
+
+        if self.match(TokenType.EQUAL):
+            equals: Token = self.previous()
+            value: Expression = self.assignment()
+
+            if isinstance(expr, Variable):
+                name: Token = expr.name
+                return Assign(name, value)
+
+            self.error(equals, "Invalid assignment target")
+
+        return expr
 
     def equality(self) -> Expression:
         expr: Expression = self.comparision()
@@ -121,12 +152,7 @@ class Parser:
         expr = self.factor()
 
         while self.match(
-            TokenType.MINUS,
-            TokenType.PLUS,
-            TokenType.PLUS_PLUS,
-            TokenType.CARET,
-            TokenType.AND,
-            TokenType.OR,
+            TokenType.MINUS, TokenType.PLUS, TokenType.PLUS_PLUS, TokenType.CARET
         ):
             operator: Token = self.previous()
             right: Expression = self.factor()
@@ -175,16 +201,6 @@ class Parser:
 
         raise self.error(self.peek(), "Expect expression")
 
-    def consume(self, type: TokenType, message: str) -> Token:
-        if self.check(type):
-            return self.advance()
-
-        raise self.error(self.peek(), message)
-
-    def error(self, token: Token, message: str) -> GusParseError:
-        error(token, message)
-        return GusParseError()
-
     def synchronize(self) -> None:
         self.advance()
 
@@ -195,7 +211,7 @@ class Parser:
             if self.peek().type in self.SYNC_BLOCKS:
                 return
 
-        self.advance()
+            self.advance()
 
     # Utility methods
 
@@ -217,6 +233,16 @@ class Parser:
             self.current += 1
 
         return self.previous()
+
+    def consume(self, type: TokenType, message: str) -> Token:
+        if self.check(type):
+            return self.advance()
+
+        raise self.error(self.peek(), message)
+
+    def error(self, token: Token, message: str) -> GusParseError:
+        self.gustav.error(token, message)
+        return GusParseError()
 
     def peek(self) -> Token:
         return self.tokens[self.current]
