@@ -3,7 +3,6 @@ import typing as t
 from .types import Token
 from .logging import LOG
 from .enums import TokenType
-from .errors import runtime_error
 from .exceptions import GusRuntimeError
 from .ast import (
     Expression,
@@ -12,26 +11,33 @@ from .ast import (
     Literal,
     Variable,
     Unary,
+    Assign,
     ExpressionVisitor,
     Statement,
     Expr,
     Print,
     Var,
+    Block,
     StatementVisitor,
 )
-
+from .environment import Environment
 
 __all__ = ["Interpreter"]
 
 
 class Interpreter(ExpressionVisitor[t.Any], StatementVisitor[None]):
+    def __init__(self, gustav_instance: t.Any) -> None:
+        super().__init__()
+        self.environment: Environment = Environment()
+        self.gustav = gustav_instance
+
     def interpret(self, statements: list[Statement]) -> None:
         try:
             for statement in statements:
                 self.execute(statement)
         except GusRuntimeError as exc:
             LOG.error(f"Runtime error occurred: {exc=}")
-            runtime_error(exc)
+            self.gustav.runtime_error(exc)
 
         return None
 
@@ -55,12 +61,47 @@ class Interpreter(ExpressionVisitor[t.Any], StatementVisitor[None]):
 
     @t.override
     def visit_var_statement(self, statement: Var) -> None:
+        value: t.Any = None
+
+        if statement.initializer is not None:
+            value = self.evaluate(statement.initializer)
+
+        self.environment.define(statement.name.lexeme, value)
+
+    @t.override
+    def visit_block_statement(self, statement: Block) -> None:
+        self.execute_block(
+            statement.statements,
+            Environment(self.environment),
+        )
+
         return None
+
+    def execute_block(
+        self, statements: list[Statement], environment: Environment
+    ) -> None:
+        previous_environment: Environment = self.environment
+
+        try:
+            self.environment = environment
+
+            for statement in statements:
+                self.execute(statement)
+
+        finally:
+            self.environment = previous_environment
 
     # expressions
     @t.override
-    def visit_variable_expression(self, expression: Variable) -> None:
-        return None
+    def visit_assign_expression(self, expression: Assign) -> t.Any:
+        value: t.Any = self.evaluate(expression.value)
+        self.environment.assign(expression.name, value)
+
+        return value
+
+    @t.override
+    def visit_variable_expression(self, expression: Variable) -> t.Any:
+        return self.environment.get(expression.name)
 
     @t.override
     def visit_literal_expression(self, expression: Literal) -> t.Any:
@@ -105,12 +146,6 @@ class Interpreter(ExpressionVisitor[t.Any], StatementVisitor[None]):
             case TokenType.LESS_EQUAL:
                 check_for_number()
                 return left <= right
-
-            case TokenType.AND:
-                return self.is_truthy(left) and self.is_truthy(right)
-
-            case TokenType.OR:
-                return self.is_truthy(left) or self.is_truthy(right)
 
             case TokenType.MINUS:
                 check_for_number()

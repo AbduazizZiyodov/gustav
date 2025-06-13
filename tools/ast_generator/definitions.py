@@ -8,6 +8,10 @@ STATEMENT_BASE_NAME: t.Final[str] = "Statement"
 
 EXPRESSION_TYPES: NodeDefinitionMapping = {
     # Expressions
+    "Assign": [
+        {"type": "Token", "name": "name"},
+        {"type": EXPRESSION_BASE_NAME, "name": "value"},
+    ],
     "Binary": [
         {"type": EXPRESSION_BASE_NAME, "name": "left"},
         {"type": "Token", "name": "operator"},
@@ -29,6 +33,9 @@ EXPRESSION_TYPES: NodeDefinitionMapping = {
 }
 
 STATEMENT_TYPES: NodeDefinitionMapping = {
+    "Block": [
+        {"type": f"list[{STATEMENT_BASE_NAME}]", "name": "statements"},
+    ],
     "Expr": [
         {"type": EXPRESSION_BASE_NAME, "name": "expression"},
     ],

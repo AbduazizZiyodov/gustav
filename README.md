@@ -29,3 +29,6 @@ Challenges (by me + book):
 - [x] Consider yes/no as true/false
 - [ ] Pipe operator support
 - [~] Caret (`^`) operator support
+- [ ] "Static" typing
+- [ ] REPL support for statements & expressions
+- [ ] Do not allow to use uninitialized variables

@@ -2,7 +2,6 @@ import typing as t
 
 from .logging import LOG  # noqa: F401
 from .types import Token
-from .errors import panic
 from .enums import TokenType
 from .mappings import RESERVED_KEYWORDS, SINGLE_TOKEN_MAPPING
 
@@ -10,13 +9,15 @@ __all__ = ["Scanner"]
 
 
 class Scanner:
-    def __init__(self, source: str) -> None:
+    def __init__(self, source: str, gustav_instance: t.Any) -> None:
         self.source: str = source
         self.tokens: list[Token] = []
 
         self.line: int = 1
         self.start: int = 0
         self.current: int = 0
+
+        self.gustav = gustav_instance
 
     def get_tokens(self) -> list[Token]:
         while not self.is_end:
@@ -93,7 +94,7 @@ class Scanner:
                     self.identifier()
 
                 else:
-                    panic(self.line, "Unexpected character")
+                    self.gustav.panic(self.line, "Unexpected character")
 
     def peek(self) -> str:
         return "\0" if self.is_end else self.current_char
@@ -169,7 +170,7 @@ class Scanner:
             self.move_current()
 
         if self.is_end:
-            panic(self.line, "Unterminated string")
+            self.gustav.panic(self.line, "Unterminated string")
             return
 
         self.move_current()

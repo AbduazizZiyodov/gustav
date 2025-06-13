@@ -14,7 +14,7 @@ from .types import NodeDefinitionMapping, NodeDefinitions
 __all__ = ["main"]
 
 BASE_ABSTRACT_CLASS: str = """
-@dataclass
+@dataclass(frozen=True)
 class {CLASS_NAME}(ABC):
     @abstractmethod
     def accept[T](self, visitor: '{CLASS_NAME}Visitor[T]') -> T:
@@ -62,7 +62,9 @@ def define_type(
     class_name: str,
     field_type_pairs: NodeDefinitions,
 ) -> None:
-    file.write(f"@dataclass(slots=True)\nclass {class_name}({base_name}):\n")
+    file.write(
+        f"@dataclass(slots=True, frozen=True)\nclass {class_name}({base_name}):\n"
+    )
 
     for field_type_pair in field_type_pairs:
         field_type, field_name = field_type_pair["type"], field_type_pair["name"]
