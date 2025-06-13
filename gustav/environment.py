@@ -1,6 +1,6 @@
 import typing as t
 
-from .types import Token
+from .token import Token
 from .exceptions import GusRuntimeError
 
 

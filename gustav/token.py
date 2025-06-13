@@ -1,6 +1,8 @@
+import typing as t
 from enum import StrEnum, auto
+from dataclasses import dataclass
 
-__all__ = ["TokenType"]
+__all__ = ["Token", "TokenType"]
 
 
 class TokenType(StrEnum):
@@ -53,3 +55,17 @@ class TokenType(StrEnum):
     CARET = auto()
 
     EOF = auto()
+
+
+@dataclass(slots=True, frozen=True)
+class Token:
+    type: TokenType
+    lexeme: str
+    literal: t.Any
+    line: int
+
+    def __str__(self) -> str:
+        return f"{self.type} {self.lexeme} {self.literal}"
+
+    def __repr__(self) -> str:
+        return f"Token(type={self.type} lexeme='{self.lexeme}' literal={self.literal})"

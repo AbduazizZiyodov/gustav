@@ -1,8 +1,7 @@
 import typing as t  # noqa: F401
 
 from .logging import LOG  # noqa: F401
-from .types import Token
-from .enums import TokenType
+from .token import Token, TokenType
 from .exceptions import GusParseError
 from .ast import (
     Expression,

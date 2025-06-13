@@ -1,6 +1,6 @@
 import typing as t
 
-from .enums import TokenType
+from .token import TokenType
 
 __all__ = ["RESERVED_KEYWORDS", "SINGLE_TOKEN_MAPPING"]
 

@@ -1,8 +1,7 @@
 import typing as t
 
 from .logging import LOG  # noqa: F401
-from .types import Token
-from .enums import TokenType
+from .token import Token, TokenType
 from .mappings import RESERVED_KEYWORDS, SINGLE_TOKEN_MAPPING
 
 __all__ = ["Scanner"]
