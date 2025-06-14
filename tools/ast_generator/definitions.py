@@ -23,6 +23,11 @@ EXPRESSION_TYPES: NodeDefinitionMapping = {
     "Literal": [
         {"type": "object", "name": "value"},
     ],
+    "Logical": [
+        {"type": EXPRESSION_BASE_NAME, "name": "left"},
+        {"type": "Token", "name": "operator"},
+        {"type": EXPRESSION_BASE_NAME, "name": "right"},
+    ],
     "Variable": [
         {"type": "Token", "name": "name"},
     ],
@@ -39,8 +44,17 @@ STATEMENT_TYPES: NodeDefinitionMapping = {
     "Expr": [
         {"type": EXPRESSION_BASE_NAME, "name": "expression"},
     ],
+    "If": [
+        {"type": EXPRESSION_BASE_NAME, "name": "condition"},
+        {"type": STATEMENT_BASE_NAME, "name": "then_branch"},
+        {"type": f"{STATEMENT_BASE_NAME} | None", "name": "else_branch"},
+    ],
     "Print": [
         {"type": EXPRESSION_BASE_NAME, "name": "expression"},
+    ],
+    "While": [
+        {"type": EXPRESSION_BASE_NAME, "name": "condition"},
+        {"type": STATEMENT_BASE_NAME, "name": "body"},
     ],
     "Var": [
         {"type": "Token", "name": "name"},

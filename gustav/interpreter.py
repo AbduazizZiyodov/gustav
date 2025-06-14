@@ -1,23 +1,26 @@
 import typing as t
 
-from .logging import LOG
+from .logging import LOG  # noqa: F401
 from gustav import gustav
-from .token import Token, TokenType as TT
 from .exceptions import GusRuntimeError
+from .token import Token, TokenType as TT
 from .ast import (
     Expression,
     Binary,
     Groupping,
     Literal,
     Variable,
+    Logical,
     Unary,
     Assign,
     ExpressionVisitor,
     Statement,
     Expr,
+    While,
     Print,
     Var,
     Block,
+    If,
     StatementVisitor,
 )
 from .environment import Environment
@@ -34,18 +37,44 @@ class Interpreter(ExpressionVisitor[t.Any], StatementVisitor[None]):
         try:
             for statement in statements:
                 self.execute(statement)
+
         except GusRuntimeError as exc:
-            LOG.error(f"Runtime error occurred: {exc=}")
             gustav.runtime_error(exc)
 
         return None
 
     def execute(self, statement: Statement) -> None:
         statement.accept(self)
+        return None
+
+    @t.override
+    def visit_while_statement(self, statement: While) -> None:
+        while self.is_truthy(self.evaluate(statement.condition)):
+            self.execute(statement.body)
+
+    @t.override
+    def visit_logical_expression(self, expression: Logical) -> t.Any:
+        left: t.Any = self.evaluate(expression.left)
+
+        if expression.operator.type == TT.OR:
+            if self.is_truthy(left):
+                return left
+        else:
+            if not self.is_truthy(left):
+                return left
+
+        return self.evaluate(expression.right)
+
+    @t.override
+    def visit_if_statement(self, statement: If) -> None:
+        if self.is_truthy(self.evaluate(statement.condition)):
+            self.execute(statement.then_branch)
+
+        elif statement.else_branch is not None:
+            self.execute(statement.else_branch)
 
         return None
 
-    # statements
     @t.override
     def visit_expr_statement(self, statement: Expr) -> None:
         self.evaluate(statement.expression)
