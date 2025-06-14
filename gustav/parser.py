@@ -1,7 +1,8 @@
 import typing as t  # noqa: F401
 
 from .logging import LOG  # noqa: F401
-from .token import Token, TokenType
+from gustav import gustav
+from .token import Token, TokenType as TT
 from .exceptions import GusParseError
 from .ast import (
     Expression,
@@ -18,27 +19,26 @@ from .ast import (
     Block,
 )
 
-__all__ = ["Parser"]
+__all__ = ("Parser",)
 
 
 class Parser:
     """Recursive descent parser"""
 
-    SYNC_BLOCKS: tuple[TokenType, ...] = (
-        TokenType.CLASS,
-        TokenType.FOR,
-        TokenType.FUN,
-        TokenType.IF,
-        TokenType.PRINT,
-        TokenType.RETURN,
-        TokenType.VAR,
-        TokenType.WHILE,
+    SYNC_BLOCKS: tuple[TT, ...] = (
+        TT.CLASS,
+        TT.FOR,
+        TT.FUN,
+        TT.IF,
+        TT.PRINT,
+        TT.RETURN,
+        TT.VAR,
+        TT.WHILE,
     )
 
-    def __init__(self, tokens: list[Token], gustav_instance: t.Any) -> None:
+    def __init__(self, tokens: list[Token]) -> None:
         self.current: int = 0
         self.tokens: list[Token] = tokens
-        self.gustav = gustav_instance
 
     def parse(self) -> list[Statement]:
         statements: list[Statement] = list()
@@ -51,7 +51,7 @@ class Parser:
 
     def declaration(self) -> Statement | Var | None:
         try:
-            if self.match(TokenType.VAR):
+            if self.match(TT.VAR):
                 return self.var_declaration()
 
             return self.statement()
@@ -63,21 +63,21 @@ class Parser:
             return None
 
     def var_declaration(self) -> Var:
-        name: Token = self.consume(TokenType.IDENTIFIER, "Expect variable name.")
+        name: Token = self.consume(TT.IDENTIFIER, "Expect variable name.")
         initializer: Expression | None = None
 
-        if self.match(TokenType.EQUAL):
+        if self.match(TT.EQUAL):
             initializer = self.expression()
 
-        self.consume(TokenType.SEMICOLON, "Expect ';' after variables declaration.")
+        self.consume(TT.SEMICOLON, "Expect ';' after variables declaration.")
 
         return Var(name, initializer)
 
     def statement(self) -> Statement:
-        if self.match(TokenType.PRINT):
+        if self.match(TT.PRINT):
             return self.print_statement()
 
-        if self.match(TokenType.LEFT_BRACE):
+        if self.match(TT.LEFT_BRACE):
             return Block(self.block())
 
         return self.expression_statement()
@@ -85,22 +85,22 @@ class Parser:
     def block(self) -> list[Statement]:
         statements: list[Statement] = list()
 
-        while not self.check(TokenType.RIGHT_BRACE) and not self.is_at_end():
+        while not self.check(TT.RIGHT_BRACE) and not self.is_at_end():
             if declaration := self.declaration():
                 statements.append(declaration)
 
-        self.consume(TokenType.RIGHT_BRACE, "Expect '}' after block.")
+        self.consume(TT.RIGHT_BRACE, "Expect '}' after block.")
         return statements
 
     def print_statement(self) -> Print:
         value: Expression = self.expression()
-        self.consume(TokenType.SEMICOLON, "Expect ';' after value")
+        self.consume(TT.SEMICOLON, "Expect ';' after value")
 
         return Print(value)
 
     def expression_statement(self) -> Expr:
         expression = self.expression()
-        self.consume(TokenType.SEMICOLON, "Expect ';' after value")
+        self.consume(TT.SEMICOLON, "Expect ';' after value")
 
         return Expr(expression)
 
@@ -110,7 +110,7 @@ class Parser:
     def assignment(self) -> Expression:
         expr: Expression = self.equality()
 
-        if self.match(TokenType.EQUAL):
+        if self.match(TT.EQUAL):
             equals: Token = self.previous()
             value: Expression = self.assignment()
 
@@ -125,7 +125,7 @@ class Parser:
     def equality(self) -> Expression:
         expr: Expression = self.comparision()
 
-        while self.match(TokenType.BANG_EQUAL, TokenType.EQUAL_EQUAL):
+        while self.match(TT.BANG_EQUAL, TT.EQUAL_EQUAL):
             operator: Token = self.previous()
             right: Expression = self.comparision()
             expr = Binary(expr, operator, right)
@@ -136,10 +136,10 @@ class Parser:
         expr: Expression = self.term()
 
         while self.match(
-            TokenType.GREATER,
-            TokenType.GREATER_EQUAL,
-            TokenType.LESS,
-            TokenType.LESS_EQUAL,
+            TT.GREATER,
+            TT.GREATER_EQUAL,
+            TT.LESS,
+            TT.LESS_EQUAL,
         ):
             operator: Token = self.previous()
             right: Expression = self.term()
@@ -150,9 +150,7 @@ class Parser:
     def term(self) -> Expression:
         expr = self.factor()
 
-        while self.match(
-            TokenType.MINUS, TokenType.PLUS, TokenType.PLUS_PLUS, TokenType.CARET
-        ):
+        while self.match(TT.MINUS, TT.PLUS, TT.PLUS_PLUS, TT.CARET):
             operator: Token = self.previous()
             right: Expression = self.factor()
             expr = Binary(expr, operator, right)
@@ -162,7 +160,7 @@ class Parser:
     def factor(self) -> Expression:
         expr = self.unary()
 
-        while self.match(TokenType.SLASH, TokenType.STAR):
+        while self.match(TT.SLASH, TT.STAR):
             operator: Token = self.previous()
             right: Expression = self.unary()
             expr = Binary(expr, operator, right)
@@ -170,7 +168,7 @@ class Parser:
         return expr
 
     def unary(self) -> Expression:
-        if self.match(TokenType.BANG, TokenType.MINUS):
+        if self.match(TT.BANG, TT.MINUS):
             operator: Token = self.previous()
             right: Expression = self.unary()
             return Unary(operator, right)
@@ -178,24 +176,24 @@ class Parser:
         return self.primary()
 
     def primary(self) -> Expression:
-        if self.match(TokenType.FALSE):
+        if self.match(TT.FALSE):
             return Literal(False)
 
-        if self.match(TokenType.TRUE):
+        if self.match(TT.TRUE):
             return Literal(True)
 
-        if self.match(TokenType.NIL):
+        if self.match(TT.NIL):
             return Literal(None)
 
-        if self.match(TokenType.NUMBER, TokenType.STRING):
+        if self.match(TT.NUMBER, TT.STRING):
             return Literal(self.previous().literal)
 
-        if self.match(TokenType.IDENTIFIER):
+        if self.match(TT.IDENTIFIER):
             return Variable(self.previous())
 
-        if self.match(TokenType.LEFT_PAREN):
+        if self.match(TT.LEFT_PAREN):
             expr: Expression = self.expression()
-            self.consume(TokenType.RIGHT_PAREN, "Expect ')' after expression")
+            self.consume(TT.RIGHT_PAREN, "Expect ')' after expression")
             return Groupping(expr)
 
         raise self.error(self.peek(), "Expect expression")
@@ -204,7 +202,7 @@ class Parser:
         self.advance()
 
         while not self.is_at_end():
-            if self.previous().type == TokenType.SEMICOLON:
+            if self.previous().type == TT.SEMICOLON:
                 return
 
             if self.peek().type in self.SYNC_BLOCKS:
@@ -214,14 +212,14 @@ class Parser:
 
     # Utility methods
 
-    def match(self, *token_types: TokenType) -> bool:
+    def match(self, *token_types: TT) -> bool:
         for token_type in token_types:
             if self.check(token_type):
                 self.advance()
                 return True
         return False
 
-    def check(self, token_type: TokenType) -> bool:
+    def check(self, token_type: TT) -> bool:
         if self.is_at_end():
             return False
 
@@ -233,14 +231,14 @@ class Parser:
 
         return self.previous()
 
-    def consume(self, type: TokenType, message: str) -> Token:
+    def consume(self, type: TT, message: str) -> Token:
         if self.check(type):
             return self.advance()
 
         raise self.error(self.peek(), message)
 
     def error(self, token: Token, message: str) -> GusParseError:
-        self.gustav.error(token, message)
+        gustav.error(token, message)
         return GusParseError()
 
     def peek(self) -> Token:
@@ -250,4 +248,4 @@ class Parser:
         return self.tokens[self.current - 1]
 
     def is_at_end(self) -> bool:
-        return self.peek().type == TokenType.EOF
+        return self.peek().type == TT.EOF

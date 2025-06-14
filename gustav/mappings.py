@@ -1,40 +1,40 @@
 import typing as t
 
-from .token import TokenType
+from .token import TokenType as TT
 
-__all__ = ["RESERVED_KEYWORDS", "SINGLE_TOKEN_MAPPING"]
+__all__ = "RESERVED_KEYWORDS", "SINGLE_TOKEN_MAPPING"
 
-RESERVED_KEYWORDS: t.Final[dict[str, TokenType]] = {
-    "class": TokenType.CLASS,
-    "super": TokenType.SUPER,
-    "this": TokenType.THIS,
-    "fun": TokenType.FUN,
-    "return": TokenType.RETURN,
-    "yes": TokenType.TRUE,  # yes
-    "no": TokenType.FALSE,  # no
-    "false": TokenType.FALSE,
-    "true": TokenType.TRUE,
-    "nil": TokenType.NIL,
-    "for": TokenType.FOR,
-    "while": TokenType.WHILE,
-    "if": TokenType.IF,
-    "else": TokenType.ELSE,
-    "and": TokenType.AND,
-    "or": TokenType.OR,
-    "print": TokenType.PRINT,
-    "var": TokenType.VAR,
+RESERVED_KEYWORDS: t.Final[dict[str, TT]] = {
+    "class": TT.CLASS,
+    "super": TT.SUPER,
+    "this": TT.THIS,
+    "fun": TT.FUN,
+    "return": TT.RETURN,
+    "yes": TT.TRUE,  # yes
+    "no": TT.FALSE,  # no
+    "false": TT.FALSE,
+    "true": TT.TRUE,
+    "nil": TT.NIL,
+    "for": TT.FOR,
+    "while": TT.WHILE,
+    "if": TT.IF,
+    "else": TT.ELSE,
+    "and": TT.AND,
+    "or": TT.OR,
+    "print": TT.PRINT,
+    "var": TT.VAR,
 }
 
 
-SINGLE_TOKEN_MAPPING: t.Final[dict[str, TokenType]] = {
-    "(": TokenType.LEFT_PAREN,
-    ")": TokenType.RIGHT_PAREN,
-    "{": TokenType.LEFT_BRACE,
-    "}": TokenType.RIGHT_BRACE,
-    ",": TokenType.COMMA,
-    ".": TokenType.DOT,
-    "-": TokenType.MINUS,
-    ";": TokenType.SEMICOLON,
-    "*": TokenType.STAR,
-    "^": TokenType.CARET,
+SINGLE_TOKEN_MAPPING: t.Final[dict[str, TT]] = {
+    "(": TT.LEFT_PAREN,
+    ")": TT.RIGHT_PAREN,
+    "{": TT.LEFT_BRACE,
+    "}": TT.RIGHT_BRACE,
+    ",": TT.COMMA,
+    ".": TT.DOT,
+    "-": TT.MINUS,
+    ";": TT.SEMICOLON,
+    "*": TT.STAR,
+    "^": TT.CARET,
 }

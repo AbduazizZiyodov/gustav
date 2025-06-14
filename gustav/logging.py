@@ -1,7 +1,7 @@
 import os
 import logging
 
-__all__ = ["LOG", "DEBUG"]
+__all__ = "LOG", "DEBUG"
 
 DEBUG: bool = os.getenv("DEBUG", default=str()).lower() in ["y", "true", "yes"]
 

@@ -32,7 +32,7 @@ from abc import ABC, abstractmethod
 
 from .token import Token
 
-__all__ = {[type for type in ["Expression", "Statement", *EXPRESSION_TYPES.keys(), *STATEMENT_TYPES.keys()]]}
+__all__ = {tuple([type for type in ["Expression", "Statement", *EXPRESSION_TYPES.keys(), *STATEMENT_TYPES.keys()]])}
 
 
 {BASE_ABSTRACT_CLASS.format(CLASS_NAME=EXPRESSION_BASE_NAME)}

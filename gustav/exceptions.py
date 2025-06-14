@@ -1,5 +1,7 @@
 from .token import Token
 
+__all__ = "GusParseError", "GusRuntimeError"
+
 
 class GusParseError(BaseException):
     pass
