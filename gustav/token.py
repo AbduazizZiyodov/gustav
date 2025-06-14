@@ -2,7 +2,7 @@ import typing as t
 from enum import StrEnum, auto
 from dataclasses import dataclass
 
-__all__ = ["Token", "TokenType"]
+__all__ = "Token", "TokenType"
 
 
 class TokenType(StrEnum):

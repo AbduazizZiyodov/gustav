@@ -1,22 +1,21 @@
 import typing as t
 
 from .logging import LOG  # noqa: F401
-from .token import Token, TokenType
+from gustav import gustav
+from .token import Token, TokenType as TT
 from .mappings import RESERVED_KEYWORDS, SINGLE_TOKEN_MAPPING
 
-__all__ = ["Scanner"]
+__all__ = ("Scanner",)
 
 
 class Scanner:
-    def __init__(self, source: str, gustav_instance: t.Any) -> None:
+    def __init__(self, source: str) -> None:
         self.source: str = source
         self.tokens: list[Token] = []
 
         self.line: int = 1
         self.start: int = 0
         self.current: int = 0
-
-        self.gustav = gustav_instance
 
     def get_tokens(self) -> list[Token]:
         while not self.is_end:
@@ -36,32 +35,24 @@ class Scanner:
 
         match char:
             case "!":
-                self.add_token(
-                    type=(TokenType.BANG, TokenType.BANG_EQUAL)[self.match_token("=")]
-                )
+                self.add_token(type=(TT.BANG, TT.BANG_EQUAL)[self.match_token("=")])
 
             case "=":
-                self.add_token(
-                    type=(TokenType.EQUAL, TokenType.EQUAL_EQUAL)[self.match_token("=")]
-                )
+                self.add_token(type=(TT.EQUAL, TT.EQUAL_EQUAL)[self.match_token("=")])
 
             case "<":
-                self.add_token(
-                    type=(TokenType.LESS, TokenType.LESS_EQUAL)[self.match_token("=")]
-                )
+                self.add_token(type=(TT.LESS, TT.LESS_EQUAL)[self.match_token("=")])
 
             case ">":
                 self.add_token(
-                    type=(TokenType.GREATER, TokenType.GREATER_EQUAL)[
-                        self.match_token("=")
-                    ]
+                    type=(TT.GREATER, TT.GREATER_EQUAL)[self.match_token("=")]
                 )
 
             case "+":
                 if self.match_token("+"):
-                    self.add_token(type=TokenType.PLUS_PLUS)
+                    self.add_token(type=TT.PLUS_PLUS)
                 else:
-                    self.add_token(type=TokenType.PLUS)
+                    self.add_token(type=TT.PLUS)
 
             case "/":
                 if self.match_token("/"):
@@ -71,7 +62,7 @@ class Scanner:
                     self.multiline_comment()
 
                 else:
-                    self.add_token(type=TokenType.SLASH)
+                    self.add_token(type=TT.SLASH)
 
             case "\n":
                 self.line += 1
@@ -84,7 +75,7 @@ class Scanner:
 
             case _:
                 if char == "|" and self.match_token(">"):
-                    self.add_token(TokenType.PIPE)
+                    self.add_token(TT.PIPE)
 
                 elif char.isdigit():
                     self.number()
@@ -93,7 +84,7 @@ class Scanner:
                     self.identifier()
 
                 else:
-                    self.gustav.panic(self.line, "Unexpected character")
+                    gustav.panic(self.line, "Unexpected character")
 
     def peek(self) -> str:
         return "\0" if self.is_end else self.current_char
@@ -110,7 +101,7 @@ class Scanner:
 
         return char
 
-    def add_token(self, type: TokenType, literal: t.Optional[t.Any] = None) -> None:
+    def add_token(self, type: TT, literal: t.Optional[t.Any] = None) -> None:
         text = self.source[self.start : self.current]
 
         new_token = Token(type, text, literal, self.line)
@@ -132,7 +123,7 @@ class Scanner:
             self.move_current()
 
         text: str = self.source[self.start : self.current]
-        type: TokenType = RESERVED_KEYWORDS.get(text) or TokenType.IDENTIFIER
+        type: TT = RESERVED_KEYWORDS.get(text) or TT.IDENTIFIER
 
         self.add_token(type=type)
 
@@ -147,7 +138,7 @@ class Scanner:
                 self.move_current()
 
         part = self.source[self.start : self.current]
-        self.add_token(type=TokenType.NUMBER, literal=float(part))
+        self.add_token(type=TT.NUMBER, literal=float(part))
 
     def multiline_comment(self) -> None:
         while not (self.peek() == "*" and self.peek_next() == "/"):
@@ -169,18 +160,18 @@ class Scanner:
             self.move_current()
 
         if self.is_end:
-            self.gustav.panic(self.line, "Unterminated string")
+            gustav.panic(self.line, "Unterminated string")
             return
 
         self.move_current()
 
         self.add_token(
-            type=TokenType.STRING,
+            type=TT.STRING,
             literal=self.source[self.start + 1 : self.current - 1],
         )
 
     def eof(self) -> None:
-        self.tokens.append(Token(TokenType.EOF, "", None, self.line))
+        self.tokens.append(Token(TT.EOF, "", None, self.line))
 
     @property
     def current_char(self) -> str:

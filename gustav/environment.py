@@ -3,6 +3,8 @@ import typing as t
 from .token import Token
 from .exceptions import GusRuntimeError
 
+__all__ = ("Environment",)
+
 
 class Environment:
     def __init__(self, enclosing: "Environment | None" = None) -> None:

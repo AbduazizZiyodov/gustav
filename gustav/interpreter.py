@@ -1,7 +1,8 @@
 import typing as t
 
 from .logging import LOG
-from .token import Token, TokenType
+from gustav import gustav
+from .token import Token, TokenType as TT
 from .exceptions import GusRuntimeError
 from .ast import (
     Expression,
@@ -25,10 +26,9 @@ __all__ = ["Interpreter"]
 
 
 class Interpreter(ExpressionVisitor[t.Any], StatementVisitor[None]):
-    def __init__(self, gustav_instance: t.Any) -> None:
+    def __init__(self) -> None:
         super().__init__()
         self.environment: Environment = Environment()
-        self.gustav = gustav_instance
 
     def interpret(self, statements: list[Statement]) -> None:
         try:
@@ -36,7 +36,7 @@ class Interpreter(ExpressionVisitor[t.Any], StatementVisitor[None]):
                 self.execute(statement)
         except GusRuntimeError as exc:
             LOG.error(f"Runtime error occurred: {exc=}")
-            self.gustav.runtime_error(exc)
+            gustav.runtime_error(exc)
 
         return None
 
@@ -115,10 +115,10 @@ class Interpreter(ExpressionVisitor[t.Any], StatementVisitor[None]):
         right = self.evaluate(expression.right)
 
         match expression.operator.type:
-            case TokenType.BANG:
+            case TT.BANG:
                 return not self.is_truthy(right)
 
-            case TokenType.MINUS:
+            case TT.MINUS:
                 return -1 * right
 
     @t.override
@@ -130,31 +130,31 @@ class Interpreter(ExpressionVisitor[t.Any], StatementVisitor[None]):
             return self.check_number_operands(expression.operator, left, right)
 
         match expression.operator.type:
-            case TokenType.GREATER:
+            case TT.GREATER:
                 check_for_number()
                 return left > right
 
-            case TokenType.GREATER_EQUAL:
+            case TT.GREATER_EQUAL:
                 check_for_number()
                 return left >= right
 
-            case TokenType.LESS:
+            case TT.LESS:
                 check_for_number()
                 return left < right
 
-            case TokenType.LESS_EQUAL:
+            case TT.LESS_EQUAL:
                 check_for_number()
                 return left <= right
 
-            case TokenType.MINUS:
+            case TT.MINUS:
                 check_for_number()
                 return left - right
 
-            case TokenType.PLUS:
+            case TT.PLUS:
                 check_for_number()
                 return left + right
 
-            case TokenType.PLUS_PLUS:  # concatenation operator
+            case TT.PLUS_PLUS:  # concatenation operator
                 if isinstance(left, str) and isinstance(right, str):
                     return "".join((left, right))
 
@@ -163,11 +163,11 @@ class Interpreter(ExpressionVisitor[t.Any], StatementVisitor[None]):
                     "Both operands must be string to use concatenation(++) operator",
                 )
 
-            case TokenType.STAR:
+            case TT.STAR:
                 check_for_number()
                 return left * right
 
-            case TokenType.SLASH:
+            case TT.SLASH:
                 check_for_number()
 
                 if right == 0:
@@ -176,13 +176,13 @@ class Interpreter(ExpressionVisitor[t.Any], StatementVisitor[None]):
                 return left / right
 
             # equality
-            case TokenType.BANG_EQUAL:
+            case TT.BANG_EQUAL:
                 return not self.is_equal(left, right)
 
-            case TokenType.EQUAL_EQUAL:
+            case TT.EQUAL_EQUAL:
                 return self.is_equal(left, right)
 
-            case TokenType.CARET:
+            case TT.CARET:
                 return pow(left, right)
 
     def check_number_operands(
