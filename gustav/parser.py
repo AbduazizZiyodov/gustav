@@ -2,7 +2,6 @@ import typing as t  # noqa: F401
 
 from .logging import LOG  # noqa: F401
 from gustav import gustav
-from .token import Token, TokenType as TT
 from .exceptions import GusParseError
 from .ast import (
     Expression,
@@ -10,14 +9,18 @@ from .ast import (
     Groupping,
     Literal,
     Variable,
+    Logical,
     Unary,
     Statement,
     Expr,
     Print,
     Var,
+    While,
     Assign,
     Block,
+    If,
 )
+from .token import Token, TokenType as TT
 
 __all__ = ("Parser",)
 
@@ -80,7 +83,80 @@ class Parser:
         if self.match(TT.LEFT_BRACE):
             return Block(self.block())
 
+        if self.match(TT.IF):
+            return self.if_statement()
+
+        if self.match(TT.WHILE):
+            return self.while_statement()
+
+        if self.match(TT.FOR):
+            return self.for_statement()
+
         return self.expression_statement()
+
+    def for_statement(self) -> Statement:
+        """desugaring for loops into while loops"""
+        self.consume(TT.LEFT_PAREN, "Expect '(' after 'for'.")
+
+        initializer: Var | Expr | None
+
+        if self.match(TT.SEMICOLON):
+            initializer = None
+        elif self.match(TT.VAR):
+            initializer = self.var_declaration()
+        else:
+            initializer = self.expression_statement()
+
+        condition: Expression | None = None
+
+        if not self.check(TT.SEMICOLON):
+            condition = self.expression()
+
+        self.consume(TT.SEMICOLON, "Expect ';' after loop condition.")
+
+        increment: Expression | None = None
+
+        if not self.check(TT.RIGHT_PAREN):
+            increment = self.expression()
+
+        self.consume(TT.RIGHT_PAREN, "Expect ')' after for clauses.")
+
+        body: Statement = self.statement()
+
+        if increment is not None:
+            body = Block([body, Expr(increment)])
+
+        if condition is None:
+            condition = Literal(True)
+
+        body = While(condition, body)
+
+        if initializer is not None:
+            body = Block([initializer, body])
+
+        return body
+
+    def while_statement(self) -> While:
+        self.consume(TT.LEFT_PAREN, "Expect '(' after 'while'.")
+        condition: Expression = self.expression()
+        self.consume(TT.RIGHT_PAREN, "Expect ')' after 'condition'.")
+
+        body: Statement = self.statement()
+
+        return While(condition, body)
+
+    def if_statement(self) -> If:
+        self.consume(TT.LEFT_PAREN, "Expect '(' after 'if'.")
+        condition: Expression = self.expression()
+        self.consume(TT.RIGHT_PAREN, "Expect ')' after 'condition'.")
+
+        then_branch: Statement = self.statement()
+        else_branch: Statement | None = None
+
+        if self.match(TT.ELSE):
+            else_branch = self.statement()
+
+        return If(condition, then_branch, else_branch)
 
     def block(self) -> list[Statement]:
         statements: list[Statement] = list()
@@ -108,7 +184,7 @@ class Parser:
         return self.assignment()
 
     def assignment(self) -> Expression:
-        expr: Expression = self.equality()
+        expr: Expression = self.Or()
 
         if self.match(TT.EQUAL):
             equals: Token = self.previous()
@@ -119,6 +195,26 @@ class Parser:
                 return Assign(name, value)
 
             self.error(equals, "Invalid assignment target")
+
+        return expr
+
+    def Or(self) -> Expression:  # yes
+        expr: Expression = self.And()
+
+        while self.match(TT.OR):
+            operator: Token = self.previous()
+            right: Expression = self.And()
+            expr = Logical(expr, operator, right)
+
+        return expr
+
+    def And(self) -> Expression:  # yes
+        expr: Expression = self.equality()
+
+        while self.match(TT.AND):
+            operator: Token = self.previous()
+            right: Expression = self.equality()
+            expr = Logical(expr, operator, right)
 
         return expr
 

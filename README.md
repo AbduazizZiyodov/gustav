@@ -32,3 +32,4 @@ Challenges (by me + book):
 - [ ] "Static" typing
 - [ ] REPL support for statements & expressions
 - [ ] Do not allow to use uninitialized variables
+- [ ] Support for `break` and `continue` statements
