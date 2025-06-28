@@ -45,7 +45,9 @@ def define_ast(
         IMPORTS += "from gustav.ast.expression import Expression\n"
 
     file.write(IMPORTS)
-    file.write(f"__all__ = {tuple([T for T in types.keys()])}\n\n")
+    file.write(
+        f"__all__ = {tuple(T for T in [*types.keys(), base_name, f'{base_name}Visitor'])}\n\n"
+    )
     file.write(BASE_ABSTRACT_CLASS.format(CLASS_NAME=base_name) + "\n")
 
     define_visitor(file, base_name, types)
