@@ -44,6 +44,7 @@ class TokenType(StrEnum):
     OR = auto()
 
     PRINT = auto()
+
     RETURN = auto()
     SUPER = auto()
     THIS = auto()

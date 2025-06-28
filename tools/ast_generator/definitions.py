@@ -17,6 +17,11 @@ EXPRESSION_TYPES: NodeDefinitionMapping = {
         {"type": "Token", "name": "operator"},
         {"type": EXPRESSION_BASE_NAME, "name": "right"},
     ],
+    "Call": [
+        {"type": EXPRESSION_BASE_NAME, "name": "callee"},
+        {"type": "Token", "name": "paren"},
+        {"type": f"list[{EXPRESSION_BASE_NAME}]", "name": "arguments"},
+    ],
     "Groupping": [
         {"type": EXPRESSION_BASE_NAME, "name": "expression"},
     ],
@@ -49,8 +54,17 @@ STATEMENT_TYPES: NodeDefinitionMapping = {
         {"type": STATEMENT_BASE_NAME, "name": "then_branch"},
         {"type": f"{STATEMENT_BASE_NAME} | None", "name": "else_branch"},
     ],
+    "Function": [
+        {"type": "Token", "name": "name"},
+        {"type": "list[Token]", "name": "params"},
+        {"type": f"list[{STATEMENT_BASE_NAME}]", "name": "body"},
+    ],
     "Print": [
         {"type": EXPRESSION_BASE_NAME, "name": "expression"},
+    ],
+    "Return": [
+        {"type": "Token", "name": "keyword"},
+        {"type": f"{EXPRESSION_BASE_NAME} | None", "name": "value"},
     ],
     "While": [
         {"type": EXPRESSION_BASE_NAME, "name": "condition"},

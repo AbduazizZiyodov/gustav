@@ -4,13 +4,13 @@ import typing as t  # noqa: F401
 
 from pprint import pformat
 
-from .ast import Statement
-from .parser import Parser
-from .scanner import Scanner
-from .logging import LOG, DEBUG
-from .interpreter import Interpreter
-from .exceptions import GusRuntimeError
-from .token import Token, TokenType as T
+from gustav.parser import Parser
+from gustav.scanner import Scanner
+from gustav.logging import LOG, DEBUG
+from gustav.interpreter import Interpreter
+from gustav.ast.statement import Statement
+from gustav.exceptions import GusRuntimeError
+from gustav.token import Token, TokenType as T
 
 rich_installed = False
 
@@ -117,7 +117,7 @@ def run_from_repl() -> int:
 
         if not line.endswith(";"):
             line += ";"  # only for repl
-            sys.stderr.write("Warning: do not forget about semicolon(';') at the end")
+            sys.stderr.write("Warning: do not forget about semicolon(';') at the end\n")
 
         run(line)
 

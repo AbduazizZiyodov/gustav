@@ -1,37 +1,60 @@
+import sys
+import time
 import typing as t
 
-from .logging import LOG  # noqa: F401
+from gustav.logging import LOG  # noqa: F401
 from gustav import gustav
-from .exceptions import GusRuntimeError
-from .token import Token, TokenType as TT
-from .ast import (
+from gustav.ast import (
     Expression,
-    Binary,
-    Groupping,
-    Literal,
-    Variable,
-    Logical,
-    Unary,
-    Assign,
-    ExpressionVisitor,
     Statement,
-    Expr,
-    While,
-    Print,
-    Var,
-    Block,
-    If,
-    StatementVisitor,
+    expression as E,
+    statement as S,
 )
-from .environment import Environment
+from gustav.environment import Environment
+from gustav.token import Token, TokenType as TT
+from gustav.callables import GusCallable, GusFunction
+from gustav.exceptions import GusRuntimeError, GusReturn
 
-__all__ = ["Interpreter"]
+__all__ = ("Interpreter",)
 
 
-class Interpreter(ExpressionVisitor[t.Any], StatementVisitor[None]):
+class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
     def __init__(self) -> None:
         super().__init__()
-        self.environment: Environment = Environment()
+
+        self.globals: Environment = Environment()
+        self.environment: Environment = self.globals
+
+        self.globals.define(
+            "clock",
+            self.define_builtin(
+                "clock",
+                0,
+                lambda interpreter, arguments: time.perf_counter(),
+            ),
+        )
+
+        self.globals.define(
+            "sleep",
+            self.define_builtin(
+                "sleep",
+                1,
+                lambda interpreter, arguments: time.sleep(arguments[0]),
+            ),
+        )
+
+    def define_builtin(
+        self, name: str, arity: int, body: t.Callable[[t.Any, t.Any], t.Any]
+    ) -> type:
+        return type(
+            name,
+            (GusCallable,),
+            {
+                "arity": lambda: arity,
+                "call": lambda interpreter, arguments: body(interpreter, arguments),
+                "__repr__": "<native fn>",
+            },
+        )
 
     def interpret(self, statements: list[Statement]) -> None:
         try:
@@ -48,12 +71,27 @@ class Interpreter(ExpressionVisitor[t.Any], StatementVisitor[None]):
         return None
 
     @t.override
-    def visit_while_statement(self, statement: While) -> None:
+    def visit_return_statement(self, statement: S.Return) -> t.Never:
+        value: t.Any = None
+
+        if (val := statement.value) is not None:
+            value = self.evaluate(val)
+
+        raise GusReturn(value)
+
+    @t.override
+    def visit_function_statement(self, statement: S.Function) -> None:
+        func: GusFunction = GusFunction(statement, self.environment)
+        self.environment.define(statement.name.lexeme, func)
+        return None
+
+    @t.override
+    def visit_while_statement(self, statement: S.While) -> None:
         while self.is_truthy(self.evaluate(statement.condition)):
             self.execute(statement.body)
 
     @t.override
-    def visit_logical_expression(self, expression: Logical) -> t.Any:
+    def visit_logical_expression(self, expression: E.Logical) -> t.Any:
         left: t.Any = self.evaluate(expression.left)
 
         if expression.operator.type == TT.OR:
@@ -66,7 +104,7 @@ class Interpreter(ExpressionVisitor[t.Any], StatementVisitor[None]):
         return self.evaluate(expression.right)
 
     @t.override
-    def visit_if_statement(self, statement: If) -> None:
+    def visit_if_statement(self, statement: S.If) -> None:
         if self.is_truthy(self.evaluate(statement.condition)):
             self.execute(statement.then_branch)
 
@@ -76,19 +114,19 @@ class Interpreter(ExpressionVisitor[t.Any], StatementVisitor[None]):
         return None
 
     @t.override
-    def visit_expr_statement(self, statement: Expr) -> None:
+    def visit_expr_statement(self, statement: S.Expr) -> None:
         self.evaluate(statement.expression)
         return None
 
     @t.override
-    def visit_print_statement(self, statement: Print) -> None:
+    def visit_print_statement(self, statement: S.Print) -> None:
         value: t.Any = self.evaluate(statement.expression)
-        print(self.stringfy(value))
-
+        line: str = self.stringfy(value) + "\n"
+        sys.stdout.write(line)
         return None
 
     @t.override
-    def visit_var_statement(self, statement: Var) -> None:
+    def visit_var_statement(self, statement: S.Var) -> None:
         value: t.Any = None
 
         if statement.initializer is not None:
@@ -97,7 +135,7 @@ class Interpreter(ExpressionVisitor[t.Any], StatementVisitor[None]):
         self.environment.define(statement.name.lexeme, value)
 
     @t.override
-    def visit_block_statement(self, statement: Block) -> None:
+    def visit_block_statement(self, statement: S.Block) -> None:
         self.execute_block(
             statement.statements,
             Environment(self.environment),
@@ -121,26 +159,47 @@ class Interpreter(ExpressionVisitor[t.Any], StatementVisitor[None]):
 
     # expressions
     @t.override
-    def visit_assign_expression(self, expression: Assign) -> t.Any:
+    def visit_call_expression(self, expression: E.Call) -> t.Any:
+        callee: t.Any = self.evaluate(expression.callee)
+
+        arguments: list[t.Any] = list(map(self.evaluate, expression.arguments))
+
+        if not isinstance(callee, GusCallable):
+            raise GusRuntimeError(
+                expression.paren, "Can only call functions and classes."
+            )
+
+        func: GusCallable = callee
+
+        if current_arity := len(arguments) != (required_arity := func.arity()):
+            raise GusRuntimeError(
+                expression.paren,
+                f"Expected {required_arity} arguments but got {current_arity}.",
+            )
+
+        return func.call(self, arguments)
+
+    @t.override
+    def visit_assign_expression(self, expression: E.Assign) -> t.Any:
         value: t.Any = self.evaluate(expression.value)
         self.environment.assign(expression.name, value)
 
         return value
 
     @t.override
-    def visit_variable_expression(self, expression: Variable) -> t.Any:
+    def visit_variable_expression(self, expression: E.Variable) -> t.Any:
         return self.environment.get(expression.name)
 
     @t.override
-    def visit_literal_expression(self, expression: Literal) -> t.Any:
+    def visit_literal_expression(self, expression: E.Literal) -> t.Any:
         return expression.value
 
     @t.override
-    def visit_groupping_expression(self, expression: Groupping) -> t.Any:
+    def visit_groupping_expression(self, expression: E.Groupping) -> t.Any:
         return self.evaluate(expression.expression)
 
     @t.override
-    def visit_unary_expression(self, expression: Unary) -> t.Any:
+    def visit_unary_expression(self, expression: E.Unary) -> t.Any:
         right = self.evaluate(expression.right)
 
         match expression.operator.type:
@@ -151,7 +210,7 @@ class Interpreter(ExpressionVisitor[t.Any], StatementVisitor[None]):
                 return -1 * right
 
     @t.override
-    def visit_binary_expression(self, expression: Binary) -> t.Any:
+    def visit_binary_expression(self, expression: E.Binary) -> t.Any:
         left = self.evaluate(expression.left)
         right = self.evaluate(expression.right)
 
@@ -184,13 +243,7 @@ class Interpreter(ExpressionVisitor[t.Any], StatementVisitor[None]):
                 return left + right
 
             case TT.PLUS_PLUS:  # concatenation operator
-                if isinstance(left, str) and isinstance(right, str):
-                    return "".join((left, right))
-
-                raise GusRuntimeError(
-                    expression.operator,
-                    "Both operands must be string to use concatenation(++) operator",
-                )
+                return "".join((str(left), str(right)))
 
             case TT.STAR:
                 check_for_number()
@@ -204,7 +257,6 @@ class Interpreter(ExpressionVisitor[t.Any], StatementVisitor[None]):
 
                 return left / right
 
-            # equality
             case TT.BANG_EQUAL:
                 return not self.is_equal(left, right)
 

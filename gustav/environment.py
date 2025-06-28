@@ -1,7 +1,7 @@
 import typing as t
 
-from .token import Token
-from .exceptions import GusRuntimeError
+from gustav.token import Token
+from gustav.exceptions import GusRuntimeError
 
 __all__ = ("Environment",)
 
