@@ -1,1 +1,1 @@
-DEBUG=yes ./.venv/bin/python3.13  -m gustav $@
+./.venv/bin/python3.13  -m gustav $@
