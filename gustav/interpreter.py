@@ -171,10 +171,10 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
 
         func: GusCallable = callee
 
-        if current_arity := len(arguments) != (required_arity := func.arity()):
+        if (current_arity := len(arguments)) != (required_arity := func.arity()):
             raise GusRuntimeError(
                 expression.paren,
-                f"Expected {required_arity} arguments but got {current_arity}.",
+                f"Expected {required_arity} arguments but got {current_arity}",
             )
 
         return func.call(self, arguments)
