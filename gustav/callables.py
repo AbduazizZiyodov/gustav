@@ -48,3 +48,19 @@ class GusFunction(GusCallable):
 
     def __repr__(self) -> str:
         return f"<fn {self.declaration.name.lexeme}>"
+
+
+def define_builtin_fn(
+    name: str,
+    arity: int,
+    body: t.Callable[[t.Any, t.Any], t.Any],
+) -> type:
+    return type(
+        name,
+        (GusCallable,),
+        {
+            "arity": lambda: arity,
+            "call": lambda interpreter, arguments: body(interpreter, arguments),
+            "__repr__": "<native fn>",
+        },
+    )
