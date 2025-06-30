@@ -1,7 +1,7 @@
 import typing as t  # noqa: F401
 
 from gustav import gustav
-from gustav.logging import LOG, DEBUG  # noqa: F401
+from gustav.logging import LOG  # noqa: F401
 from gustav.exceptions import GusParseError
 from gustav.token import Token, TokenType as TT
 from gustav.ast import Expression, Statement, expression as E, statement as S
@@ -61,6 +61,7 @@ class Parser:
         if not self.check(TT.RIGHT_PAREN):
             while True:
                 parameters.append(self.consume(TT.IDENTIFIER, "Expect parameter name."))
+
                 if not self.match(TT.COMMA):
                     break
 
@@ -186,6 +187,7 @@ class Parser:
                 statements.append(declaration)
 
         self.consume(TT.RIGHT_BRACE, "Expect '}' after block.")
+
         return statements
 
     def parse_print_statement(self) -> S.Print:
@@ -291,30 +293,52 @@ class Parser:
 
         return self.parse_call()
 
-    def parse_call(self) -> Expression:
+    def parse_call(self, pipe_arg: E.Call | None = None) -> E.Call | Expression:
         expr: Expression = self.parse_primary()
 
         while True:
             if self.match(TT.LEFT_PAREN):
-                LOG.info("Inside function all")
-                expr = self.finish_call(expr)
-                LOG.info("Function call finished")
+                expr = self.finish_call(expr, pipe_arg)
             else:
                 break
 
         return expr
 
-    def finish_call(self, callee: Expression) -> Expression:
-        arguments: list[Expression] = list()
+    def finish_call(
+        self, callee: Expression, pipe_arg: E.Call | None = None
+    ) -> E.Call | Expression:
+        """Parses arguments, closes call with RIGH_PAREN.
+
+        Then, looks for pipe operator. Ex: g(x) |> f(y)
+        Till |>, we have call expr = g(x), pipe encountered.
+
+        Instead of finishing call, we recursively parse_call expr again
+        to get f(y). In this moment, parse_call little more different than prev.
+
+        We introduced new pipe_arg param, which will be appended in arguments list of f().
+        So, given expression will be interpreted as: f(y,g(x))
+        """
+        arguments: list[Expression | E.Call] = list()
 
         if not self.check(TT.RIGHT_PAREN):
             arguments.append(self.parse_expression())
+
             while self.check(TT.COMMA):
                 arguments.append(self.parse_expression())
 
+        if pipe_arg:
+            arguments.append(pipe_arg)
+
         paren: Token = self.consume(TT.RIGHT_PAREN, "Expect ')' after arguments.")
 
-        return E.Call(callee, paren, arguments)
+        call_expr: E.Call | Expression
+
+        call_expr = E.Call(callee, paren, arguments)
+
+        if self.match(TT.PIPE):
+            call_expr = self.parse_call(call_expr)
+
+        return call_expr
 
     def parse_primary(self) -> Expression:
         if self.match(TT.FALSE):
@@ -351,8 +375,6 @@ class Parser:
                 return
 
             self.advance()
-
-    # Utility methods
 
     def match(self, *token_types: TT) -> bool:
         for token_type in token_types:
