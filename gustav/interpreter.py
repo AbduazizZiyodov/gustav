@@ -12,48 +12,33 @@ from gustav.ast import (
 )
 from gustav.environment import Environment
 from gustav.token import Token, TokenType as TT
-from gustav.callables import GusCallable, GusFunction
 from gustav.exceptions import GusRuntimeError, GusReturn
+from gustav.callables import GusCallable, GusFunction, define_builtin_fn
 
 __all__ = ("Interpreter",)
 
 
 class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
     def __init__(self) -> None:
-        super().__init__()
-
         self.globals: Environment = Environment()
         self.environment: Environment = self.globals
 
         self.globals.define(
             "clock",
-            self.define_builtin(
+            define_builtin_fn(
                 "clock",
                 0,
-                lambda interpreter, arguments: time.perf_counter(),
+                lambda *_: time.perf_counter(),
             ),
         )
 
         self.globals.define(
             "sleep",
-            self.define_builtin(
+            define_builtin_fn(
                 "sleep",
                 1,
-                lambda interpreter, arguments: time.sleep(arguments[0]),
+                lambda _, arguments: time.sleep(arguments[0]),
             ),
-        )
-
-    def define_builtin(
-        self, name: str, arity: int, body: t.Callable[[t.Any, t.Any], t.Any]
-    ) -> type:
-        return type(
-            name,
-            (GusCallable,),
-            {
-                "arity": lambda: arity,
-                "call": lambda interpreter, arguments: body(interpreter, arguments),
-                "__repr__": "<native fn>",
-            },
         )
 
     def interpret(self, statements: list[Statement]) -> None:
@@ -69,6 +54,27 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
     def execute(self, statement: Statement) -> None:
         statement.accept(self)
         return None
+
+    def evaluate(self, expression: Expression) -> t.Any:
+        return expression.accept(self)
+
+    def execute_block(
+        self, statements: list[Statement], environment: Environment
+    ) -> None:
+        previous_environment: Environment = self.environment
+
+        try:
+            self.environment = environment
+
+            for statement in statements:
+                self.execute(statement)
+
+        finally:
+            self.environment = previous_environment
+
+    ###
+    # Statements
+    ###
 
     @t.override
     def visit_return_statement(self, statement: S.Return) -> t.Never:
@@ -143,21 +149,9 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
 
         return None
 
-    def execute_block(
-        self, statements: list[Statement], environment: Environment
-    ) -> None:
-        previous_environment: Environment = self.environment
-
-        try:
-            self.environment = environment
-
-            for statement in statements:
-                self.execute(statement)
-
-        finally:
-            self.environment = previous_environment
-
-    # expressions
+    ###
+    # Expressions
+    ###
     @t.override
     def visit_call_expression(self, expression: E.Call) -> t.Any:
         callee: t.Any = self.evaluate(expression.callee)
@@ -217,43 +211,47 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
         def check_for_number() -> t.NoReturn | None:
             return self.check_number_operands(expression.operator, left, right)
 
+        if expression.operator.type in (
+            TT.GREATER,
+            TT.GREATER_EQUAL,
+            TT.LESS,
+            TT.LESS_EQUAL,
+            TT.MINUS,
+            TT.PLUS,
+            TT.PLUS_PLUS,
+            TT.STAR,
+            TT.SLASH,
+        ):
+            check_for_number()
+
         match expression.operator.type:
             case TT.GREATER:
-                check_for_number()
                 return left > right
 
             case TT.GREATER_EQUAL:
-                check_for_number()
                 return left >= right
 
             case TT.LESS:
-                check_for_number()
                 return left < right
 
             case TT.LESS_EQUAL:
-                check_for_number()
                 return left <= right
 
             case TT.MINUS:
-                check_for_number()
                 return left - right
 
             case TT.PLUS:
-                check_for_number()
                 return left + right
 
             case TT.PLUS_PLUS:  # concatenation operator
                 return "".join((str(left), str(right)))
 
             case TT.STAR:
-                check_for_number()
                 return left * right
 
             case TT.SLASH:
-                check_for_number()
-
                 if right == 0:
-                    return float("inf")
+                    return float("inf")  # yes
 
                 return left / right
 
@@ -265,6 +263,10 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
 
             case TT.CARET:
                 return pow(left, right)
+
+    ###
+    # Utility
+    ###
 
     def check_number_operands(
         self, operator: Token, *operands: t.Any
@@ -283,14 +285,12 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
     def is_truthy(self, value: t.Any) -> bool:
         if value in (None, False):
             return False
-        return True
 
-    def evaluate(self, expression: Expression) -> t.Any:
-        return expression.accept(self)
+        return True
 
     def stringfy(self, value: t.Any) -> str:
         if value is None:
-            return "nihil"
+            return "nil"
 
         if value in (True, False):
             return str(value).lower()

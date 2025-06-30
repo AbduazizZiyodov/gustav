@@ -30,3 +30,4 @@ Challenges (by me + book):
 - [ ] REPL support for statements & expressions
 - [ ] Disallowing use of uninitialized variables
 - [ ] `break` and `continue` statements in loops
+- [x] Dividing by zero, returns infinity
