@@ -323,7 +323,7 @@ class Parser:
         if not self.check(TT.RIGHT_PAREN):
             arguments.append(self.parse_expression())
 
-            while self.check(TT.COMMA):
+            while self.match(TT.COMMA):
                 arguments.append(self.parse_expression())
 
         if pipe_arg:
