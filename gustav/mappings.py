@@ -10,8 +10,8 @@ RESERVED_KEYWORDS: t.Final[dict[str, TT]] = {
     "this": TT.THIS,
     "fun": TT.FUN,
     "return": TT.RETURN,
-    "yes": TT.TRUE,  # yes
-    "no": TT.FALSE,  # no
+    "yes": TT.TRUE,  # no
+    "no": TT.FALSE,  # yes
     "false": TT.FALSE,
     "true": TT.TRUE,
     "nil": TT.NIL,

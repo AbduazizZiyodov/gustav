@@ -146,5 +146,8 @@ def error(token: Token, message: str) -> None:
 
 def runtime_error(exc: GusRuntimeError) -> None:
     global had_runtime_error
-    print(f"{exc.error_message} at [line {exc.token.line}]", file=sys.stderr)
+    print(
+        f"{exc.error_message} at [line {exc.token.line}, token={exc.token.type}]",
+        file=sys.stderr,
+    )
     had_runtime_error = True

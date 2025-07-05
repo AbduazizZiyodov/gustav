@@ -1,5 +1,4 @@
 import sys
-import time
 import typing as t
 
 from gustav.logging import LOG  # noqa: F401
@@ -10,10 +9,11 @@ from gustav.ast import (
     expression as E,
     statement as S,
 )
+from gustav.builtins import BUILTINS
 from gustav.environment import Environment
 from gustav.token import Token, TokenType as TT
+from gustav.callables import GusCallable, GusFunction
 from gustav.exceptions import GusRuntimeError, GusReturn
-from gustav.callables import GusCallable, GusFunction, define_builtin_fn
 
 __all__ = ("Interpreter",)
 
@@ -23,23 +23,8 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
         self.globals: Environment = Environment()
         self.environment: Environment = self.globals
 
-        self.globals.define(
-            "clock",
-            define_builtin_fn(
-                "clock",
-                0,
-                lambda *_: time.perf_counter(),
-            ),
-        )
-
-        self.globals.define(
-            "sleep",
-            define_builtin_fn(
-                "sleep",
-                1,
-                lambda _, arguments: time.sleep(arguments[0]),
-            ),
-        )
+        for fn_name, callable in BUILTINS:
+            self.globals.define(fn_name, callable)
 
     def interpret(self, statements: list[Statement]) -> None:
         try:
@@ -129,6 +114,7 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
         value: t.Any = self.evaluate(statement.expression)
         line: str = self.stringfy(value) + "\n"
         sys.stdout.write(line)
+
         return None
 
     @t.override
@@ -218,7 +204,6 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
             TT.LESS_EQUAL,
             TT.MINUS,
             TT.PLUS,
-            TT.PLUS_PLUS,
             TT.STAR,
             TT.SLASH,
         ):
