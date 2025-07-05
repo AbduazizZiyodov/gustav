@@ -31,3 +31,4 @@ Challenges (by me + book):
 - [ ] Disallowing use of uninitialized variables
 - [ ] `break` and `continue` statements in loops
 - [x] Dividing by zero, returns infinity
+- [ ] Report for unused variable

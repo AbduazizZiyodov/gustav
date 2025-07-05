@@ -34,3 +34,26 @@ class Environment:
             return
 
         raise GusRuntimeError(name, f"Undefined variable '{name.lexeme}'")
+
+    def get_at(self, distance: int, name: str) -> t.Any:
+        ancestor = self.ancestor(distance)
+
+        if ancestor:
+            return ancestor.values.get(name)
+
+        return None
+
+    def assign_at(self, distance: int, name: Token, value: t.Any) -> None:
+        ancestor = self.ancestor(distance)
+
+        if ancestor:
+            ancestor.values[name.lexeme] = value
+
+    def ancestor(self, distance: int) -> "Environment | None":
+        environment: Environment | None = self
+
+        for i in range(distance):
+            if environment:
+                environment = environment.enclosing
+
+        return environment

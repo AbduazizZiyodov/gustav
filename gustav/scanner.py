@@ -2,7 +2,8 @@ import typing as t
 
 from gustav.logging import LOG  # noqa: F401
 from gustav import gustav
-from gustav.token import Token, TokenType as TT
+from gustav.token import Token
+from gustav.types import TokenType as TT
 from gustav.mappings import RESERVED_KEYWORDS, SINGLE_TOKEN_MAPPING
 
 __all__ = ("Scanner",)
@@ -67,7 +68,7 @@ class Scanner:
             case "\n":
                 self.line += 1
 
-            case " " | "\r" | "\t":
+            case " " | "\r" | "\t" | "\f" | "\v":
                 pass
 
             case '"':

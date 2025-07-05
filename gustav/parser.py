@@ -3,7 +3,8 @@ import typing as t  # noqa: F401
 from gustav import gustav
 from gustav.logging import LOG  # noqa: F401
 from gustav.exceptions import GusParseError
-from gustav.token import Token, TokenType as TT
+from gustav.token import Token
+from gustav.types import TokenType as TT
 from gustav.ast import Expression, Statement, expression as E, statement as S
 
 __all__ = ("Parser",)
