@@ -141,13 +141,23 @@ class Scanner:
         self.add_token(type=TT.NUMBER, literal=float(part))
 
     def multiline_comment(self) -> None:
-        while not (self.peek() == "*" and self.peek_next() == "/"):
-            if self.peek() == "\n":
-                self.line += 1
-            self.move_current()
+        if self.peek() == "\0":
+            gustav.panic(self.line, "Multiline comment is not terminated.")
+            return
 
-        self.move_current()
-        self.move_current()
+        while True:
+            # opening, we've already consumed /*,
+            # if we encounter one again, it means nesting.
+            if self.peek() == "/" and self.peek_next() == "*":
+                gustav.panic(self.line, "Nesting multiline comments are not allowed.")
+                return
+
+            # looking for terminating points
+            if self.peek() == "*" and self.peek_next() == "/":
+                self.move_current(), self.move_current()
+                break
+
+            self.move_current()
 
     def comment(self) -> None:
         while self.peek() != "\n" and not self.is_end:
@@ -157,6 +167,7 @@ class Scanner:
         while self.peek() != '"' and not self.is_end:
             if self.peek() == "\n":
                 self.line += 1
+
             self.move_current()
 
         if self.is_end:
