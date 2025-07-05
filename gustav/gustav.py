@@ -4,13 +4,15 @@ import typing as t  # noqa: F401
 
 from pprint import pformat
 
+from gustav.token import Token
 from gustav.parser import Parser
 from gustav.scanner import Scanner
+from gustav.resolver import Resolver
 from gustav.logging import LOG, DEBUG
+from gustav.types import TokenType as T
 from gustav.interpreter import Interpreter
 from gustav.ast.statement import Statement
 from gustav.exceptions import GusRuntimeError
-from gustav.token import Token, TokenType as T
 
 rich_installed = False
 
@@ -69,9 +71,16 @@ def run(source: str) -> None:
                 formatted_statement = pformat(statement)
                 LOG.debug(f"{index} => {formatted_statement}")
 
-    LOG.debug("Interpretation result:")
-
     interpreter = Interpreter()
+
+    resolver = Resolver(interpreter)
+    resolver.resolve(statements)
+
+    if had_error:
+        LOG.debug("Resolving failed")
+        return
+
+    LOG.debug("Interpretation result:")
     interpreter.interpret(statements)
 
 

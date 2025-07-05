@@ -11,7 +11,8 @@ from gustav.ast import (
 )
 from gustav.builtins import BUILTINS
 from gustav.environment import Environment
-from gustav.token import Token, TokenType as TT
+from gustav.token import Token
+from gustav.types import TokenType as TT
 from gustav.callables import GusCallable, GusFunction
 from gustav.exceptions import GusRuntimeError, GusReturn
 
@@ -21,8 +22,12 @@ __all__ = ("Interpreter",)
 class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
     def __init__(self) -> None:
         self.globals: Environment = Environment()
+        self.locals: dict[Expression, int] = dict()
         self.environment: Environment = self.globals
 
+        self.init_builtins()
+
+    def init_builtins(self) -> None:
         for fn_name, callable in BUILTINS:
             self.globals.define(fn_name, callable)
 
@@ -38,7 +43,17 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
 
     def execute(self, statement: Statement) -> None:
         statement.accept(self)
-        return None
+
+    def resolve(self, expression: E.Expression, depth: int) -> None:
+        self.locals[expression] = depth
+
+    def look_up_variable(self, name: Token, expr: Expression) -> t.Any:
+        distance: int | None = self.locals.get(expr)
+
+        if distance is not None:
+            return self.environment.get_at(distance, name.lexeme)
+
+        return self.globals.get(name)
 
     def evaluate(self, expression: Expression) -> t.Any:
         return expression.accept(self)
@@ -162,13 +177,19 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
     @t.override
     def visit_assign_expression(self, expression: E.Assign) -> t.Any:
         value: t.Any = self.evaluate(expression.value)
-        self.environment.assign(expression.name, value)
+
+        distance: int | None = self.locals.get(expression)
+
+        if distance is not None:
+            self.environment.assign_at(distance, expression.name, value)
+        else:
+            self.globals.assign(expression.name, value)
 
         return value
 
     @t.override
     def visit_variable_expression(self, expression: E.Variable) -> t.Any:
-        return self.environment.get(expression.name)
+        return self.look_up_variable(expression.name, expression)
 
     @t.override
     def visit_literal_expression(self, expression: E.Literal) -> t.Any:
