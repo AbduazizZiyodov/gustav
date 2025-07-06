@@ -1,0 +1,1 @@
+./.venv/bin/python3.13 -m tools generate_ast

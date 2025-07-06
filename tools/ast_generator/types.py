@@ -1,6 +1,6 @@
 import typing as t
 
-__all__ = ["NodeDefinitions", "NodeDefinitionMapping"]
+__all__ = ("NodeDefinitions", "NodeDefinitionMapping")
 
 
 class NodeDefinition(t.TypedDict):

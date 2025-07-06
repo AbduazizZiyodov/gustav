@@ -1,13 +1,10 @@
-import typing as t
-
 from .types import NodeDefinitionMapping
 
-EXPRESSION_BASE_NAME: t.Final[str] = "Expression"
-STATEMENT_BASE_NAME: t.Final[str] = "Statement"
+EXPRESSION_BASE_NAME = "Expression"
+STATEMENT_BASE_NAME = "Statement"
 
 
 EXPRESSION_TYPES: NodeDefinitionMapping = {
-    # Expressions
     "Assign": [
         {"type": "Token", "name": "name"},
         {"type": EXPRESSION_BASE_NAME, "name": "value"},

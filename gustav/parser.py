@@ -5,7 +5,7 @@ from gustav.logging import LOG  # noqa: F401
 from gustav.exceptions import GusParseError
 from gustav.token import Token
 from gustav.types import TokenType as TT
-from gustav.ast import Expression, Statement, expression as E, statement as S
+from gustav.ast import expression as E, statement as S
 
 __all__ = ("Parser",)
 
@@ -28,8 +28,8 @@ class Parser:
         self.current: int = 0
         self.tokens: list[Token] = tokens
 
-    def parse(self) -> list[Statement]:
-        statements: list[Statement] = list()
+    def parse(self) -> list[S.Statement]:
+        statements: list[S.Statement] = list()
 
         while not self.is_at_end():
             if declaration := self.parse_declaration():
@@ -37,7 +37,7 @@ class Parser:
 
         return statements
 
-    def parse_declaration(self) -> Statement | S.Var | None:
+    def parse_declaration(self) -> S.Statement | None:
         try:
             if self.match(TT.FUN):
                 return self.parse_function("function")
@@ -69,13 +69,13 @@ class Parser:
         self.consume(TT.RIGHT_PAREN, "Expect ')' after parameters.")
         self.consume(TT.LEFT_BRACE, f"Expect '{{' {kind}")
 
-        body: list[Statement] = self.parse_block()
+        body: list[S.Statement] = self.parse_block()
 
         return S.Function(name, parameters, body)
 
     def parse_var_declaration(self) -> S.Var:
         name: Token = self.consume(TT.IDENTIFIER, "Expect variable name.")
-        initializer: Expression | None = None
+        initializer: E.Expression | None = None
 
         if self.match(TT.EQUAL):
             initializer = self.parse_expression()
@@ -84,7 +84,7 @@ class Parser:
 
         return S.Var(name, initializer)
 
-    def parse_statement(self) -> Statement:
+    def parse_statement(self) -> S.Statement:
         if self.match(TT.PRINT):
             return self.parse_print_statement()
 
@@ -107,7 +107,7 @@ class Parser:
 
     def parse_return_statement(self) -> S.Return:
         keyword: Token = self.get_previous()
-        value: Expression | None = None
+        value: E.Expression | None = None
 
         if not self.check(TT.SEMICOLON):
             value = self.parse_expression()
@@ -116,8 +116,8 @@ class Parser:
 
         return S.Return(keyword, value)
 
-    def parse_for_statement(self) -> Statement:
-        """desugaring for loops into while loops"""
+    def parse_for_statement(self) -> S.Statement:
+        """Desugar 'for loops' into 'while loops'"""
         self.consume(TT.LEFT_PAREN, "Expect '(' after 'for'.")
 
         initializer: S.Var | S.Expr | None
@@ -129,21 +129,21 @@ class Parser:
         else:
             initializer = self.parse_expression_statement()
 
-        condition: Expression | None = None
+        condition: E.Expression | None = None
 
         if not self.check(TT.SEMICOLON):
             condition = self.parse_expression()
 
         self.consume(TT.SEMICOLON, "Expect ';' after loop condition.")
 
-        increment: Expression | None = None
+        increment: E.Expression | None = None
 
         if not self.check(TT.RIGHT_PAREN):
             increment = self.parse_expression()
 
         self.consume(TT.RIGHT_PAREN, "Expect ')' after for clauses.")
 
-        body: Statement = self.parse_statement()
+        body: S.Statement = self.parse_statement()
 
         if increment is not None:
             body = S.Block([body, S.Expr(increment)])
@@ -160,28 +160,28 @@ class Parser:
 
     def parse_while_statement(self) -> S.While:
         self.consume(TT.LEFT_PAREN, "Expect '(' after 'while'.")
-        condition: Expression = self.parse_expression()
+        condition: E.Expression = self.parse_expression()
         self.consume(TT.RIGHT_PAREN, "Expect ')' after 'condition'.")
 
-        body: Statement = self.parse_statement()
+        body: S.Statement = self.parse_statement()
 
         return S.While(condition, body)
 
     def parse_if_statement(self) -> S.If:
         self.consume(TT.LEFT_PAREN, "Expect '(' after 'if'.")
-        condition: Expression = self.parse_expression()
+        condition: E.Expression = self.parse_expression()
         self.consume(TT.RIGHT_PAREN, "Expect ')' after 'condition'.")
 
-        then_branch: Statement = self.parse_statement()
-        else_branch: Statement | None = None
+        then_branch: S.Statement = self.parse_statement()
+        else_branch: S.Statement | None = None
 
         if self.match(TT.ELSE):
             else_branch = self.parse_statement()
 
         return S.If(condition, then_branch, else_branch)
 
-    def parse_block(self) -> list[Statement]:
-        statements: list[Statement] = list()
+    def parse_block(self) -> list[S.Statement]:
+        statements: list[S.Statement] = list()
 
         while not self.check(TT.RIGHT_BRACE) and not self.is_at_end():
             if declaration := self.parse_declaration():
@@ -192,7 +192,7 @@ class Parser:
         return statements
 
     def parse_print_statement(self) -> S.Print:
-        value: Expression = self.parse_expression()
+        value: E.Expression = self.parse_expression()
         self.consume(TT.SEMICOLON, "Expect ';' after value")
 
         return S.Print(value)
@@ -203,15 +203,15 @@ class Parser:
 
         return S.Expr(expression)
 
-    def parse_expression(self) -> Expression:
+    def parse_expression(self) -> E.Expression:
         return self.parse_assignment()
 
-    def parse_assignment(self) -> Expression:
-        expr: Expression = self.parse_or()
+    def parse_assignment(self) -> E.Expression:
+        expr: E.Expression = self.parse_or()
 
         if self.match(TT.EQUAL):
             equals: Token = self.get_previous()
-            value: Expression = self.parse_assignment()
+            value: E.Expression = self.parse_assignment()
 
             if isinstance(expr, E.Variable):
                 name: Token = expr.name
@@ -221,38 +221,38 @@ class Parser:
 
         return expr
 
-    def parse_or(self) -> Expression:  # yes
-        expr: Expression = self.parse_and()
+    def parse_or(self) -> E.Expression:  # yes
+        expr: E.Expression = self.parse_and()
 
         while self.match(TT.OR):
             operator: Token = self.get_previous()
-            right: Expression = self.parse_and()
+            right: E.Expression = self.parse_and()
             expr = E.Logical(expr, operator, right)
 
         return expr
 
-    def parse_and(self) -> Expression:  # yes
-        expr: Expression = self.parse_equality()
+    def parse_and(self) -> E.Expression:  # yes
+        expr: E.Expression = self.parse_equality()
 
         while self.match(TT.AND):
             operator: Token = self.get_previous()
-            right: Expression = self.parse_equality()
+            right: E.Expression = self.parse_equality()
             expr = E.Logical(expr, operator, right)
 
         return expr
 
-    def parse_equality(self) -> Expression:
-        expr: Expression = self.parse_comparision()
+    def parse_equality(self) -> E.Expression:
+        expr: E.Expression = self.parse_comparision()
 
         while self.match(TT.BANG_EQUAL, TT.EQUAL_EQUAL):
             operator: Token = self.get_previous()
-            right: Expression = self.parse_comparision()
+            right: E.Expression = self.parse_comparision()
             expr = E.Binary(expr, operator, right)
 
         return expr
 
-    def parse_comparision(self) -> Expression:
-        expr: Expression = self.parse_term()
+    def parse_comparision(self) -> E.Expression:
+        expr: E.Expression = self.parse_term()
 
         while self.match(
             TT.GREATER,
@@ -261,41 +261,41 @@ class Parser:
             TT.LESS_EQUAL,
         ):
             operator: Token = self.get_previous()
-            right: Expression = self.parse_term()
+            right: E.Expression = self.parse_term()
             expr = E.Binary(expr, operator, right)
 
         return expr
 
-    def parse_term(self) -> Expression:
+    def parse_term(self) -> E.Expression:
         expr = self.parse_factor()
 
         while self.match(TT.MINUS, TT.PLUS, TT.PLUS_PLUS, TT.CARET):
             operator: Token = self.get_previous()
-            right: Expression = self.parse_factor()
+            right: E.Expression = self.parse_factor()
             expr = E.Binary(expr, operator, right)
 
         return expr
 
-    def parse_factor(self) -> Expression:
+    def parse_factor(self) -> E.Expression:
         expr = self.parse_unary()
 
         while self.match(TT.SLASH, TT.STAR):
             operator: Token = self.get_previous()
-            right: Expression = self.parse_unary()
+            right: E.Expression = self.parse_unary()
             expr = E.Binary(expr, operator, right)
 
         return expr
 
-    def parse_unary(self) -> Expression:
+    def parse_unary(self) -> E.Expression:
         if self.match(TT.BANG, TT.MINUS):
             operator: Token = self.get_previous()
-            right: Expression = self.parse_unary()
+            right: E.Expression = self.parse_unary()
             return E.Unary(operator, right)
 
         return self.parse_call()
 
-    def parse_call(self, pipe_arg: E.Call | None = None) -> E.Call | Expression:
-        expr: Expression = self.parse_primary()
+    def parse_call(self, pipe_arg: E.Call | None = None) -> E.Call | E.Expression:
+        expr: E.Expression = self.parse_primary()
 
         while True:
             if self.match(TT.LEFT_PAREN):
@@ -306,8 +306,8 @@ class Parser:
         return expr
 
     def finish_call(
-        self, callee: Expression, pipe_arg: E.Call | None = None
-    ) -> E.Call | Expression:
+        self, callee: E.Expression, pipe_arg: E.Call | None = None
+    ) -> E.Call | E.Expression:
         """Parses arguments, closes call with RIGH_PAREN.
 
         Then, looks for pipe operator. Ex: g(x) |> f(y)
@@ -319,7 +319,7 @@ class Parser:
         We introduced new pipe_arg param, which will be appended in arguments list of f().
         So, given expression will be interpreted as: f(y,g(x))
         """
-        arguments: list[Expression | E.Call] = list()
+        arguments: list[E.Expression | E.Call] = list()
 
         if not self.check(TT.RIGHT_PAREN):
             arguments.append(self.parse_expression())
@@ -332,7 +332,7 @@ class Parser:
 
         paren: Token = self.consume(TT.RIGHT_PAREN, "Expect ')' after arguments.")
 
-        call_expr: E.Call | Expression
+        call_expr: E.Call | E.Expression
 
         call_expr = E.Call(callee, paren, arguments)
 
@@ -341,7 +341,7 @@ class Parser:
 
         return call_expr
 
-    def parse_primary(self) -> Expression:
+    def parse_primary(self) -> E.Expression:
         if self.match(TT.FALSE):
             return E.Literal(False)
 
@@ -358,7 +358,7 @@ class Parser:
             return E.Variable(self.get_previous())
 
         if self.match(TT.LEFT_PAREN):
-            expr: Expression = self.parse_expression()
+            expr: E.Expression = self.parse_expression()
             self.consume(TT.RIGHT_PAREN, "Expect ')' after expression")
             return E.Groupping(expr)
 
