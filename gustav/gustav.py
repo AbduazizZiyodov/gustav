@@ -9,7 +9,7 @@ from gustav.parser import Parser
 from gustav.scanner import Scanner
 from gustav.resolver import Resolver
 from gustav.logging import LOG, DEBUG
-from gustav.types import TokenType as T
+from gustav.types import TokenType as TT
 from gustav.interpreter import Interpreter
 from gustav.ast.statement import Statement
 from gustav.exceptions import GusRuntimeError
@@ -59,10 +59,16 @@ def run(source: str) -> None:
     for index, token in enumerate(tokens):
         LOG.debug(f"{index} => {token}")
 
+    if len(tokens) == 1 and tokens[0].type == TT.EOF:
+        LOG.debug(f"No tokens received {tokens=}")
+        return
+
     parser: Parser = Parser(tokens)
 
     LOG.info("Parsing ...")
+
     statements: list[Statement] = parser.parse()
+
     LOG.debug("Parsing finished")
 
     if DEBUG:  # log statements on DEBUG mode
@@ -80,7 +86,9 @@ def run(source: str) -> None:
     resolver = Resolver(interpreter)
 
     LOG.debug("Beginning semantic analysis (resolving) ...")
+
     resolver.resolve(statements)
+
     LOG.debug("Semantic analysis (resolving) finished")
 
     if had_error:
@@ -155,7 +163,7 @@ def report(line: int, where: str, message: str) -> None:
 
 
 def error(token: Token, message: str) -> None:
-    if token.type != T.EOF:
+    if token.type != TT.EOF:
         report(token.line, " at the end", message)
     else:
         report(token.line, f" at '{token.lexeme}'", message)

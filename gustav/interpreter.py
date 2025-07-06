@@ -154,6 +154,15 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
     # Expressions
     ###
     @t.override
+    def visit_ternary_expression(self, expression: E.Ternary) -> t.Any:
+        condition_eval = self.evaluate(expression.condition)
+
+        if self.is_truthy(condition_eval):
+            return self.evaluate(expression.then_branch)
+
+        return self.evaluate(expression.else_branch)
+
+    @t.override
     def visit_call_expression(self, expression: E.Call) -> t.Any:
         callee: t.Any = self.evaluate(expression.callee)
 
@@ -269,6 +278,9 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
 
             case TT.CARET:
                 return pow(left, right)
+
+            case _:  # should not be possible, anyway
+                raise GusRuntimeError(expression.operator, "Unknown binary operator.")
 
     ###
     # Utility

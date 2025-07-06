@@ -98,6 +98,12 @@ class Resolver(E.ExpressionVisitor[None], S.StatementVisitor[None]):
             self.resolve(statement.else_branch)
 
     @t.override
+    def visit_ternary_expression(self, expression: E.Ternary) -> None:
+        self.resolve(expression.condition)
+        self.resolve(expression.then_branch)
+        self.resolve(expression.else_branch)
+
+    @t.override
     def visit_print_statement(self, statement: S.Print) -> None:
         self.resolve(statement.expression)
 

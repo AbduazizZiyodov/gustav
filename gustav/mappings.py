@@ -37,4 +37,6 @@ SINGLE_TOKEN_MAPPING: t.Final[dict[str, TT]] = {
     ";": TT.SEMICOLON,
     "*": TT.STAR,
     "^": TT.CARET,
+    "?": TT.QUESTION_MARK,
+    ":": TT.COLON,
 }
