@@ -31,7 +31,7 @@ had_runtime_error: bool = False
 
 def main() -> int:
     if len(sys.argv) > 2:
-        print(f"Usage: {sys.executable} -m gustav [script]")
+        sys.stdout.write(f"Usage: {sys.executable} -m gustav [script]")
         return os.EX_USAGE
 
     if len(sys.argv) == 2:
@@ -45,28 +45,32 @@ def run(source: str) -> None:
         source += "\n"
 
     scanner = Scanner(source)
+
+    LOG.debug("Scanning ...")
+
     tokens: list[Token] = scanner.get_tokens()
 
     if had_error:
         LOG.debug("Scanning failed, exiting")
         return
 
-    LOG.debug(f"Scanning completed, {len(tokens)} tokens scanned")
+    LOG.debug(f"Scanning finished, got {len(tokens)} tokens. Listing:")
 
     for index, token in enumerate(tokens):
         LOG.debug(f"{index} => {token}")
 
     parser: Parser = Parser(tokens)
 
+    LOG.info("Parsing ...")
     statements: list[Statement] = parser.parse()
-    LOG.debug("Parsing finished\n")
+    LOG.debug("Parsing finished")
 
     if DEBUG:  # log statements on DEBUG mode
         for index, statement in enumerate(statements):
             if rich_installed:
                 printr(f"[bold green]Statement[/bold green] {index}:")
                 printr(statement)
-                print()
+                sys.stdout.write("\n")
             else:
                 formatted_statement = pformat(statement)
                 LOG.debug(f"{index} => {formatted_statement}")
@@ -74,14 +78,18 @@ def run(source: str) -> None:
     interpreter = Interpreter()
 
     resolver = Resolver(interpreter)
+
+    LOG.debug("Beginning semantic analysis (resolving) ...")
     resolver.resolve(statements)
+    LOG.debug("Semantic analysis (resolving) finished")
 
     if had_error:
         LOG.debug("Resolving failed")
         return
 
-    LOG.debug("Interpretation result:")
+    LOG.debug("Interpreting ...")
     interpreter.interpret(statements)
+    LOG.debug("Interpretation finished")
 
 
 def run_from_file(file_name: str) -> int:
@@ -93,8 +101,7 @@ def run_from_file(file_name: str) -> int:
         with open(file_name, "r") as file:
             source = file.read()
 
-    except FileNotFoundError as exc:
-        LOG.debug(f"File with {file_name=} is not found: {exc=}")
+    except FileNotFoundError:
         sys.stderr.write(f"Couldn't find file with {file_name=}")
         return os.EX_NOINPUT
 
@@ -143,7 +150,8 @@ def panic(line: int, message: str) -> None:
 def report(line: int, where: str, message: str) -> None:
     global had_error
     had_error = True
-    print(f"[line {line}] Error {where}: {message}", file=sys.stderr)
+
+    sys.stderr.write(f"[line {line}] Error {where}: {message}\n")
 
 
 def error(token: Token, message: str) -> None:
@@ -155,8 +163,8 @@ def error(token: Token, message: str) -> None:
 
 def runtime_error(exc: GusRuntimeError) -> None:
     global had_runtime_error
-    print(
-        f"{exc.error_message} at [line {exc.token.line}, token={exc.token.type}]",
-        file=sys.stderr,
-    )
     had_runtime_error = True
+
+    sys.stderr.write(
+        f"{exc.error_message} at [line {exc.token.line}, token={exc.token.type}]\n"
+    )
