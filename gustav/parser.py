@@ -249,7 +249,22 @@ class Parser:
             right: E.Expression = self.parse_comparision()
             expr = E.Binary(expr, operator, right)
 
+        while self.match(TT.QUESTION_MARK):
+            # allows nesting: a ? (b ? c : d) : e
+            expr = self.parse_ternary(expr)
+
         return expr
+
+    def parse_ternary(self, condition: E.Expression) -> E.Ternary:
+        true_expr: E.Expression = self.parse_assignment()
+        self.consume(TT.COLON, "Expect ':' after '?' in ternary expr")
+        false_expr: E.Expression = self.parse_assignment()
+
+        return E.Ternary(
+            condition,
+            true_expr,
+            false_expr,
+        )
 
     def parse_comparision(self) -> E.Expression:
         expr: E.Expression = self.parse_term()
@@ -366,6 +381,7 @@ class Parser:
 
     def synchronize(self) -> None:
         LOG.info(f"Syncing ... peek={self.peek()}")
+
         self.advance()
 
         while not self.is_at_end():

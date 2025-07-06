@@ -14,6 +14,11 @@ EXPRESSION_TYPES: NodeDefinitionMapping = {
         {"type": "Token", "name": "operator"},
         {"type": EXPRESSION_BASE_NAME, "name": "right"},
     ],
+    "Ternary": [
+        {"type": EXPRESSION_BASE_NAME, "name": "condition"},
+        {"type": EXPRESSION_BASE_NAME, "name": "then_branch"},
+        {"type": EXPRESSION_BASE_NAME, "name": "else_branch"},
+    ],
     "Call": [
         {"type": EXPRESSION_BASE_NAME, "name": "callee"},
         {"type": "Token", "name": "paren"},

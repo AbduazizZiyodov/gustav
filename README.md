@@ -23,7 +23,7 @@ Challenges (by me + book):
 - [ ] Better error handling & messages.
 - [x] C-style multiline-comments (`/* ... */`)
 - [ ] Comma expressions
-- [ ] Ternary operator
+- [x] Ternary operator ( `condition ? expr_if_true : expr_if_false` )
 - [x] String concatenation operator (`++`)
 - [x] Pipe operator
 - [ ] Lambdas

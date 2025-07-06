@@ -58,4 +58,7 @@ class TokenType(StrEnum):
     PIPE = auto()
     CARET = auto()
 
+    COLON = auto()
+    QUESTION_MARK = auto()
+
     EOF = auto()
