@@ -2,9 +2,9 @@ import typing as t  # noqa: F401
 
 from gustav import gustav
 from gustav.logging import LOG  # noqa: F401
-from gustav.exceptions import GusParseError
 from gustav.token import Token
-from gustav.types import TokenType as TT
+from gustav.enums import TokenType as TT
+from gustav.exceptions import GusParseError
 from gustav.ast import expression as E, statement as S
 
 __all__ = ("Parser",)
@@ -39,6 +39,9 @@ class Parser:
 
     def parse_declaration(self) -> S.Statement | None:
         try:
+            if self.match(TT.CLASS):
+                return self.parse_class_declaration()
+
             if self.match(TT.FUN):
                 return self.parse_function("function")
 
@@ -51,6 +54,19 @@ class Parser:
             self.synchronize()
 
         return None
+
+    def parse_class_declaration(self) -> S.Class:
+        name: Token = self.consume(TT.IDENTIFIER, "Expect class name.")
+        self.consume(TT.LEFT_BRACE, "Expect '{' before class body.")
+
+        methods: list[S.Function] = []
+
+        while not self.check(TT.RIGHT_BRACE) and not self.is_at_end():
+            methods.append(self.parse_function("method"))
+
+        self.consume(TT.RIGHT_BRACE, "Expect '}' after class body.")
+
+        return S.Class(name, methods)
 
     def parse_function(self, kind: str) -> S.Function:
         name: Token = self.consume(TT.IDENTIFIER, f"Expect {kind} name.")

@@ -48,6 +48,10 @@ STATEMENT_TYPES: NodeDefinitionMapping = {
     "Block": [
         {"type": f"list[{STATEMENT_BASE_NAME}]", "name": "statements"},
     ],
+    "Class": [
+        {"type": "Token", "name": "name"},
+        {"type": "list['Function']", "name": "methods"},
+    ],
     "Expr": [
         {"type": EXPRESSION_BASE_NAME, "name": "expression"},
     ],

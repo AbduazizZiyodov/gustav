@@ -5,7 +5,7 @@ from functools import singledispatchmethod
 
 from gustav import gustav
 from gustav.token import Token
-from gustav.types import FunctionType
+from gustav.enums import FunctionType
 from gustav.ast import expression as E, statement as S
 
 __all__ = ("Resolver",)
@@ -67,6 +67,11 @@ class Resolver(E.ExpressionVisitor[None], S.StatementVisitor[None]):
         if statement.initializer is not None:
             self.resolve(statement.initializer)
 
+        self.define(statement.name)
+
+    @t.override
+    def visit_class_statement(self, statement: S.Class) -> None:
+        self.declare(statement.name)
         self.define(statement.name)
 
     @t.override

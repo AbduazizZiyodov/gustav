@@ -1,7 +1,7 @@
 import typing as t
 from dataclasses import dataclass
 
-from gustav.types import TokenType
+from gustav.enums import TokenType
 
 __all__ = ("Token",)
 

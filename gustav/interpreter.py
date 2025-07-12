@@ -9,12 +9,13 @@ from gustav.ast import (
     expression as E,
     statement as S,
 )
-from gustav.builtins import BUILTINS
-from gustav.environment import Environment
 from gustav.token import Token
-from gustav.types import TokenType as TT
-from gustav.callables import GusCallable, GusFunction
+from gustav.builtins import BUILTINS
+from gustav.callables import GusFunction
+from gustav.enums import TokenType as TT
+from gustav.environment import Environment
 from gustav.exceptions import GusRuntimeError, GusReturn
+from gustav.types import GusClass, GusCallable
 
 __all__ = ("Interpreter",)
 
@@ -75,6 +76,12 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
     ###
     # Statements
     ###
+
+    @t.override
+    def visit_class_statement(self, statement: S.Class) -> None:
+        self.environment.define(statement.name.lexeme, None)
+        klass = GusClass(statement.name.lexeme)
+        self.environment.assign(statement.name, klass)
 
     @t.override
     def visit_return_statement(self, statement: S.Return) -> t.Never:

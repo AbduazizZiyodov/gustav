@@ -1,6 +1,6 @@
 import typing as t
 
-from gustav.types import TokenType as TT
+from gustav.enums import TokenType as TT
 
 __all__ = "RESERVED_KEYWORDS", "SINGLE_TOKEN_MAPPING"
 
