@@ -9,7 +9,7 @@ from gustav.parser import Parser
 from gustav.scanner import Scanner
 from gustav.resolver import Resolver
 from gustav.logging import LOG, DEBUG
-from gustav.types import TokenType as TT
+from gustav.enums import TokenType as TT
 from gustav.interpreter import Interpreter
 from gustav.ast.statement import Statement
 from gustav.exceptions import GusRuntimeError

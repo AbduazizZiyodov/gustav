@@ -1,64 +1,46 @@
-from enum import StrEnum, auto
+import typing as t
+from dataclasses import dataclass
 
-__all__ = ("FunctionType", "TokenType")
-
-
-class FunctionType(StrEnum):
-    NONE = auto()
-    FUNCTION = auto()
+from gustav.ast import statement as S
+from gustav.environment import Environment
 
 
-class TokenType(StrEnum):
-    LEFT_PAREN = auto()
-    RIGHT_PAREN = auto()
-    LEFT_BRACE = auto()
-    RIGHT_BRACE = auto()
+__all__ = ("InterpreterT", "GusCallable")
 
-    COMMA = auto()
-    DOT = auto()
-    MINUS = auto()
-    PLUS = auto()
-    PLUS_PLUS = auto()
-    SEMICOLON = auto()
-    SLASH = auto()
-    STAR = auto()
 
-    BANG = auto()
-    BANG_EQUAL = auto()
-    EQUAL = auto()
-    EQUAL_EQUAL = auto()
-    GREATER = auto()
-    GREATER_EQUAL = auto()
-    LESS = auto()
-    LESS_EQUAL = auto()
+@t.runtime_checkable
+class InterpreterT(t.Protocol):
+    globals: Environment
 
-    IDENTIFIER = auto()
-    STRING = auto()
-    NUMBER = auto()
+    def execute_block(
+        self, statements: list[S.Statement], environment: Environment
+    ) -> None:
+        pass
 
-    AND = auto()
-    CLASS = auto()
-    ELSE = auto()
-    FALSE = auto()
-    FUN = auto()
-    FOR = auto()
-    IF = auto()
-    NIL = auto()
-    OR = auto()
 
-    PRINT = auto()
+@t.runtime_checkable
+class GusCallable(t.Protocol):
+    def arity(self) -> int:
+        pass
 
-    RETURN = auto()
-    SUPER = auto()
-    THIS = auto()
-    TRUE = auto()
-    VAR = auto()
-    WHILE = auto()
+    def call(self, interpreter: InterpreterT, arguments: list[t.Any]) -> t.Any:
+        pass
 
-    PIPE = auto()
-    CARET = auto()
 
-    COLON = auto()
-    QUESTION_MARK = auto()
+@dataclass
+class GusClass(GusCallable):
+    name: str
 
-    EOF = auto()
+    def call(self, interpreter: InterpreterT, arguments: list[t.Any]) -> t.Any:
+        return GusClassInstance(self)
+
+    def arity(self) -> int:
+        return 0
+
+
+@dataclass
+class GusClassInstance:
+    klass: GusClass
+
+    def __repr__(self) -> str:
+        return f"{self.klass.name}'s instance"

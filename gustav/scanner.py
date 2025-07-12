@@ -3,7 +3,7 @@ import typing as t
 from gustav import gustav
 from gustav.token import Token
 from gustav.logging import LOG  # noqa: F401
-from gustav.types import TokenType as TT
+from gustav.enums import TokenType as TT
 from gustav.mappings import RESERVED_KEYWORDS, SINGLE_TOKEN_MAPPING
 
 __all__ = ("Scanner",)

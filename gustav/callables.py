@@ -3,24 +3,9 @@ import typing as t
 from gustav.ast import statement as S
 from gustav.exceptions import GusReturn
 from gustav.environment import Environment
+from gustav.types import GusCallable, InterpreterT
 
-
-class Interpreter(t.Protocol):
-    globals: Environment
-
-    def execute_block(
-        self, statements: list[S.Statement], environment: Environment
-    ) -> None:
-        pass
-
-
-@t.runtime_checkable
-class GusCallable(t.Protocol):
-    def arity(self) -> int:
-        pass
-
-    def call(self, interpreter: Interpreter, arguments: list[t.Any]) -> t.Any:
-        pass
+__all__ = "GusFunction", "define_builtin_fn"
 
 
 class GusFunction(GusCallable):
@@ -29,7 +14,7 @@ class GusFunction(GusCallable):
         self.declaration = declaration
 
     @t.override
-    def call(self, interpreter: Interpreter, arguments: list[t.Any]) -> t.Any:
+    def call(self, interpreter: InterpreterT, arguments: list[t.Any]) -> t.Any:
         environment: Environment = Environment(self.closure)
 
         for i in range(self.arity()):
