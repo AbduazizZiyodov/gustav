@@ -232,6 +232,9 @@ class Parser:
             if isinstance(expr, E.Variable):
                 name: Token = expr.name
                 return E.Assign(name, value)
+            elif isinstance(expr, E.Get):
+                get_expr: E.Get = expr
+                return E.Set(get_expr.object, get_expr.name, value)
 
             self.error(equals, "Invalid assignment target")
 
@@ -325,12 +328,19 @@ class Parser:
 
         return self.parse_call()
 
-    def parse_call(self, pipe_arg: E.Call | None = None) -> E.Call | E.Expression:
+    def parse_call(
+        self, pipe_arg: E.Call | None = None
+    ) -> E.Call | E.Get | E.Expression:
         expr: E.Expression = self.parse_primary()
 
         while True:
             if self.match(TT.LEFT_PAREN):
                 expr = self.finish_call(expr, pipe_arg)
+            elif self.match(TT.DOT):
+                name: Token = self.consume(
+                    TT.IDENTIFIER, "Expect proparty name after '.'."
+                )
+                expr = E.Get(expr, name)
             else:
                 break
 

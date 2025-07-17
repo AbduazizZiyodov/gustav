@@ -6,6 +6,7 @@ __all__ = ("FunctionType", "TokenType")
 class FunctionType(StrEnum):
     NONE = auto()
     FUNCTION = auto()
+    METHOD = auto()
 
 
 class TokenType(StrEnum):

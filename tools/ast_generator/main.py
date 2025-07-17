@@ -26,7 +26,7 @@ __all__ = ("Expression", "Statement", "ExpressionVisitor", "StatementVisitor")
 """
 
 BASE_ABSTRACT_CLASS = """
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True, eq=False)
 class {CLASS_NAME}(ABC):
     @abstractmethod
     def accept[T](self, visitor: '{CLASS_NAME}Visitor[T]') -> T:
@@ -75,7 +75,7 @@ def define_type(
     field_type_pairs: NodeDefinitions,
 ) -> None:
     file.write(
-        f"@dataclass(slots=True, frozen=True)\nclass {class_name}({base_name}):\n"
+        f"@dataclass(frozen=True, slots=True, eq=False)\nclass {class_name}({base_name}):\n"
     )
 
     for field_type_pair in field_type_pairs:

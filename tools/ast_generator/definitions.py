@@ -24,6 +24,15 @@ EXPRESSION_TYPES: NodeDefinitionMapping = {
         {"type": "Token", "name": "paren"},
         {"type": f"list[{EXPRESSION_BASE_NAME}]", "name": "arguments"},
     ],
+    "Get": [
+        {"type": EXPRESSION_BASE_NAME, "name": "object"},
+        {"type": "Token", "name": "name"},
+    ],
+    "Set": [
+        {"type": EXPRESSION_BASE_NAME, "name": "object"},
+        {"type": "Token", "name": "name"},
+        {"type": EXPRESSION_BASE_NAME, "name": "value"},
+    ],
     "Groupping": [
         {"type": EXPRESSION_BASE_NAME, "name": "expression"},
     ],

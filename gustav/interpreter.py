@@ -11,11 +11,10 @@ from gustav.ast import (
 )
 from gustav.token import Token
 from gustav.builtins import BUILTINS
-from gustav.callables import GusFunction
 from gustav.enums import TokenType as TT
 from gustav.environment import Environment
 from gustav.exceptions import GusRuntimeError, GusReturn
-from gustav.types import GusClass, GusCallable
+from gustav.types import GusClass, GusCallable, GusClassInstance, GusFunction
 
 __all__ = ("Interpreter",)
 
@@ -80,7 +79,14 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
     @t.override
     def visit_class_statement(self, statement: S.Class) -> None:
         self.environment.define(statement.name.lexeme, None)
-        klass = GusClass(statement.name.lexeme)
+
+        methods: dict[str, GusFunction] = dict()
+
+        for method in statement.methods:
+            methods[method.name.lexeme] = GusFunction(method, self.environment)
+
+        klass = GusClass(statement.name.lexeme, methods)
+
         self.environment.assign(statement.name, klass)
 
     @t.override
@@ -161,6 +167,25 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
     # Expressions
     ###
     @t.override
+    def visit_get_expression(self, expression: E.Get) -> t.Any:
+        obj: t.Any = self.evaluate(expression.object)
+
+        if isinstance(obj, GusClassInstance):
+            return obj.get(expression.name)
+
+        raise GusRuntimeError(expression.name, "Only instance have properties.")
+
+    @t.override
+    def visit_set_expression(self, expression: E.Set) -> t.Any:
+        obj = self.evaluate(expression.object)
+
+        if not isinstance(obj, GusClassInstance):
+            raise GusRuntimeError(expression.name, "Only instances have fields.")
+
+        value: t.Any = self.evaluate(expression.value)
+        obj.set(expression.name, value)
+
+    @t.override
     def visit_ternary_expression(self, expression: E.Ternary) -> t.Any:
         condition_eval = self.evaluate(expression.condition)
 
@@ -191,7 +216,7 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
         return func.call(self, arguments)
 
     @t.override
-    def visit_assign_expression(self, expression: E.Assign) -> t.Any:
+    def visit_assign_expression(self, expression: E.Assign) -> None:
         value: t.Any = self.evaluate(expression.value)
 
         distance: int | None = self.locals.get(expression)
@@ -201,10 +226,9 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
         else:
             self.globals.assign(expression.name, value)
 
-        return value
-
     @t.override
     def visit_variable_expression(self, expression: E.Variable) -> t.Any:
+        # return self.environment.get(expression.name)
         return self.look_up_variable(expression.name, expression)
 
     @t.override
@@ -234,17 +258,17 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
         def check_for_number() -> t.NoReturn | None:
             return self.check_number_operands(expression.operator, left, right)
 
-        if expression.operator.type in (
-            TT.GREATER,
-            TT.GREATER_EQUAL,
-            TT.LESS,
-            TT.LESS_EQUAL,
-            TT.MINUS,
-            TT.PLUS,
-            TT.STAR,
-            TT.SLASH,
-        ):
-            check_for_number()
+        # if expression.operator.type in (
+        #     TT.GREATER,
+        #     TT.GREATER_EQUAL,
+        #     TT.LESS,
+        #     TT.LESS_EQUAL,
+        #     TT.MINUS,
+        #     TT.PLUS,
+        #     TT.STAR,
+        #     TT.SLASH,
+        # ):
+        #     check_for_number()
 
         match expression.operator.type:
             case TT.GREATER:

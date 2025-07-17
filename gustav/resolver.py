@@ -1,9 +1,9 @@
 import contextlib
 import typing as t
-from collections import deque
 from functools import singledispatchmethod
 
 from gustav import gustav
+from gustav.logging import LOG  # noqa: F401
 from gustav.token import Token
 from gustav.enums import FunctionType
 from gustav.ast import expression as E, statement as S
@@ -12,14 +12,14 @@ __all__ = ("Resolver",)
 
 
 class Resolver(E.ExpressionVisitor[None], S.StatementVisitor[None]):
-    def __init__(self, interpreter: t.Any) -> None:  # TODO: interpreter prot.
+    def __init__(self, interpreter: t.Any) -> None:
         self.interpreter = interpreter
         self.current_function = FunctionType.NONE
-        self.scopes: deque[dict[str, bool]] = deque()
+        self.scopes: list[dict[str, bool]] = list()
 
     @singledispatchmethod
-    def resolve(self, _: t.Any) -> None:
-        raise NotImplementedError("Can't resolve this stuff")
+    def resolve(self, stuff: t.Any) -> None:
+        raise NotImplementedError(f"Can't resolve {stuff}")
 
     # resolve statements
     @resolve.register(list)
@@ -41,12 +41,12 @@ class Resolver(E.ExpressionVisitor[None], S.StatementVisitor[None]):
         if not self.scopes:
             return
 
-        scope: dict[str, bool] = self.scopes[-1]
+        peek: dict[str, bool] = self.scopes[-1]
 
-        if scope.get(name.lexeme) is not None:
+        if name.lexeme in peek:
             gustav.error(name, "Already a variable with this name in this scope.")
 
-        scope[name.lexeme] = False
+        peek[name.lexeme] = False
 
     def define(self, name: Token) -> None:
         if not self.scopes:
@@ -70,9 +70,21 @@ class Resolver(E.ExpressionVisitor[None], S.StatementVisitor[None]):
         self.define(statement.name)
 
     @t.override
+    def visit_get_expression(self, expression: E.Get) -> None:
+        self.resolve(expression.object)
+
+    @t.override
+    def visit_set_expression(self, expression: E.Set) -> None:
+        self.resolve(expression.value)
+        self.resolve(expression.object)
+
+    @t.override
     def visit_class_statement(self, statement: S.Class) -> None:
         self.declare(statement.name)
         self.define(statement.name)
+
+        for method in statement.methods:
+            self.resolve_function(method, FunctionType.METHOD)
 
     @t.override
     def visit_function_statement(self, statement: S.Function) -> None:
@@ -160,10 +172,15 @@ class Resolver(E.ExpressionVisitor[None], S.StatementVisitor[None]):
         self.resolve_local(expression, expression.name)
 
     def resolve_local(self, expression: E.Expression, name: Token) -> None:
-        for i in reversed(range(length := len(self.scopes))):
-            if self.scopes[i].get(name.lexeme) is not None:
-                self.interpreter.resolve(expression, length - 1 - i)
-                break
+        i = len(self.scopes) - 1
+
+        while i >= 0:
+            if name.lexeme in self.scopes[i]:
+                self.interpreter.resolve(expression, len(self.scopes) - 1 - i)
+
+                return
+
+            i -= 1
 
     def resolve_function(self, statement: S.Function, type: FunctionType) -> None:
         enclosing_function = self.current_function
@@ -187,7 +204,7 @@ class Resolver(E.ExpressionVisitor[None], S.StatementVisitor[None]):
             self.end_scope()
 
     def begin_scope(self) -> None:
-        self.scopes.append(dict())
+        self.scopes.append({})
 
     def end_scope(self) -> None:
         if not self.scopes:
