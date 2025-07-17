@@ -1,6 +1,7 @@
 import typing as t
 
 from gustav.token import Token
+from gustav.logging import LOG  # noqa: F401
 from gustav.exceptions import GusRuntimeError
 
 __all__ = ("Environment",)
@@ -36,24 +37,17 @@ class Environment:
         raise GusRuntimeError(name, f"Undefined variable '{name.lexeme}'")
 
     def get_at(self, distance: int, name: str) -> t.Any:
-        ancestor = self.ancestor(distance)
-
-        if ancestor:
+        if (ancestor := self.ancestor(distance)) is not None:
             return ancestor.values.get(name)
 
-        return None
-
     def assign_at(self, distance: int, name: Token, value: t.Any) -> None:
-        ancestor = self.ancestor(distance)
-
-        if ancestor:
+        if (ancestor := self.ancestor(distance)) is not None:
             ancestor.values[name.lexeme] = value
 
     def ancestor(self, distance: int) -> "Environment | None":
         environment: Environment | None = self
 
-        for i in range(distance):
-            if environment:
-                environment = environment.enclosing
+        for _ in range(distance):
+            environment = environment.enclosing if environment else environment
 
         return environment
