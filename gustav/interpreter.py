@@ -167,6 +167,10 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
     # Expressions
     ###
     @t.override
+    def visit_this_expression(self, expression: E.This) -> t.Any:
+        return self.look_up_variable(expression.keyword, expression)
+
+    @t.override
     def visit_get_expression(self, expression: E.Get) -> t.Any:
         obj: t.Any = self.evaluate(expression.object)
 
