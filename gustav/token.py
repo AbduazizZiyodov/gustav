@@ -29,12 +29,14 @@ class Token:
 
     At that time, our locals dictionary must look like this (note: x,y arbitrary line numbers):
 
-    {
-        Variable(name=Token(type=<TokenType.IDENTIFIER: 'identifier'>, lexeme='i', literal=None, line=X)): 0,
-        Variable(name=Token(type=<TokenType.IDENTIFIER: 'identifier'>, lexeme='i', literal=None, line=y)): 2,
-        Variable(name=Token(type=<TokenType.IDENTIFIER: 'identifier'>, lexeme='i', literal=None, line=X)): 1,
-        Assign(name=Token(type=<TokenType.IDENTIFIER: 'identifier'>, lexeme='i', literal=None, line=X), <binary expr omitted>): 1
-    }
+    ::
+
+        {
+            Variable(name=Token(identifier, lexeme='i', literal=None, line=X)): 0,
+            Variable(name=Token(identifier, lexeme='i', literal=None, line=y)): 2,
+            Variable(name=Token(identifier, lexeme='i', literal=None, line=X)): 1,
+            Assign(name=Token(identifier, lexeme='i', literal=None, line=X), <omitted>): 1
+        }
 
     Value of dictionary represents "depth", there is a lot more to talk. But, if you look at line 1 and 3 items on that dict,
     you can see here is a tricky part !!!
@@ -44,11 +46,13 @@ class Token:
 
     Is that so in our case (during interpreter crash)?
 
-    {
-        Variable(name=Token(type=<TokenType.IDENTIFIER: 'identifier'>, lexeme='i', literal=None, line=X)): 1,
-        Variable(name=Token(type=<TokenType.IDENTIFIER: 'identifier'>, lexeme='i', literal=None, line=y)): 2,
-        Assign(name=Token(type=<TokenType.IDENTIFIER: 'identifier'>, lexeme='i', literal=None, line=X), <binary expr omitted>): 1
-    }
+    ::
+
+        {
+            Variable(name=Token(identifier, lexeme='i', literal=None, line=X)): 1,
+            Variable(name=Token(identifier, lexeme='i', literal=None, line=y)): 2,
+            Assign(name=Token(identifier, lexeme='i', literal=None, line=X), <omitted>): 1
+        }
 
     Hell yeah, I was trying to access depth 0 "i" variable (during increment step i guess), and there is nothing. From logs, I see that
     depth 0,1,2,1 are being resolved. But where did go 0 ?! Locals dictionary inside interpreter was smoking :(

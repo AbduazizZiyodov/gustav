@@ -47,6 +47,11 @@ class GusFunction(GusCallable):
 
         return None
 
+    def bind(self, instance: "GusClassInstance") -> "GusFunction":
+        environment: Environment = Environment(self.closure)
+        environment.define("this", instance)
+        return GusFunction(self.declaration, environment)
+
     @t.override
     def arity(self) -> int:
         return len(self.declaration.params)
@@ -82,7 +87,7 @@ class GusClassInstance:
         method: GusFunction | None
 
         if (method := self.klass.find_method(name.lexeme)) is not None:
-            return method
+            return method.bind(self)
 
         raise GusRuntimeError(name, f"Undefined property '{name.lexeme}'.")
 

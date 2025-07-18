@@ -83,8 +83,11 @@ class Resolver(E.ExpressionVisitor[None], S.StatementVisitor[None]):
         self.declare(statement.name)
         self.define(statement.name)
 
-        for method in statement.methods:
-            self.resolve_function(method, FunctionType.METHOD)
+        with self.scope():
+            self.scopes[-1]["this"] = True
+
+            for method in statement.methods:
+                self.resolve_function(method, FunctionType.METHOD)
 
     @t.override
     def visit_function_statement(self, statement: S.Function) -> None:
@@ -157,6 +160,10 @@ class Resolver(E.ExpressionVisitor[None], S.StatementVisitor[None]):
     def visit_logical_expression(self, expression: E.Logical) -> None:
         self.resolve(expression.left)
         self.resolve(expression.right)
+
+    @t.override
+    def visit_this_expression(self, expression: E.This) -> None:
+        self.resolve_local(expression, expression.keyword)
 
     @t.override
     def visit_unary_expression(self, expression: E.Unary) -> None:

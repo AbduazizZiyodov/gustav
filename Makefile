@@ -1,8 +1,11 @@
 example:
-	DEBUG=yes ./gus examples/file.gus
+	DEBUG=yes ./scripts/gus examples/file.gus
 
 check:
 	ruff format && mypy --strict --ignore-missing-imports --explicit-package-bases .
 
 repl:
-	DEBUG=yes ./gus
+	DEBUG=yes ./scripts/gus
+
+generate_ast:
+	./scripts/generate_ast

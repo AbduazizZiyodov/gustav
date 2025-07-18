@@ -33,6 +33,9 @@ EXPRESSION_TYPES: NodeDefinitionMapping = {
         {"type": "Token", "name": "name"},
         {"type": EXPRESSION_BASE_NAME, "name": "value"},
     ],
+    "This": [
+        {"type": "Token", "name": "keyword"},
+    ],
     "Groupping": [
         {"type": EXPRESSION_BASE_NAME, "name": "expression"},
     ],
