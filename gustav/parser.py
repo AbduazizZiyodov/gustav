@@ -57,6 +57,13 @@ class Parser:
 
     def parse_class_declaration(self) -> S.Class:
         name: Token = self.consume(TT.IDENTIFIER, "Expect class name.")
+
+        superclass: E.Variable | None = None
+
+        if self.match(TT.LESS):
+            self.consume(TT.IDENTIFIER, "Expect superclass name.")
+            superclass = E.Variable(self.get_previous())
+
         self.consume(TT.LEFT_BRACE, "Expect '{' before class body.")
 
         methods: list[S.Function] = []
@@ -66,7 +73,7 @@ class Parser:
 
         self.consume(TT.RIGHT_BRACE, "Expect '}' after class body.")
 
-        return S.Class(name, methods)
+        return S.Class(name, superclass, methods)
 
     def parse_function(self, kind: str) -> S.Function:
         name: Token = self.consume(TT.IDENTIFIER, f"Expect {kind} name.")
@@ -395,6 +402,15 @@ class Parser:
         if self.match(TT.NUMBER, TT.STRING):
             return E.Literal(self.get_previous().literal)
 
+        if self.match(TT.SUPER):
+            keyword: Token = self.get_previous()
+            self.consume(TT.DOT, "Expect '.' after 'super'")
+            method: Token = self.consume(
+                TT.IDENTIFIER, "Expect superclass method name."
+            )
+
+            return E.Super(keyword, method)
+
         if self.match(TT.THIS):
             return E.This(self.get_previous())
 
@@ -404,6 +420,7 @@ class Parser:
         if self.match(TT.LEFT_PAREN):
             expr: E.Expression = self.parse_expression()
             self.consume(TT.RIGHT_PAREN, "Expect ')' after expression")
+
             return E.Groupping(expr)
 
         raise self.error(self.peek(), "Expect expression")

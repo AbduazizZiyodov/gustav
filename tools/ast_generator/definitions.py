@@ -14,6 +14,7 @@ EXPRESSION_TYPES = {
     "Logical": "left: Expression, operator: Token, right: Expression",
     "Variable": "name: Token",
     "Unary": "operator: Token, right: Expression",
+    "Super": "keyword: Token, method: Token",
 }
 
 STATEMENT_TYPES = {

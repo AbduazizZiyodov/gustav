@@ -1,7 +1,6 @@
 import sys
 import typing as t
 
-from gustav.logging import LOG  # noqa: F401
 from gustav import gustav
 from gustav.ast import (
     Expression,
@@ -9,6 +8,7 @@ from gustav.ast import (
     expression as E,
     statement as S,
 )
+from gustav.logging import LOG  # noqa: F401
 from gustav.token import Token
 from gustav.builtins import BUILTINS
 from gustav.enums import TokenType as TT
@@ -20,6 +20,17 @@ __all__ = ("Interpreter",)
 
 
 class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
+    NUMERIC_OPERATORS: t.ClassVar[tuple[TT, ...]] = (
+        TT.GREATER,
+        TT.GREATER_EQUAL,
+        TT.LESS,
+        TT.LESS_EQUAL,
+        TT.MINUS,
+        TT.PLUS,
+        TT.STAR,
+        TT.SLASH,
+    )
+
     def __init__(self) -> None:
         self.globals: Environment = Environment()
         self.locals: dict[Expression, int] = dict()
@@ -38,8 +49,6 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
 
         except GusRuntimeError as exc:
             gustav.runtime_error(exc)
-
-        return None
 
     def execute(self, statement: Statement) -> None:
         statement.accept(self)
@@ -78,14 +87,38 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
 
     @t.override
     def visit_class_statement(self, statement: S.Class) -> None:
+        superclass: t.Any = None
+
+        if statement.superclass is not None:
+            superclass = self.evaluate(statement.superclass)
+
+            if not isinstance(superclass, GusClass):
+                raise GusRuntimeError(
+                    statement.superclass.name, "Superclass must be a class"
+                )
+
         self.environment.define(statement.name.lexeme, None)
+
+        if statement.superclass is not None:
+            self.environment = Environment(self.environment)
+            self.environment.define("super", superclass)
 
         methods: dict[str, GusFunction] = dict()
 
         for method in statement.methods:
-            methods[method.name.lexeme] = GusFunction(method, self.environment)
+            methods[method.name.lexeme] = GusFunction(
+                method,
+                self.environment,
+                method.name.lexeme == "init",
+            )
 
-        klass = GusClass(statement.name.lexeme, methods)
+        klass = GusClass(statement.name.lexeme, superclass, methods)
+
+        if superclass is not None:
+            if (
+                self.environment.enclosing is not None
+            ):  # NOTE(abduazizziyodov): remember
+                self.environment = self.environment.enclosing
 
         self.environment.assign(statement.name, klass)
 
@@ -100,9 +133,8 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
 
     @t.override
     def visit_function_statement(self, statement: S.Function) -> None:
-        func: GusFunction = GusFunction(statement, self.environment)
+        func: GusFunction = GusFunction(statement, self.environment, False)
         self.environment.define(statement.name.lexeme, func)
-        return None
 
     @t.override
     def visit_while_statement(self, statement: S.While) -> None:
@@ -130,20 +162,16 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
         elif statement.else_branch is not None:
             self.execute(statement.else_branch)
 
-        return None
-
     @t.override
     def visit_expr_statement(self, statement: S.Expr) -> None:
         self.evaluate(statement.expression)
-        return None
 
     @t.override
     def visit_print_statement(self, statement: S.Print) -> None:
         value: t.Any = self.evaluate(statement.expression)
         line: str = self.stringfy(value) + "\n"
-        sys.stdout.write(line)
 
-        return None
+        sys.stdout.write(line)
 
     @t.override
     def visit_var_statement(self, statement: S.Var) -> None:
@@ -161,11 +189,28 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
             Environment(self.environment),
         )
 
-        return None
-
     ###
     # Expressions
     ###
+    @t.override
+    def visit_super_expression(self, expression: E.Super) -> t.Any:
+        distance: int | None = self.locals.get(expression)
+
+        if not distance:
+            return
+
+        superclass: GusClass = self.environment.get_at(distance, "super")
+        instance: GusClassInstance = self.environment.get_at(distance - 1, "this")
+
+        method: GusFunction | None
+
+        if (method := superclass.find_method(expression.method.lexeme)) is None:
+            raise GusRuntimeError(
+                expression.method, f"Undefined property '{expression.method.lexeme}'."
+            )
+
+        return method.bind(instance)
+
     @t.override
     def visit_this_expression(self, expression: E.This) -> t.Any:
         return self.look_up_variable(expression.keyword, expression)
@@ -177,7 +222,7 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
         if isinstance(obj, GusClassInstance):
             return obj.get(expression.name)
 
-        raise GusRuntimeError(expression.name, "Only instance have properties.")
+        raise GusRuntimeError(expression.name, "Only instances have properties.")
 
     @t.override
     def visit_set_expression(self, expression: E.Set) -> t.Any:
@@ -232,7 +277,6 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
 
     @t.override
     def visit_variable_expression(self, expression: E.Variable) -> t.Any:
-        # return self.environment.get(expression.name)
         return self.look_up_variable(expression.name, expression)
 
     @t.override
@@ -262,17 +306,8 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
         def check_for_number() -> t.NoReturn | None:
             return self.check_number_operands(expression.operator, left, right)
 
-        # if expression.operator.type in (
-        #     TT.GREATER,
-        #     TT.GREATER_EQUAL,
-        #     TT.LESS,
-        #     TT.LESS_EQUAL,
-        #     TT.MINUS,
-        #     TT.PLUS,
-        #     TT.STAR,
-        #     TT.SLASH,
-        # ):
-        #     check_for_number()
+        if expression.operator.type in Interpreter.NUMERIC_OPERATORS:
+            check_for_number()
 
         match expression.operator.type:
             case TT.GREATER:
@@ -293,7 +328,8 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
             case TT.PLUS:
                 return left + right
 
-            case TT.PLUS_PLUS:  # concatenation operator
+            # TODO(abduazizziyodov): rework
+            case TT.PLUS_PLUS:  # concatenation
                 return "".join((str(left), str(right)))
 
             case TT.STAR:
