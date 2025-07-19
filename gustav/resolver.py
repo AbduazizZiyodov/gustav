@@ -1,11 +1,12 @@
 import contextlib
 import typing as t
+from dataclasses import dataclass, field
 from functools import singledispatchmethod
 
 from gustav import gustav
 from gustav.logging import LOG  # noqa: F401
 from gustav.token import Token
-from gustav.enums import FunctionType
+from gustav.enums import FunctionType, ClassType
 from gustav.ast import expression as E, statement as S
 
 __all__ = ("Resolver",)
@@ -14,14 +15,17 @@ __all__ = ("Resolver",)
 class Resolver(E.ExpressionVisitor[None], S.StatementVisitor[None]):
     def __init__(self, interpreter: t.Any) -> None:
         self.interpreter = interpreter
+
+        self.current_class = ClassType.NONE
         self.current_function = FunctionType.NONE
-        self.scopes: list[dict[str, bool]] = list()
+
+        self.scopes: Scope = Scope()
 
     @singledispatchmethod
     def resolve(self, stuff: t.Any) -> None:
         raise NotImplementedError(f"Can't resolve {stuff}")
 
-    # resolve statements
+    # resolve list of statements
     @resolve.register(list)
     def _(self, statements: list[S.Statement]) -> None:
         for statement in statements:
@@ -38,26 +42,23 @@ class Resolver(E.ExpressionVisitor[None], S.StatementVisitor[None]):
         expression.accept(self)
 
     def declare(self, name: Token) -> None:
-        if not self.scopes:
+        if not self.scopes.has_active_scope():
             return
 
-        peek: dict[str, bool] = self.scopes[-1]
-
-        if name.lexeme in peek:
-            gustav.error(name, "Already a variable with this name in this scope.")
-
-        peek[name.lexeme] = False
+        try:
+            self.scopes.declare(name.lexeme)
+        except RuntimeError as e:
+            gustav.error(name, str(e))
 
     def define(self, name: Token) -> None:
-        if not self.scopes:
+        if not self.scopes.has_active_scope():
             return
 
-        peek: dict[str, bool] = self.scopes[-1]
-        peek[name.lexeme] = True
+        self.scopes.define(name.lexeme)
 
     @t.override
     def visit_block_statement(self, statement: S.Block) -> None:
-        with self.scope():
+        with self.scopes.enter():
             self.resolve(statement.statements)
 
     @t.override
@@ -80,14 +81,57 @@ class Resolver(E.ExpressionVisitor[None], S.StatementVisitor[None]):
 
     @t.override
     def visit_class_statement(self, statement: S.Class) -> None:
+        enclosing_class: ClassType = self.current_class
+        self.current_class = ClassType.CLASS
+
         self.declare(statement.name)
         self.define(statement.name)
 
-        with self.scope():
-            self.scopes[-1]["this"] = True
+        if (
+            statement.superclass is not None
+            and statement.name.lexeme == statement.superclass.name.lexeme
+        ):
+            gustav.error(
+                statement.superclass.name, "A class can't inherit from itself."
+            )
 
-            for method in statement.methods:
-                self.resolve_function(method, FunctionType.METHOD)
+        if statement.superclass is not None:
+            self.current_class = ClassType.SUBCLASS
+            self.resolve(statement.superclass)
+
+        def do_resolve_methods() -> None:
+            with self.scopes.enter():
+                self.scopes.peek()["this"] = True
+
+                for method in statement.methods:
+                    func_type: FunctionType = (
+                        FunctionType.METHOD
+                        if method.name.lexeme != "init"
+                        else FunctionType.INITIALIZER
+                    )
+
+                    self.resolve_function(method, func_type)
+
+        if statement.superclass is not None:
+            with self.scopes.enter():
+                self.scopes.peek()["super"] = True
+                do_resolve_methods()
+        else:
+            do_resolve_methods()
+
+        self.current_class = enclosing_class
+
+    @t.override
+    def visit_super_expression(self, expression: E.Super) -> None:
+        if self.current_class == ClassType.NONE:
+            gustav.error(expression.keyword, "Can't use 'super' outside of a class.")
+
+        elif self.current_class != ClassType.SUBCLASS:
+            gustav.error(
+                expression.keyword, "Can't use 'super' in a class with no superclass."
+            )
+        else:
+            self.resolve_local(expression, expression.keyword)
 
     @t.override
     def visit_function_statement(self, statement: S.Function) -> None:
@@ -97,7 +141,10 @@ class Resolver(E.ExpressionVisitor[None], S.StatementVisitor[None]):
 
     @t.override
     def visit_variable_expression(self, expression: E.Variable) -> None:
-        if self.scopes and self.scopes[-1].get(expression.name.lexeme) is False:
+        if (
+            self.scopes.has_active_scope()
+            and self.scopes.peek().get(expression.name.lexeme) is False
+        ):
             gustav.error(
                 expression.name,
                 "Can't read local variable in its own initializer.",
@@ -133,6 +180,10 @@ class Resolver(E.ExpressionVisitor[None], S.StatementVisitor[None]):
             gustav.error(statement.keyword, "Can't return from top-level code.")
 
         if statement.value is not None:
+            if self.current_function == FunctionType.INITIALIZER:
+                gustav.error(
+                    statement.keyword, "Can't return a value from an initializer."
+                )
             self.resolve(statement.value)
 
     @t.override
@@ -163,6 +214,11 @@ class Resolver(E.ExpressionVisitor[None], S.StatementVisitor[None]):
 
     @t.override
     def visit_this_expression(self, expression: E.This) -> None:
+        if self.current_class == ClassType.NONE:
+            gustav.error(
+                expression.keyword, "Can't use 'this' keyword outside of class"
+            )
+
         self.resolve_local(expression, expression.keyword)
 
     @t.override
@@ -179,21 +235,16 @@ class Resolver(E.ExpressionVisitor[None], S.StatementVisitor[None]):
         self.resolve_local(expression, expression.name)
 
     def resolve_local(self, expression: E.Expression, name: Token) -> None:
-        i = len(self.scopes) - 1
+        depth = self.scopes.depth_of(name.lexeme)
 
-        while i >= 0:
-            if name.lexeme in self.scopes[i]:
-                self.interpreter.resolve(expression, len(self.scopes) - 1 - i)
-
-                return
-
-            i -= 1
+        if depth is not None:
+            self.interpreter.resolve(expression, depth)
 
     def resolve_function(self, statement: S.Function, type: FunctionType) -> None:
-        enclosing_function = self.current_function
+        enclosing_function: FunctionType = self.current_function
         self.current_function = type
 
-        with self.scope():
+        with self.scopes.enter():
             for param in statement.params:
                 self.declare(param)
                 self.define(param)
@@ -202,19 +253,55 @@ class Resolver(E.ExpressionVisitor[None], S.StatementVisitor[None]):
 
         self.current_function = enclosing_function
 
+
+@dataclass
+class Scope:
+    _stack: list[dict[str, bool]] = field(default_factory=list)
+
     @contextlib.contextmanager
-    def scope(self) -> t.Generator[None, t.Any, None]:
+    def enter(self) -> t.Generator[None, t.Any, None]:
         self.begin_scope()
+
         try:
             yield
         finally:
             self.end_scope()
 
     def begin_scope(self) -> None:
-        self.scopes.append({})
+        self._stack.append({})
 
     def end_scope(self) -> None:
-        if not self.scopes:
-            raise RuntimeError("end_scope() called with no active scope")
+        if not self._stack:
+            raise RuntimeError("No active scope")
 
-        self.scopes.pop()
+        self._stack.pop()
+
+    def peek(self) -> dict[str, bool]:
+        if not self._stack:
+            raise RuntimeError("No active scope")
+
+        return self._stack[-1]
+
+    def define(self, name: str) -> None:
+        self.peek()[name] = True
+
+    def declare(self, name: str) -> None:
+        scope = self.peek()
+
+        if name in scope:
+            raise RuntimeError(f"Variable '{name}' already declared in this scope.")
+
+        scope[name] = False
+
+    def depth_of(self, name: str) -> int | None:
+        for i in range(len(self._stack) - 1, -1, -1):
+            if name in self._stack[i]:
+                return len(self._stack) - 1 - i
+
+        return None
+
+    def has_active_scope(self) -> bool:
+        return bool(self._stack)
+
+    def __len__(self) -> int:
+        return len(self._stack)

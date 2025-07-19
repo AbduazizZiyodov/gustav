@@ -54,10 +54,7 @@ def run(source: str) -> None:
         LOG.debug("Scanning failed, exiting")
         return
 
-    LOG.debug(f"Scanning finished, got {len(tokens)} tokens. Listing:")
-
-    for index, token in enumerate(tokens):
-        LOG.debug(f"{index} => {token}")
+    LOG.debug(f"Scanning finished, got {len(tokens)} tokens")
 
     if len(tokens) == 1 and tokens[0].type == TT.EOF:
         LOG.debug(f"No tokens received {tokens=}")
@@ -71,7 +68,7 @@ def run(source: str) -> None:
 
     LOG.debug("Parsing finished")
 
-    if DEBUG:  # log statements on DEBUG mode
+    if DEBUG:
         for index, statement in enumerate(statements):
             if rich_installed:
                 printr(f"[bold green]Statement[/bold green] {index}:")
@@ -82,7 +79,6 @@ def run(source: str) -> None:
                 LOG.debug(f"{index} => {formatted_statement}")
 
     interpreter = Interpreter()
-
     resolver = Resolver(interpreter)
 
     LOG.debug("Beginning semantic analysis (resolving) ...")

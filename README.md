@@ -31,3 +31,5 @@
 - [x] Dividing by zero, returns infinity
 - [ ] Report for unused variable
 - [ ] Range literals
+- [ ] Static methods
+- [ ] Public/private methods

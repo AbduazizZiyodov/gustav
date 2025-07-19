@@ -6,11 +6,11 @@ from gustav.ast import statement as S
 from gustav.environment import Environment
 from gustav.exceptions import GusRuntimeError, GusReturn
 
-__all__ = ("InterpreterT", "GusCallable", "GusFunction", "GusClass", "GusClassInstance")
+__all__ = ("GusCallable", "GusFunction", "GusClass", "GusClassInstance")
 
 
 @t.runtime_checkable
-class InterpreterT(t.Protocol):
+class ImplementsExecuteBlock(t.Protocol):
     globals: Environment
 
     def execute_block(
@@ -24,17 +24,27 @@ class GusCallable(t.Protocol):
     def arity(self) -> int:
         pass
 
-    def call(self, interpreter: InterpreterT, arguments: list[t.Any]) -> t.Any:
+    def call(
+        self, interpreter: ImplementsExecuteBlock, arguments: list[t.Any]
+    ) -> t.Any:
         pass
 
 
 class GusFunction(GusCallable):
-    def __init__(self, declaration: S.Function, closure: Environment) -> None:
+    def __init__(
+        self,
+        declaration: S.Function,
+        closure: Environment,
+        is_initializer: bool,
+    ) -> None:
         self.closure = closure
         self.declaration = declaration
+        self.is_initializer = is_initializer
 
     @t.override
-    def call(self, interpreter: InterpreterT, arguments: list[t.Any]) -> t.Any:
+    def call(
+        self, interpreter: ImplementsExecuteBlock, arguments: list[t.Any]
+    ) -> t.Any:
         environment: Environment = Environment(self.closure)
 
         for i in range(self.arity()):
@@ -43,14 +53,21 @@ class GusFunction(GusCallable):
         try:
             interpreter.execute_block(self.declaration.body, environment)
         except GusReturn as exc:
-            return exc.value
+            # NOTE (abduazizziyodov): disallow return statement from "init" ?!
+            return (
+                exc.value if not self.is_initializer else self.closure.get_at(0, "this")
+            )
+
+        if self.is_initializer:
+            return self.closure.get_at(0, "this")
 
         return None
 
     def bind(self, instance: "GusClassInstance") -> "GusFunction":
         environment: Environment = Environment(self.closure)
         environment.define("this", instance)
-        return GusFunction(self.declaration, environment)
+
+        return GusFunction(self.declaration, environment, self.is_initializer)
 
     @t.override
     def arity(self) -> int:
@@ -63,16 +80,34 @@ class GusFunction(GusCallable):
 @dataclass
 class GusClass(GusCallable):
     name: str
+    superclass: "GusClass"
     methods: dict[str, GusFunction]
 
     def find_method(self, name: str) -> GusFunction | None:
-        return self.methods.get(name)
+        if name in self.methods:
+            return self.methods.get(name)
 
-    def call(self, interpreter: InterpreterT, arguments: list[t.Any]) -> t.Any:
-        return GusClassInstance(self)
+        if self.superclass is not None:
+            return self.superclass.find_method(name)
+
+    def call(
+        self, interpreter: ImplementsExecuteBlock, arguments: list[t.Any]
+    ) -> t.Any:
+        # Creates instance of class: var instance = Klass()
+
+        instance = GusClassInstance(self)
+
+        if self.initializer is not None:
+            self.initializer.bind(instance).call(interpreter, arguments)
+
+        return instance
+
+    @property
+    def initializer(self) -> GusFunction | None:
+        return self.find_method("init")
 
     def arity(self) -> int:
-        return 0
+        return 0 if self.initializer is None else self.initializer.arity()
 
 
 @dataclass
@@ -95,4 +130,4 @@ class GusClassInstance:
         self.fields[name.lexeme] = value
 
     def __repr__(self) -> str:
-        return f"Instance<of '{self.klass.name}' {id(self)}>"
+        return f"Instance<of '{self.klass.name}' id={id(self):x}>"

@@ -7,6 +7,13 @@ class FunctionType(StrEnum):
     NONE = auto()
     FUNCTION = auto()
     METHOD = auto()
+    INITIALIZER = auto()
+
+
+class ClassType(StrEnum):
+    NONE = auto()
+    CLASS = auto()
+    SUBCLASS = auto()
 
 
 class TokenType(StrEnum):
