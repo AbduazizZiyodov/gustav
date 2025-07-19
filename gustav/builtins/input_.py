@@ -6,6 +6,7 @@ __all__ = ("fn",)
 
 
 def _input(_: t.Any, arguments: list[t.Any]) -> str:
+    # TODO(abduazizziyodov): handle keyboard interrupt
     prompt = arguments[0]
     return input(prompt)
 

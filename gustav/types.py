@@ -27,16 +27,11 @@ class GusCallable(t.Protocol):
         pass
 
 
+@dataclass(slots=True, frozen=True, eq=False)
 class GusFunction(GusCallable):
-    def __init__(
-        self,
-        declaration: S.Function,
-        closure: Environment,
-        is_initializer: bool,
-    ) -> None:
-        self.closure = closure
-        self.declaration = declaration
-        self.is_initializer = is_initializer
+    declaration: S.Function
+    closure: Environment
+    is_initializer: bool
 
     @t.override
     def call(self, interpreter: CanExecuteBlock, arguments: list[t.Any]) -> t.Any:
