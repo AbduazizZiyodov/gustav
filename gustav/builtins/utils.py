@@ -2,10 +2,10 @@ import typing as t
 
 from gustav.types import GusCallable
 
-__all__ = ("define_builtin_fn",)
+__all__ = ("define_builtin",)
 
 
-def define_builtin_fn(
+def define_builtin(
     name: str,
     arity: int,
     body: t.Callable[[t.Any, t.Any], t.Any],

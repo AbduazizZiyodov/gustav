@@ -12,53 +12,27 @@ from gustav.ast import expression as E, statement as S
 __all__ = ("Resolver",)
 
 
+@t.runtime_checkable
+class CanResolveExpression(t.Protocol):
+    def resolve(self, expression: E.Expression, depth: int) -> None: ...
+
+
 class Resolver(E.ExpressionVisitor[None], S.StatementVisitor[None]):
-    def __init__(self, interpreter: t.Any) -> None:
+    def __init__(self, interpreter: CanResolveExpression) -> None:
         self.interpreter = interpreter
 
         self.current_class = ClassType.NONE
         self.current_function = FunctionType.NONE
 
-        self.scopes: Scope = Scope()
+        self.scope: Scope = Scope()
 
-    @singledispatchmethod
-    def resolve(self, stuff: t.Any) -> None:
-        raise NotImplementedError(f"Can't resolve {stuff}")
-
-    # resolve list of statements
-    @resolve.register(list)
-    def _(self, statements: list[S.Statement]) -> None:
-        for statement in statements:
-            self.resolve(statement)
-
-    # resolve single statement
-    @resolve.register
-    def _(self, statement: S.Statement) -> None:
-        statement.accept(self)
-
-    # resolve expression
-    @resolve.register
-    def _(self, expression: E.Expression) -> None:
-        expression.accept(self)
-
-    def declare(self, name: Token) -> None:
-        if not self.scopes.has_active_scope():
-            return
-
-        try:
-            self.scopes.declare(name.lexeme)
-        except RuntimeError as e:
-            gustav.error(name, str(e))
-
-    def define(self, name: Token) -> None:
-        if not self.scopes.has_active_scope():
-            return
-
-        self.scopes.define(name.lexeme)
+    ###
+    # Statements
+    ###
 
     @t.override
     def visit_block_statement(self, statement: S.Block) -> None:
-        with self.scopes.enter():
+        with self.scope.enter():
             self.resolve(statement.statements)
 
     @t.override
@@ -69,15 +43,6 @@ class Resolver(E.ExpressionVisitor[None], S.StatementVisitor[None]):
             self.resolve(statement.initializer)
 
         self.define(statement.name)
-
-    @t.override
-    def visit_get_expression(self, expression: E.Get) -> None:
-        self.resolve(expression.object)
-
-    @t.override
-    def visit_set_expression(self, expression: E.Set) -> None:
-        self.resolve(expression.value)
-        self.resolve(expression.object)
 
     @t.override
     def visit_class_statement(self, statement: S.Class) -> None:
@@ -100,8 +65,8 @@ class Resolver(E.ExpressionVisitor[None], S.StatementVisitor[None]):
             self.resolve(statement.superclass)
 
         def do_resolve_methods() -> None:
-            with self.scopes.enter():
-                self.scopes.peek()["this"] = True
+            with self.scope.enter():
+                self.scope.peek()["this"] = True
 
                 for method in statement.methods:
                     func_type: FunctionType = (
@@ -113,8 +78,8 @@ class Resolver(E.ExpressionVisitor[None], S.StatementVisitor[None]):
                     self.resolve_function(method, func_type)
 
         if statement.superclass is not None:
-            with self.scopes.enter():
-                self.scopes.peek()["super"] = True
+            with self.scope.enter():
+                self.scope.peek()["super"] = True
                 do_resolve_methods()
         else:
             do_resolve_methods()
@@ -122,35 +87,10 @@ class Resolver(E.ExpressionVisitor[None], S.StatementVisitor[None]):
         self.current_class = enclosing_class
 
     @t.override
-    def visit_super_expression(self, expression: E.Super) -> None:
-        if self.current_class == ClassType.NONE:
-            gustav.error(expression.keyword, "Can't use 'super' outside of a class.")
-
-        elif self.current_class != ClassType.SUBCLASS:
-            gustav.error(
-                expression.keyword, "Can't use 'super' in a class with no superclass."
-            )
-        else:
-            self.resolve_local(expression, expression.keyword)
-
-    @t.override
     def visit_function_statement(self, statement: S.Function) -> None:
         self.declare(statement.name)
         self.define(statement.name)
         self.resolve_function(statement, FunctionType.FUNCTION)
-
-    @t.override
-    def visit_variable_expression(self, expression: E.Variable) -> None:
-        if (
-            self.scopes.has_active_scope()
-            and self.scopes.peek().get(expression.name.lexeme) is False
-        ):
-            gustav.error(
-                expression.name,
-                "Can't read local variable in its own initializer.",
-            )
-
-        self.resolve_local(expression, expression.name)
 
     @t.override
     def visit_expr_statement(self, statement: S.Expr) -> None:
@@ -163,12 +103,6 @@ class Resolver(E.ExpressionVisitor[None], S.StatementVisitor[None]):
 
         if statement.else_branch is not None:
             self.resolve(statement.else_branch)
-
-    @t.override
-    def visit_ternary_expression(self, expression: E.Ternary) -> None:
-        self.resolve(expression.condition)
-        self.resolve(expression.then_branch)
-        self.resolve(expression.else_branch)
 
     @t.override
     def visit_print_statement(self, statement: S.Print) -> None:
@@ -190,6 +124,49 @@ class Resolver(E.ExpressionVisitor[None], S.StatementVisitor[None]):
     def visit_while_statement(self, statement: S.While) -> None:
         self.resolve(statement.condition)
         self.resolve(statement.body)
+
+    ###
+    # Expressions
+    ###
+    @t.override
+    def visit_get_expression(self, expression: E.Get) -> None:
+        self.resolve(expression.object)
+
+    @t.override
+    def visit_set_expression(self, expression: E.Set) -> None:
+        self.resolve(expression.value)
+        self.resolve(expression.object)
+
+    @t.override
+    def visit_super_expression(self, expression: E.Super) -> None:
+        if self.current_class == ClassType.NONE:
+            gustav.error(expression.keyword, "Can't use 'super' outside of a class.")
+
+        elif self.current_class != ClassType.SUBCLASS:
+            gustav.error(
+                expression.keyword, "Can't use 'super' in a class with no superclass."
+            )
+        else:
+            self.resolve_local(expression, expression.keyword)
+
+    @t.override
+    def visit_variable_expression(self, expression: E.Variable) -> None:
+        if (
+            self.scope.has_active_scope()
+            and self.scope.peek().get(expression.name.lexeme) is False
+        ):
+            gustav.error(
+                expression.name,
+                "Can't read local variable in its own initializer.",
+            )
+
+        self.resolve_local(expression, expression.name)
+
+    @t.override
+    def visit_ternary_expression(self, expression: E.Ternary) -> None:
+        self.resolve(expression.condition)
+        self.resolve(expression.then_branch)
+        self.resolve(expression.else_branch)
 
     @t.override
     def visit_binary_expression(self, expression: E.Binary) -> None:
@@ -234,8 +211,44 @@ class Resolver(E.ExpressionVisitor[None], S.StatementVisitor[None]):
         self.resolve(expression.value)
         self.resolve_local(expression, expression.name)
 
+    ###
+    # Machinery
+    ###
+
+    @singledispatchmethod
+    def resolve(self, stuff: t.Any) -> None:
+        raise NotImplementedError(f"Can't resolve {stuff}")
+
+    @resolve.register(list)
+    def _(self, statements: list[S.Statement]) -> None:
+        for statement in statements:
+            self.resolve(statement)
+
+    @resolve.register
+    def _(self, statement: S.Statement) -> None:
+        statement.accept(self)
+
+    @resolve.register
+    def _(self, expression: E.Expression) -> None:
+        expression.accept(self)
+
+    def declare(self, name: Token) -> None:
+        if not self.scope.has_active_scope():
+            return
+
+        try:
+            self.scope.declare(name.lexeme)
+        except RuntimeError as e:
+            gustav.error(name, str(e))
+
+    def define(self, name: Token) -> None:
+        if not self.scope.has_active_scope():
+            return
+
+        self.scope.define(name.lexeme)
+
     def resolve_local(self, expression: E.Expression, name: Token) -> None:
-        depth = self.scopes.depth_of(name.lexeme)
+        depth = self.scope.depth_of(name.lexeme)
 
         if depth is not None:
             self.interpreter.resolve(expression, depth)
@@ -244,7 +257,7 @@ class Resolver(E.ExpressionVisitor[None], S.StatementVisitor[None]):
         enclosing_function: FunctionType = self.current_function
         self.current_function = type
 
-        with self.scopes.enter():
+        with self.scope.enter():
             for param in statement.params:
                 self.declare(param)
                 self.define(param)

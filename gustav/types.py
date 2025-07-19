@@ -10,13 +10,12 @@ __all__ = ("GusCallable", "GusFunction", "GusClass", "GusClassInstance")
 
 
 @t.runtime_checkable
-class ImplementsExecuteBlock(t.Protocol):
+class CanExecuteBlock(t.Protocol):
     globals: Environment
 
     def execute_block(
         self, statements: list[S.Statement], environment: Environment
-    ) -> None:
-        pass
+    ) -> None: ...
 
 
 @t.runtime_checkable
@@ -24,9 +23,7 @@ class GusCallable(t.Protocol):
     def arity(self) -> int:
         pass
 
-    def call(
-        self, interpreter: ImplementsExecuteBlock, arguments: list[t.Any]
-    ) -> t.Any:
+    def call(self, interpreter: CanExecuteBlock, arguments: list[t.Any]) -> t.Any:
         pass
 
 
@@ -42,9 +39,7 @@ class GusFunction(GusCallable):
         self.is_initializer = is_initializer
 
     @t.override
-    def call(
-        self, interpreter: ImplementsExecuteBlock, arguments: list[t.Any]
-    ) -> t.Any:
+    def call(self, interpreter: CanExecuteBlock, arguments: list[t.Any]) -> t.Any:
         environment: Environment = Environment(self.closure)
 
         for i in range(self.arity()):
@@ -90,9 +85,7 @@ class GusClass(GusCallable):
         if self.superclass is not None:
             return self.superclass.find_method(name)
 
-    def call(
-        self, interpreter: ImplementsExecuteBlock, arguments: list[t.Any]
-    ) -> t.Any:
+    def call(self, interpreter: CanExecuteBlock, arguments: list[t.Any]) -> t.Any:
         # Creates instance of class: var instance = Klass()
 
         instance = GusClassInstance(self)
