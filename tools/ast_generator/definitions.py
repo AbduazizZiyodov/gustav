@@ -1,95 +1,29 @@
-from .types import NodeDefinitionMapping
+# AST nodes definition
+# Later, will be used by generator script to create Python representation of these nodes
 
-EXPRESSION_BASE_NAME = "Expression"
-STATEMENT_BASE_NAME = "Statement"
-
-
-EXPRESSION_TYPES: NodeDefinitionMapping = {
-    "Assign": [
-        {"type": "Token", "name": "name"},
-        {"type": EXPRESSION_BASE_NAME, "name": "value"},
-    ],
-    "Binary": [
-        {"type": EXPRESSION_BASE_NAME, "name": "left"},
-        {"type": "Token", "name": "operator"},
-        {"type": EXPRESSION_BASE_NAME, "name": "right"},
-    ],
-    "Ternary": [
-        {"type": EXPRESSION_BASE_NAME, "name": "condition"},
-        {"type": EXPRESSION_BASE_NAME, "name": "then_branch"},
-        {"type": EXPRESSION_BASE_NAME, "name": "else_branch"},
-    ],
-    "Call": [
-        {"type": EXPRESSION_BASE_NAME, "name": "callee"},
-        {"type": "Token", "name": "paren"},
-        {"type": f"list[{EXPRESSION_BASE_NAME}]", "name": "arguments"},
-    ],
-    "Get": [
-        {"type": EXPRESSION_BASE_NAME, "name": "object"},
-        {"type": "Token", "name": "name"},
-    ],
-    "Set": [
-        {"type": EXPRESSION_BASE_NAME, "name": "object"},
-        {"type": "Token", "name": "name"},
-        {"type": EXPRESSION_BASE_NAME, "name": "value"},
-    ],
-    "This": [
-        {"type": "Token", "name": "keyword"},
-    ],
-    "Groupping": [
-        {"type": EXPRESSION_BASE_NAME, "name": "expression"},
-    ],
-    "Literal": [
-        {"type": "object", "name": "value"},
-    ],
-    "Logical": [
-        {"type": EXPRESSION_BASE_NAME, "name": "left"},
-        {"type": "Token", "name": "operator"},
-        {"type": EXPRESSION_BASE_NAME, "name": "right"},
-    ],
-    "Variable": [
-        {"type": "Token", "name": "name"},
-    ],
-    "Unary": [
-        {"type": "Token", "name": "operator"},
-        {"type": EXPRESSION_BASE_NAME, "name": "right"},
-    ],
+EXPRESSION_TYPES = {
+    "Assign": "name: Token, value: Expression",
+    "Binary": "left: Expression, operator: Token, right: Expression",
+    "Ternary": "condition: Expression, then_branch: Expression, else_branch: Expression",
+    "Call": "callee: Expression, paren: Token, arguments: list[Expression]",
+    "Get": "object: Expression, name: Token",
+    "Set": "object: Expression, name: Token, value: Expression",
+    "This": "keyword: Token",
+    "Groupping": "expression: Expression",
+    "Literal": "value: object",
+    "Logical": "left: Expression, operator: Token, right: Expression",
+    "Variable": "name: Token",
+    "Unary": "operator: Token, right: Expression",
 }
 
-STATEMENT_TYPES: NodeDefinitionMapping = {
-    "Block": [
-        {"type": f"list[{STATEMENT_BASE_NAME}]", "name": "statements"},
-    ],
-    "Class": [
-        {"type": "Token", "name": "name"},
-        {"type": "list['Function']", "name": "methods"},
-    ],
-    "Expr": [
-        {"type": EXPRESSION_BASE_NAME, "name": "expression"},
-    ],
-    "If": [
-        {"type": EXPRESSION_BASE_NAME, "name": "condition"},
-        {"type": STATEMENT_BASE_NAME, "name": "then_branch"},
-        {"type": f"{STATEMENT_BASE_NAME} | None", "name": "else_branch"},
-    ],
-    "Function": [
-        {"type": "Token", "name": "name"},
-        {"type": "list[Token]", "name": "params"},
-        {"type": f"list[{STATEMENT_BASE_NAME}]", "name": "body"},
-    ],
-    "Print": [
-        {"type": EXPRESSION_BASE_NAME, "name": "expression"},
-    ],
-    "Return": [
-        {"type": "Token", "name": "keyword"},
-        {"type": f"{EXPRESSION_BASE_NAME} | None", "name": "value"},
-    ],
-    "While": [
-        {"type": EXPRESSION_BASE_NAME, "name": "condition"},
-        {"type": STATEMENT_BASE_NAME, "name": "body"},
-    ],
-    "Var": [
-        {"type": "Token", "name": "name"},
-        {"type": f"{EXPRESSION_BASE_NAME} | None", "name": "initializer"},
-    ],
+STATEMENT_TYPES = {
+    "Block": "statements: list[Statement]",
+    "Class": "name: Token, superclass: E.Variable | None, methods: list['Function']",
+    "Expr": "expression: E.Expression",
+    "If": "condition: E.Expression, then_branch: Statement, else_branch: Statement | None",
+    "Function": "name: Token, params: list[Token], body: list[Statement]",
+    "Print": "expression: E.Expression",
+    "Return": "keyword: Token, value: E.Expression | None",
+    "While": "condition: E.Expression, body: Statement",
+    "Var": "name: Token, initializer: E.Expression | None",
 }
