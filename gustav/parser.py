@@ -1,5 +1,7 @@
 import typing as t  # noqa: F401
 
+from dataclasses import dataclass, field
+
 from gustav import gustav
 from gustav.logging import LOG  # noqa: F401
 from gustav.token import Token
@@ -10,28 +12,17 @@ from gustav.ast import expression as E, statement as S
 __all__ = ("Parser",)
 
 
+@dataclass(slots=True)
 class Parser:
     """Recursive descent parser"""
 
-    SYNC_BLOCKS: tuple[TT, ...] = (
-        TT.CLASS,
-        TT.FOR,
-        TT.FUN,
-        TT.IF,
-        TT.PRINT,
-        TT.RETURN,
-        TT.VAR,
-        TT.WHILE,
-    )
-
-    def __init__(self, tokens: list[Token]) -> None:
-        self.current: int = 0
-        self.tokens: list[Token] = tokens
+    tokens: list[Token]
+    current: int = field(default=0)
 
     def parse(self) -> list[S.Statement]:
         statements: list[S.Statement] = list()
 
-        while not self.is_at_end():
+        while not self.is_end:
             if declaration := self.parse_declaration():
                 statements.append(declaration)
 
@@ -68,7 +59,7 @@ class Parser:
 
         methods: list[S.Function] = []
 
-        while not self.check(TT.RIGHT_BRACE) and not self.is_at_end():
+        while not self.check(TT.RIGHT_BRACE) and not self.is_end:
             methods.append(self.parse_function("method"))
 
         self.consume(TT.RIGHT_BRACE, "Expect '}' after class body.")
@@ -206,7 +197,7 @@ class Parser:
     def parse_block(self) -> list[S.Statement]:
         statements: list[S.Statement] = list()
 
-        while not self.check(TT.RIGHT_BRACE) and not self.is_at_end():
+        while not self.check(TT.RIGHT_BRACE) and not self.is_end:
             if declaration := self.parse_declaration():
                 statements.append(declaration)
 
@@ -425,16 +416,30 @@ class Parser:
 
         raise self.error(self.peek(), "Expect expression")
 
+    ###
+    # Machinery
+    ###
+    SYNC_BLOCKS: t.ClassVar[tuple[TT, ...]] = (
+        TT.CLASS,
+        TT.FOR,
+        TT.FUN,
+        TT.IF,
+        TT.PRINT,
+        TT.RETURN,
+        TT.VAR,
+        TT.WHILE,
+    )
+
     def synchronize(self) -> None:
         LOG.info(f"Syncing ... peek={self.peek()}")
 
         self.advance()
 
-        while not self.is_at_end():
+        while not self.is_end:
             if self.get_previous().type == TT.SEMICOLON:
                 return
 
-            if self.peek().type in self.SYNC_BLOCKS:
+            if self.peek().type in Parser.SYNC_BLOCKS:
                 return
 
             self.advance()
@@ -447,13 +452,13 @@ class Parser:
         return False
 
     def check(self, token_type: TT) -> bool:
-        if self.is_at_end():
+        if self.is_end:
             return False
 
         return self.peek().type == token_type
 
     def advance(self) -> Token:
-        if not self.is_at_end():
+        if not self.is_end:
             self.current += 1
 
         return self.get_previous()
@@ -474,5 +479,6 @@ class Parser:
     def get_previous(self) -> Token:
         return self.tokens[self.current - 1]
 
-    def is_at_end(self) -> bool:
+    @property
+    def is_end(self) -> bool:
         return self.peek().type == TT.EOF

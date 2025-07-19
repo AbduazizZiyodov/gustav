@@ -10,7 +10,7 @@ from gustav.ast import (
 )
 from gustav.logging import LOG  # noqa: F401
 from gustav.token import Token
-from gustav.builtins import BUILTINS
+from gustav.builtins import BUILTIN_FUNCTIONS
 from gustav.enums import TokenType as TT
 from gustav.environment import Environment
 from gustav.exceptions import GusRuntimeError, GusReturn
@@ -20,27 +20,12 @@ __all__ = ("Interpreter",)
 
 
 class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
-    NUMERIC_OPERATORS: t.ClassVar[tuple[TT, ...]] = (
-        TT.GREATER,
-        TT.GREATER_EQUAL,
-        TT.LESS,
-        TT.LESS_EQUAL,
-        TT.MINUS,
-        TT.PLUS,
-        TT.STAR,
-        TT.SLASH,
-    )
-
     def __init__(self) -> None:
         self.globals: Environment = Environment()
         self.locals: dict[Expression, int] = dict()
         self.environment: Environment = self.globals
 
         self.init_builtins()
-
-    def init_builtins(self) -> None:
-        for fn_name, callable in BUILTINS:
-            self.globals.define(fn_name, callable)
 
     def interpret(self, statements: list[Statement]) -> None:
         try:
@@ -49,37 +34,6 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
 
         except GusRuntimeError as exc:
             gustav.runtime_error(exc)
-
-    def execute(self, statement: Statement) -> None:
-        statement.accept(self)
-
-    def resolve(self, expression: E.Expression, depth: int) -> None:
-        self.locals[expression] = depth
-
-    def look_up_variable(self, name: Token, expr: Expression) -> t.Any:
-        distance: int | None = self.locals.get(expr)
-
-        if distance is not None:
-            return self.environment.get_at(distance, name.lexeme)
-
-        return self.globals.get(name)
-
-    def evaluate(self, expression: Expression) -> t.Any:
-        return expression.accept(self)
-
-    def execute_block(
-        self, statements: list[Statement], environment: Environment
-    ) -> None:
-        previous_environment: Environment = self.environment
-
-        try:
-            self.environment = environment
-
-            for statement in statements:
-                self.execute(statement)
-
-        finally:
-            self.environment = previous_environment
 
     ###
     # Statements
@@ -126,8 +80,8 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
     def visit_return_statement(self, statement: S.Return) -> t.Never:
         value: t.Any = None
 
-        if (val := statement.value) is not None:
-            value = self.evaluate(val)
+        if (expr := statement.value) is not None:
+            value = self.evaluate(expr)
 
         raise GusReturn(value)
 
@@ -298,6 +252,17 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
             case TT.MINUS:
                 return -1 * right
 
+    NUMERIC_OPERATORS: t.ClassVar[tuple[TT, ...]] = (
+        TT.GREATER,
+        TT.GREATER_EQUAL,
+        TT.LESS,
+        TT.LESS_EQUAL,
+        TT.MINUS,
+        TT.PLUS,
+        TT.STAR,
+        TT.SLASH,
+    )
+
     @t.override
     def visit_binary_expression(self, expression: E.Binary) -> t.Any:
         left = self.evaluate(expression.left)
@@ -354,8 +319,43 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
                 raise GusRuntimeError(expression.operator, "Unknown binary operator.")
 
     ###
-    # Utility
+    # Machinery
     ###
+
+    def init_builtins(self) -> None:
+        for fn in BUILTIN_FUNCTIONS:
+            self.globals.define(fn.__name__, fn)
+
+    def execute(self, statement: Statement) -> None:
+        statement.accept(self)
+
+    def resolve(self, expression: E.Expression, depth: int) -> None:
+        self.locals[expression] = depth
+
+    def look_up_variable(self, name: Token, expr: Expression) -> t.Any:
+        distance: int | None = self.locals.get(expr)
+
+        if distance is not None:
+            return self.environment.get_at(distance, name.lexeme)
+
+        return self.globals.get(name)
+
+    def evaluate(self, expression: Expression) -> t.Any:
+        return expression.accept(self)
+
+    def execute_block(
+        self, statements: list[Statement], environment: Environment
+    ) -> None:
+        previous_environment: Environment = self.environment
+
+        try:
+            self.environment = environment
+
+            for statement in statements:
+                self.execute(statement)
+
+        finally:
+            self.environment = previous_environment
 
     def check_number_operands(
         self, operator: Token, *operands: t.Any
