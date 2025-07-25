@@ -34,4 +34,5 @@ Coming to implementation details, its a tree-walk interpreter with custom scanne
 - [x] Dividing by zero, should return infinity
 - [ ] Report for unused variable
 - [ ] Support for range literals
+- [ ] `loop` keyword, for infinite loops
 - [ ] Tests
