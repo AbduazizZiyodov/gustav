@@ -62,7 +62,7 @@ def run(source: str) -> None:
 
     parser: Parser = Parser(tokens)
 
-    LOG.info("Parsing ...")
+    LOG.debug("Parsing ...")
 
     statements: list[Statement] = parser.parse()
 
