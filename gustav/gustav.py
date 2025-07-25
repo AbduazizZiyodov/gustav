@@ -23,7 +23,13 @@ try:
 except ImportError:
     LOG.debug("Rich is not installed, to install run 'uv add --dev rich'")
 
-__all__ = "report", "error", "panic", "main"
+__all__ = (
+    "report",
+    "error",
+    "panic",
+    "main",
+    "Scanner",
+)  # NOTE(abduazizziyodov): added scanner for testing
 
 had_error: bool = False
 had_runtime_error: bool = False
