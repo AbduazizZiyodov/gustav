@@ -12,7 +12,7 @@ interpreter_tests = collect_tests()
     "file_path",
     interpreter_tests,
     ids=make_relative(test_files=interpreter_tests),
-)  # type: ignore[misc]
+)  # type: ignore[misc,unused-ignore]
 def test_interpreter(file_path: Path) -> None:
     expected = extract_expected(file_path)
     actual = run_file(file_path)

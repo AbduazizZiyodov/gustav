@@ -219,7 +219,7 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
         return func.call(self, arguments)
 
     @t.override
-    def visit_assign_expression(self, expression: E.Assign) -> None:
+    def visit_assign_expression(self, expression: E.Assign) -> t.Any:
         value: t.Any = self.evaluate(expression.value)
 
         distance: int | None = self.locals.get(expression)
@@ -228,6 +228,8 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
             self.environment.assign_at(distance, expression.name, value)
         else:
             self.globals.assign(expression.name, value)
+
+        return value
 
     @t.override
     def visit_variable_expression(self, expression: E.Variable) -> t.Any:

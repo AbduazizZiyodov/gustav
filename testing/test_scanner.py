@@ -12,7 +12,7 @@ scanner_tests = collect_tests(test_scanner=True)
     "file_path",
     scanner_tests,
     ids=make_relative(test_files=scanner_tests),
-)  # type: ignore[misc]
+)  # type: ignore[misc,unused-ignore]
 def test_scanner_tokens(file_path: Path) -> None:
     source = file_path.read_text()
     expected = extract_expected(file_path)
