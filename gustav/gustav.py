@@ -161,20 +161,18 @@ def report(line: int, where: str, message: str) -> None:
     global had_error
     had_error = True
 
-    sys.stderr.write(f"[line {line}] Error {where}: {message}\n")
+    sys.stderr.write(f"Error {where}: {message}.\n")
 
 
 def error(token: Token, message: str) -> None:
-    if token.type != TT.EOF:
+    if token.type == TT.EOF:
         report(token.line, " at the end", message)
     else:
-        report(token.line, f" at '{token.lexeme}'", message)
+        report(token.line, f"at '{token.lexeme}'", message)
 
 
 def runtime_error(exc: GusRuntimeError) -> None:
     global had_runtime_error
     had_runtime_error = True
 
-    sys.stderr.write(
-        f"{exc.error_message} at [line {exc.token.line}, token={exc.token.type}]\n"
-    )
+    sys.stderr.write(f"{exc.error_message}.\n")

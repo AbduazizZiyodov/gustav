@@ -56,9 +56,7 @@ class Resolver(E.ExpressionVisitor[None], S.StatementVisitor[None]):
             statement.superclass is not None
             and statement.name.lexeme == statement.superclass.name.lexeme
         ):
-            gustav.error(
-                statement.superclass.name, "A class can't inherit from itself."
-            )
+            gustav.error(statement.superclass.name, "A class can't inherit from itself")
 
         if statement.superclass is not None:
             self.current_class = ClassType.SUBCLASS
@@ -111,12 +109,12 @@ class Resolver(E.ExpressionVisitor[None], S.StatementVisitor[None]):
     @t.override
     def visit_return_statement(self, statement: S.Return) -> None:
         if self.current_function == FunctionType.NONE:
-            gustav.error(statement.keyword, "Can't return from top-level code.")
+            gustav.error(statement.keyword, "Can't return from top-level code")
 
         if statement.value is not None:
             if self.current_function == FunctionType.INITIALIZER:
                 gustav.error(
-                    statement.keyword, "Can't return a value from an initializer."
+                    statement.keyword, "Can't return a value from an initializer"
                 )
             self.resolve(statement.value)
 
@@ -140,11 +138,11 @@ class Resolver(E.ExpressionVisitor[None], S.StatementVisitor[None]):
     @t.override
     def visit_super_expression(self, expression: E.Super) -> None:
         if self.current_class == ClassType.NONE:
-            gustav.error(expression.keyword, "Can't use 'super' outside of a class.")
+            gustav.error(expression.keyword, "Can't use 'super' outside of a class")
 
         elif self.current_class != ClassType.SUBCLASS:
             gustav.error(
-                expression.keyword, "Can't use 'super' in a class with no superclass."
+                expression.keyword, "Can't use 'super' in a class with no superclass"
             )
         else:
             self.resolve_local(expression, expression.keyword)
@@ -157,7 +155,7 @@ class Resolver(E.ExpressionVisitor[None], S.StatementVisitor[None]):
         ):
             gustav.error(
                 expression.name,
-                "Can't read local variable in its own initializer.",
+                "Can't read local variable in its own initializer",
             )
 
         self.resolve_local(expression, expression.name)
