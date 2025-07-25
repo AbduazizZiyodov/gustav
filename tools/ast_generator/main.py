@@ -113,7 +113,7 @@ def define_type(
 def define_visitor(
     file: TextIOWrapper, base_name: str, types: NodeDefinitionMapping
 ) -> None:
-    LOG.info(f"Defining visitor for {base_name}")
+    LOG.debug(f"Defining visitor for {base_name}")
 
     file.write(f"class {base_name}Visitor[T](t.Protocol):\n\t")
 
@@ -127,13 +127,13 @@ def define_visitor(
 
 
 def main() -> int:
-    LOG.info("Generate AST - Starting")
+    LOG.debug("Generate AST - Starting")
 
     os.makedirs("gustav/ast", exist_ok=True)
 
     try:
         with open("gustav/ast/__init__.py", "wt") as file:
-            LOG.info("Writing imports for __init__.py")
+            LOG.debug("Writing imports for __init__.py")
             file.write(INIT_IMPORTS)
 
         for base_name, types in (
@@ -141,7 +141,7 @@ def main() -> int:
             (STATEMENT_BASE_NAME, as_node_definition_mapping(STATEMENT_TYPES)),
         ):
             with open(f"gustav/ast/{base_name.lower()}.py", "wt") as file:
-                LOG.info(
+                LOG.debug(
                     f"Defining ast for {base_name} with types => {tuple(types.keys())}"
                 )
                 define_ast(file, base_name, types)
@@ -150,7 +150,7 @@ def main() -> int:
         raise exc
         # return os.EX_DATAERR
     else:
-        LOG.info("Generate AST - Finished")
+        LOG.debug("Generate AST - Finished")
         return os.EX_OK
     finally:
         file.close()
