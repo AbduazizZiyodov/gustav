@@ -1,7 +1,7 @@
 import typing as t
 from dataclasses import dataclass
 
-from gustav.enums import TokenType
+from gustav.enums import TokenType as TT
 
 __all__ = ("Token",)
 
@@ -83,7 +83,15 @@ class Token:
     * Read: https://docs.python.org/3/library/dataclasses.html#module-contents ( I did, btw )
     """
 
-    type: TokenType
+    type: TT
     lexeme: str
     literal: t.Any
     line: int
+
+    def __test_repr__(self) -> str:
+        if not (self.type == TT.STRING and not self.literal):
+            literal_str = str(self.literal) or "None"
+        else:
+            literal_str = ""
+
+        return " ".join([self.type.name, self.lexeme, literal_str])

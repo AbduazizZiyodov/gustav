@@ -431,7 +431,7 @@ class Parser:
     )
 
     def synchronize(self) -> None:
-        LOG.info(f"Syncing ... peek={self.peek()}")
+        LOG.debug(f"Syncing ... peek={self.peek()}")
 
         self.advance()
 
