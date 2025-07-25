@@ -160,7 +160,7 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
 
         if (method := superclass.find_method(expression.method.lexeme)) is None:
             raise GusRuntimeError(
-                expression.method, f"Undefined property '{expression.method.lexeme}'."
+                expression.method, f"Undefined property '{expression.method.lexeme}'"
             )
 
         return method.bind(instance)
@@ -205,7 +205,7 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
 
         if not isinstance(callee, GusCallable):
             raise GusRuntimeError(
-                expression.paren, "Can only call functions and classes."
+                expression.paren, "Can only call functions and classes"
             )
 
         func: GusCallable = callee
@@ -371,7 +371,9 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
         raise GusRuntimeError(operator, "Operands must be a number")
 
     def is_equal(self, a: t.Any, b: t.Any) -> bool:
-        return bool(a == b)
+        if type(a) is type(b):
+            return bool(a == b)
+        return False
 
     def is_truthy(self, value: t.Any) -> bool:
         if value in (None, False):
@@ -386,4 +388,9 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
         if value in (True, False):
             return str(value).lower()
 
-        return str(value)
+        value_str = str(value)
+
+        if isinstance(value, float) and value_str.endswith(".0"):
+            value_str = value_str[:-2]
+
+        return value_str

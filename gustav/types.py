@@ -97,6 +97,9 @@ class GusClass(GusCallable):
     def arity(self) -> int:
         return 0 if self.initializer is None else self.initializer.arity()
 
+    def __repr__(self) -> str:
+        return self.name
+
 
 @dataclass
 class GusClassInstance:
@@ -104,7 +107,7 @@ class GusClassInstance:
     fields: dict[str, t.Any] = field(default_factory=dict)
 
     def get(self, name: Token) -> GusFunction | t.Any:
-        if val := self.fields.get(name.lexeme):
+        if val := self.fields.get(name.lexeme) is not None:
             return val
 
         method: GusFunction | None
@@ -112,10 +115,10 @@ class GusClassInstance:
         if (method := self.klass.find_method(name.lexeme)) is not None:
             return method.bind(self)
 
-        raise GusRuntimeError(name, f"Undefined property '{name.lexeme}'.")
+        raise GusRuntimeError(name, f"Undefined property '{name.lexeme}'")
 
     def set(self, name: Token, value: t.Any) -> None:
         self.fields[name.lexeme] = value
 
     def __repr__(self) -> str:
-        return f"Instance<of '{self.klass.name}' id={id(self):x}>"
+        return f"{self.klass.name} instance"

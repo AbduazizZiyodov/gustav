@@ -7,6 +7,7 @@ class Tree {
       depth = depth - 1;
       this.left = Tree(item2 - 1, depth);
       this.right = Tree(item2, depth);
+      print "on init left => " ++ this.left ++ " right => " ++ this.right;
     } else {
       this.left = nil;
       this.right = nil;
@@ -17,7 +18,8 @@ class Tree {
     if (this.left == nil) {
       return this.item;
     }
-
+    print "left => " ++ this.left;
+    print "right => " ++ this.right;
     return this.item + this.left.check() - this.right.check();
   }
 }
@@ -32,6 +34,7 @@ print "stretch tree of depth:";
 print stretchDepth;
 print "check:";
 print Tree(0, stretchDepth).check();
+print "dagestan";
 
 var longLivedTree = Tree(0, maxDepth);
 

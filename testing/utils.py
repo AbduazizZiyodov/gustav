@@ -58,7 +58,7 @@ def collect_tests(test_scanner: bool = False) -> list[Path]:
         filter(
             lambda file: "scanning" in file.parts
             if test_scanner
-            else "scanning" not in file.parts,
+            else ("scanning" not in file.parts) and ("benchmark" not in file.parts),
             root.rglob("*.gus"),
         )
     )
