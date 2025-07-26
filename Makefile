@@ -9,3 +9,6 @@ repl:
 
 generate_ast:
 	./scripts/generate_ast
+
+test:
+	pytest -s -vv --cov=gustav -cov-report=term-missing --cov-report=html testing
