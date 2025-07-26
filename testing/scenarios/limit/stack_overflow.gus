@@ -15,7 +15,7 @@ fun foo() {
   var a14;
   var a15;
   var a16;
-  foo(); // expect: Stack overflow.
+  foo(); // expect: RecursionError: maximum recursion depth exceeded
 }
 
 foo();

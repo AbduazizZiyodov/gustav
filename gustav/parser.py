@@ -47,54 +47,54 @@ class Parser:
         return None
 
     def parse_class_declaration(self) -> S.Class:
-        name: Token = self.consume(TT.IDENTIFIER, "Expect class name.")
+        name: Token = self.consume(TT.IDENTIFIER, "Expect class name")
 
         superclass: E.Variable | None = None
 
         if self.match(TT.LESS):
-            self.consume(TT.IDENTIFIER, "Expect superclass name.")
+            self.consume(TT.IDENTIFIER, "Expect superclass name")
             superclass = E.Variable(self.get_previous())
 
-        self.consume(TT.LEFT_BRACE, "Expect '{' before class body.")
+        self.consume(TT.LEFT_BRACE, "Expect '{' before class body")
 
         methods: list[S.Function] = []
 
         while not self.check(TT.RIGHT_BRACE) and not self.is_end:
             methods.append(self.parse_function("method"))
 
-        self.consume(TT.RIGHT_BRACE, "Expect '}' after class body.")
+        self.consume(TT.RIGHT_BRACE, "Expect '}' after class body")
 
         return S.Class(name, superclass, methods)
 
     def parse_function(self, kind: str) -> S.Function:
-        name: Token = self.consume(TT.IDENTIFIER, f"Expect {kind} name.")
+        name: Token = self.consume(TT.IDENTIFIER, f"Expect {kind} name")
 
-        self.consume(TT.LEFT_PAREN, f"Expect '(' after {kind} name.")
+        self.consume(TT.LEFT_PAREN, f"Expect '(' after {kind} name")
 
         parameters: list[Token] = list()
 
         if not self.check(TT.RIGHT_PAREN):
             while True:
-                parameters.append(self.consume(TT.IDENTIFIER, "Expect parameter name."))
+                parameters.append(self.consume(TT.IDENTIFIER, "Expect parameter name"))
 
                 if not self.match(TT.COMMA):
                     break
 
-        self.consume(TT.RIGHT_PAREN, "Expect ')' after parameters.")
-        self.consume(TT.LEFT_BRACE, f"Expect '{{' {kind}")
+        self.consume(TT.RIGHT_PAREN, "Expect ')' after parameters")
+        self.consume(TT.LEFT_BRACE, f"Expect '{{' before {kind} body")
 
         body: list[S.Statement] = self.parse_block()
 
         return S.Function(name, parameters, body)
 
     def parse_var_declaration(self) -> S.Var:
-        name: Token = self.consume(TT.IDENTIFIER, "Expect variable name.")
+        name: Token = self.consume(TT.IDENTIFIER, "Expect variable name")
         initializer: E.Expression | None = None
 
         if self.match(TT.EQUAL):
             initializer = self.parse_expression()
 
-        self.consume(TT.SEMICOLON, "Expect ';' after variables declaration.")
+        self.consume(TT.SEMICOLON, "Expect ';' after variables declaration")
 
         return S.Var(name, initializer)
 
@@ -132,7 +132,7 @@ class Parser:
 
     def parse_for_statement(self) -> S.Statement:
         """Desugar 'for loops' into 'while loops'"""
-        self.consume(TT.LEFT_PAREN, "Expect '(' after 'for'.")
+        self.consume(TT.LEFT_PAREN, "Expect '(' after 'for'")
 
         initializer: S.Var | S.Expr | None
 
@@ -148,14 +148,14 @@ class Parser:
         if not self.check(TT.SEMICOLON):
             condition = self.parse_expression()
 
-        self.consume(TT.SEMICOLON, "Expect ';' after loop condition.")
+        self.consume(TT.SEMICOLON, "Expect ';' after loop condition")
 
         increment: E.Expression | None = None
 
         if not self.check(TT.RIGHT_PAREN):
             increment = self.parse_expression()
 
-        self.consume(TT.RIGHT_PAREN, "Expect ')' after for clauses.")
+        self.consume(TT.RIGHT_PAREN, "Expect ')' after for clauses")
 
         body: S.Statement = self.parse_statement()
 
@@ -173,18 +173,18 @@ class Parser:
         return body
 
     def parse_while_statement(self) -> S.While:
-        self.consume(TT.LEFT_PAREN, "Expect '(' after 'while'.")
+        self.consume(TT.LEFT_PAREN, "Expect '(' after 'while'")
         condition: E.Expression = self.parse_expression()
-        self.consume(TT.RIGHT_PAREN, "Expect ')' after 'condition'.")
+        self.consume(TT.RIGHT_PAREN, "Expect ')' after 'condition'")
 
         body: S.Statement = self.parse_statement()
 
         return S.While(condition, body)
 
     def parse_if_statement(self) -> S.If:
-        self.consume(TT.LEFT_PAREN, "Expect '(' after 'if'.")
+        self.consume(TT.LEFT_PAREN, "Expect '(' after 'if'")
         condition: E.Expression = self.parse_expression()
-        self.consume(TT.RIGHT_PAREN, "Expect ')' after 'condition'.")
+        self.consume(TT.RIGHT_PAREN, "Expect ')' after 'condition'")
 
         then_branch: S.Statement = self.parse_statement()
         else_branch: S.Statement | None = None
@@ -201,7 +201,7 @@ class Parser:
             if declaration := self.parse_declaration():
                 statements.append(declaration)
 
-        self.consume(TT.RIGHT_BRACE, "Expect '}' after block.")
+        self.consume(TT.RIGHT_BRACE, "Expect '}' after block")
 
         return statements
 
@@ -213,12 +213,16 @@ class Parser:
 
     def parse_expression_statement(self) -> S.Expr:
         expression = self.parse_expression()
-        self.consume(TT.SEMICOLON, "Expect ';' after value")
+        self.consume(TT.SEMICOLON, "Expect ';' after expression")
 
         return S.Expr(expression)
 
     def parse_expression(self) -> E.Expression:
-        return self.parse_assignment()
+        assignment_expr = self.parse_assignment()
+        if self.match(TT.PIPE):
+            return self.parse_call(assignment_expr)
+
+        return assignment_expr
 
     def parse_assignment(self) -> E.Expression:
         expr: E.Expression = self.parse_or()
@@ -327,7 +331,7 @@ class Parser:
         return self.parse_call()
 
     def parse_call(
-        self, pipe_arg: E.Call | None = None
+        self, pipe_arg: E.Expression | None = None
     ) -> E.Call | E.Get | E.Expression:
         expr: E.Expression = self.parse_primary()
 
@@ -336,7 +340,7 @@ class Parser:
                 expr = self.finish_call(expr, pipe_arg)
             elif self.match(TT.DOT):
                 name: Token = self.consume(
-                    TT.IDENTIFIER, "Expect proparty name after '.'."
+                    TT.IDENTIFIER, "Expect property name after '.'"
                 )
                 expr = E.Get(expr, name)
             else:
@@ -345,7 +349,7 @@ class Parser:
         return expr
 
     def finish_call(
-        self, callee: E.Expression, pipe_arg: E.Call | None = None
+        self, callee: E.Expression, pipe_arg: E.Expression | None = None
     ) -> E.Call | E.Expression:
         """Parses arguments, closes call with RIGH_PAREN.
 
@@ -369,7 +373,7 @@ class Parser:
         if pipe_arg:
             arguments.append(pipe_arg)
 
-        paren: Token = self.consume(TT.RIGHT_PAREN, "Expect ')' after arguments.")
+        paren: Token = self.consume(TT.RIGHT_PAREN, "Expect ')' after arguments")
 
         call_expr: E.Call | E.Expression
 
@@ -396,9 +400,7 @@ class Parser:
         if self.match(TT.SUPER):
             keyword: Token = self.get_previous()
             self.consume(TT.DOT, "Expect '.' after 'super'")
-            method: Token = self.consume(
-                TT.IDENTIFIER, "Expect superclass method name."
-            )
+            method: Token = self.consume(TT.IDENTIFIER, "Expect superclass method name")
 
             return E.Super(keyword, method)
 
@@ -440,7 +442,7 @@ class Parser:
                 return
 
             if self.peek().type in Parser.SYNC_BLOCKS:
-                return
+                return  # pragma: no cover
 
             self.advance()
 

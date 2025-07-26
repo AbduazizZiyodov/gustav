@@ -9,13 +9,14 @@ def define_builtin(
     name: str,
     arity: int,
     body: t.Callable[[t.Any, t.Any], t.Any],
-) -> type:
+) -> t.Any:
     return type(
         name,
         (GusCallable,),
         {
-            "arity": lambda: arity,
-            "call": lambda interpreter, arguments: body(interpreter, arguments),
-            "__repr__": "<native fn>",
+            "arity": lambda self: arity,
+            "call": lambda self, interpreter, arguments: body(interpreter, arguments),
+            "__str__": lambda self: "<native fn>",
+            "__repr__": lambda self: "<native fn>",
         },
-    )
+    )()

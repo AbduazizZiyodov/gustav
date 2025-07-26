@@ -190,9 +190,7 @@ class Resolver(E.ExpressionVisitor[None], S.StatementVisitor[None]):
     @t.override
     def visit_this_expression(self, expression: E.This) -> None:
         if self.current_class == ClassType.NONE:
-            gustav.error(
-                expression.keyword, "Can't use 'this' keyword outside of class"
-            )
+            gustav.error(expression.keyword, "Can't use 'this' outside of a class")
 
         self.resolve_local(expression, expression.keyword)
 
@@ -215,7 +213,7 @@ class Resolver(E.ExpressionVisitor[None], S.StatementVisitor[None]):
 
     @singledispatchmethod
     def resolve(self, stuff: t.Any) -> None:
-        raise NotImplementedError(f"Can't resolve {stuff}")
+        raise NotImplementedError(f"Can't resolve {stuff}")  # pragma: no cover
 
     @resolve.register(list)
     def _(self, statements: list[S.Statement]) -> None:
@@ -283,13 +281,13 @@ class Scope:
 
     def end_scope(self) -> None:
         if not self._stack:
-            raise RuntimeError("No active scope")
+            raise RuntimeError("No active scope")  # pragma: no cover
 
         self._stack.pop()
 
     def peek(self) -> dict[str, bool]:
         if not self._stack:
-            raise RuntimeError("No active scope")
+            raise RuntimeError("No active scope")  # pragma: no cover
 
         return self._stack[-1]
 
@@ -300,14 +298,14 @@ class Scope:
         scope = self.peek()
 
         if name in scope:
-            raise RuntimeError(f"Variable '{name}' already declared in this scope.")
+            raise RuntimeError("Already a variable with this name in this scope")
 
         scope[name] = False
 
     def depth_of(self, name: str) -> int | None:
-        for i in range(len(self._stack) - 1, -1, -1):
+        for i in range(len(self) - 1, -1, -1):
             if name in self._stack[i]:
-                return len(self._stack) - 1 - i
+                return len(self) - 1 - i
 
         return None
 

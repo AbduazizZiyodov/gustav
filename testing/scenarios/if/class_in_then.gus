@@ -1,2 +1,2 @@
-// [line 2] // expect: Error at 'class': Expect expression.
+// expect: Error at 'class': Expect expression.
 if (true) class Foo {}

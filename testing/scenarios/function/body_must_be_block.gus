@@ -1,3 +1,2 @@
-// [line 3] // expect: Error at '123': Expect '{' before function body.
-// [c line 4] // expect: Error at end: Expect '}' after block.
+// expect: Error at '123': Expect '{' before function body.
 fun f() 123;

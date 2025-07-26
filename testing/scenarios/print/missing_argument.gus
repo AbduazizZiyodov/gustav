@@ -1,2 +1,2 @@
-// [line 2] // expect: Error at ';': Expect expression.
+// expect: Error at ';': Expect expression.
 print;

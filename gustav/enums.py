@@ -26,7 +26,7 @@ class TokenType(StrEnum):
     DOT = auto()
     MINUS = auto()
     PLUS = auto()
-    PLUS_PLUS = auto()
+    PLUS_PLUS = auto()  # NOTE(abduazizziyodov): not now
     SEMICOLON = auto()
     SLASH = auto()
     STAR = auto()

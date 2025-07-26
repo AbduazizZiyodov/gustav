@@ -1,0 +1,13 @@
+// expect: Error: Nesting multiline comments are not allowed.
+
+/*
+
+
+
+hello 
+
+
+/* hello inner */
+
+
+*/

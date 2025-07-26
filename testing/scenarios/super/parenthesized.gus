@@ -4,7 +4,8 @@ class A {
 
 class B < A {
   method() {
-    // [line 8] // expect: Error at ')': Expect '.' after 'super'.
     (super).method();
   }
 }
+
+// expect: Error at ')': Expect '.' after 'super'.

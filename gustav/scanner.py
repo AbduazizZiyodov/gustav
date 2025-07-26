@@ -50,10 +50,7 @@ class Scanner:
                 )
 
             case "+":
-                if self.match_token("+"):
-                    self.add_token(type=TT.PLUS_PLUS)
-                else:
-                    self.add_token(type=TT.PLUS)
+                self.add_token(type=TT.PLUS)
 
             case "/":
                 if self.match_token("/"):
@@ -92,7 +89,7 @@ class Scanner:
 
     def peek_next(self) -> str:
         if self.current + 1 >= len(self.source):
-            return "\0"
+            return "\0"  # pragma: no cover
 
         return self.source[self.current + 1]
 
@@ -110,7 +107,7 @@ class Scanner:
 
     def match_token(self, expected: str) -> bool:
         if self.is_end:
-            return False
+            return False  # pragma: no cover
 
         if self.current_char != expected:
             return False
@@ -142,15 +139,15 @@ class Scanner:
         self.add_token(type=TT.NUMBER, literal=float(part))
 
     def multiline_comment(self) -> None:
-        if self.peek() == "\0":
-            gustav.panic(self.line, "Multiline comment is not terminated.")
-            return
-
         while True:
+            if self.peek() == "\0":
+                gustav.panic(self.line, "Multiline comment is not terminated")
+                return
+
             # opening, we've already consumed /*,
             # if we encounter one again, it means nesting.
             if self.peek() == "/" and self.peek_next() == "*":
-                gustav.panic(self.line, "Nesting multiline comments are not allowed.")
+                gustav.panic(self.line, "Nesting multiline comments are not allowed")
                 return
 
             # looking for terminating points

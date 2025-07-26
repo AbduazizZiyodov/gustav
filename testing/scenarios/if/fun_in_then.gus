@@ -1,2 +1,2 @@
-// [line 2] // expect: Error at 'fun': Expect expression.
+// expect: Error at 'fun': Expect expression.
 if (true) fun foo() {}
