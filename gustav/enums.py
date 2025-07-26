@@ -63,6 +63,8 @@ class TokenType(StrEnum):
     VAR = auto()
     WHILE = auto()
 
+    LOOP = auto()
+
     PIPE = auto()
     CARET = auto()
 
