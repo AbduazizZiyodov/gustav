@@ -17,6 +17,7 @@ RESERVED_KEYWORDS: t.Final[dict[str, TT]] = {
     "nil": TT.NIL,
     "for": TT.FOR,
     "while": TT.WHILE,
+    "loop": TT.LOOP,
     "if": TT.IF,
     "else": TT.ELSE,
     "and": TT.AND,

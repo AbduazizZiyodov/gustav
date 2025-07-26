@@ -25,7 +25,6 @@ Coming to implementation details, its a tree-walk interpreter with custom scanne
 - [x] Scanner support for C-style multiline-comments (e.g. `/* ... */`)
 - [ ] Support for comma expressions
 - [x] Ternary expressions (operator) support (e.g. `condition ? expr_if_true : expr_if_false` )
-- [x] Concatenation operator (`++`) (note: should be revised)
 - [x] Pipe operator (e.g. `g(x) |> f(y)` equivalent to `f(y,g(x))`)
 - [ ] Support lambdas (anonymous functions)
 - [ ] REPL support for statements & expressions
@@ -34,5 +33,5 @@ Coming to implementation details, its a tree-walk interpreter with custom scanne
 - [x] Dividing by zero, should return infinity
 - [ ] Report for unused variable
 - [ ] Support for range literals
-- [ ] `loop` keyword, for infinite loops
-- [ ] Tests
+- [x] `loop` keyword, for infinite loops
+- [x] Tests

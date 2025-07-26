@@ -114,6 +114,9 @@ class Parser:
         if self.match(TT.WHILE):
             return self.parse_while_statement()
 
+        if self.match(TT.LOOP):
+            return self.parse_loop_statement()
+
         if self.match(TT.FOR):
             return self.parse_for_statement()
 
@@ -172,6 +175,15 @@ class Parser:
 
         return body
 
+    def parse_loop_statement(self) -> S.While:
+        condition = E.Literal(value=True)
+
+        self.consume(TT.LEFT_BRACE, "Expect '{' after 'loop'")
+        body: S.Statement = self.parse_statement()
+        self.consume(TT.RIGHT_BRACE, "Expect '}' after block")
+
+        return S.While(condition, body)
+
     def parse_while_statement(self) -> S.While:
         self.consume(TT.LEFT_PAREN, "Expect '(' after 'while'")
         condition: E.Expression = self.parse_expression()
@@ -219,6 +231,7 @@ class Parser:
 
     def parse_expression(self) -> E.Expression:
         assignment_expr = self.parse_assignment()
+
         if self.match(TT.PIPE):
             return self.parse_call(assignment_expr)
 
