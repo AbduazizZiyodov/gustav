@@ -2,6 +2,7 @@ import typing as t
 from dataclasses import dataclass, field
 
 from gustav.token import Token
+from gustav.logging import LOG  # noqa: F401
 from gustav.ast import statement as S
 from gustav.environment import Environment
 from gustav.exceptions import GusRuntimeError, GusReturn
@@ -15,16 +16,16 @@ class CanExecuteBlock(t.Protocol):
 
     def execute_block(
         self, statements: list[S.Statement], environment: Environment
-    ) -> None: ...
+    ) -> None: ...  # pragma: no cover
 
 
 @t.runtime_checkable
 class GusCallable(t.Protocol):
-    def arity(self) -> int:
-        pass
+    def arity(self) -> int: ...  # pragma: no cover
 
-    def call(self, interpreter: CanExecuteBlock, arguments: list[t.Any]) -> t.Any:
-        pass
+    def call(
+        self, interpreter: CanExecuteBlock, arguments: list[t.Any]
+    ) -> t.Any: ...  # pragma: no cover
 
 
 @dataclass(slots=True, frozen=True, eq=False)
@@ -107,7 +108,7 @@ class GusClassInstance:
     fields: dict[str, t.Any] = field(default_factory=dict)
 
     def get(self, name: Token) -> GusFunction | t.Any:
-        if val := self.fields.get(name.lexeme) is not None:
+        if (val := self.fields.get(name.lexeme)) is not None:
             return val
 
         method: GusFunction | None

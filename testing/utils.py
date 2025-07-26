@@ -24,11 +24,13 @@ def extract_expected(file_path: Path) -> list[str]:
     return expected
 
 
-def run_file(file_path: Path) -> list[str]:
+def run_file(file_path: Path, output_as_str: bool = False) -> str | list[str]:
     args = [*GUS_EXEC.split(), str(file_path)]
     proc = subprocess.run(args, capture_output=True, text=True)
 
-    return (proc.stdout + proc.stderr).splitlines()
+    output = proc.stdout + proc.stderr
+
+    return output.splitlines() if not output_as_str else output
 
 
 def compare_output(file_path: Path) -> bool:

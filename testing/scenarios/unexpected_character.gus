@@ -1,2 +1,2 @@
-// TEST: [line 3] Error: Unexpected character
+// expect: Error: Unexpected character.
 foo(a | b);

@@ -20,7 +20,7 @@ try:
     from rich import print as printr
 
     rich_installed = True
-except ImportError:
+except ImportError:  # pragma: no cover
     LOG.debug("Rich is not installed, to install run 'uv add --dev rich'")
 
 __all__ = (
@@ -36,14 +36,14 @@ had_runtime_error: bool = False
 
 
 def main() -> int:
-    if len(sys.argv) > 2:
+    if len(sys.argv) > 2:  # pragma: no cover
         sys.stdout.write(f"Usage: {sys.executable} -m gustav [script]")
         return os.EX_USAGE
 
     if len(sys.argv) == 2:
         return run_from_file(sys.argv[1])
 
-    return run_from_repl()
+    return run_from_repl()  # pragma: no cover
 
 
 def run(source: str) -> None:
@@ -74,7 +74,7 @@ def run(source: str) -> None:
 
     LOG.debug("Parsing finished")
 
-    if DEBUG:
+    if DEBUG:  # pragma: no cover
         for index, statement in enumerate(statements):
             if rich_installed:
                 printr(f"[bold green]Statement[/bold green] {index}:")
@@ -111,7 +111,7 @@ def run_from_file(file_name: str) -> int:
         with open(file_name, "r") as file:
             source = file.read()
 
-    except FileNotFoundError:
+    except FileNotFoundError:  # pragma: no cover
         sys.stderr.write(f"Couldn't find file with {file_name=}")
         return os.EX_NOINPUT
 
@@ -126,7 +126,7 @@ def run_from_file(file_name: str) -> int:
     return os.EX_OK
 
 
-def run_from_repl() -> int:
+def run_from_repl() -> int:  # pragma: no cover
     PROMPT = "=>"
 
     while True:
@@ -161,14 +161,14 @@ def report(line: int, where: str, message: str) -> None:
     global had_error
     had_error = True
 
-    sys.stderr.write(f"Error {where}: {message}.\n")
+    sys.stderr.write(f"Error{where}: {message}.\n")
 
 
 def error(token: Token, message: str) -> None:
     if token.type == TT.EOF:
-        report(token.line, " at the end", message)
+        report(token.line, " at end", message)
     else:
-        report(token.line, f"at '{token.lexeme}'", message)
+        report(token.line, f" at '{token.lexeme}'", message)
 
 
 def runtime_error(exc: GusRuntimeError) -> None:

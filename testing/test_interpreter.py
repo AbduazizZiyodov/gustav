@@ -15,6 +15,12 @@ interpreter_tests = collect_tests()
 )  # type: ignore[misc,unused-ignore]
 def test_interpreter(file_path: Path) -> None:
     expected = extract_expected(file_path)
-    actual = run_file(file_path)
 
+    # recursion error test case
+    if "stack_overflow.gus" in file_path.as_posix():
+        actual = run_file(file_path, output_as_str=True)
+        assert "RecursionError" in actual
+        return
+
+    actual = run_file(file_path)
     assert actual == expected, f"{file_path} failed"

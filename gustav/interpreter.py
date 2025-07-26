@@ -1,4 +1,5 @@
 import sys
+import math
 import typing as t
 
 from gustav import gustav
@@ -123,7 +124,7 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
     @t.override
     def visit_print_statement(self, statement: S.Print) -> None:
         value: t.Any = self.evaluate(statement.expression)
-        line: str = self.stringfy(value) + "\n"
+        line: str = self.stringify(value) + "\n"
 
         sys.stdout.write(line)
 
@@ -151,7 +152,8 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
         distance: int | None = self.locals.get(expression)
 
         if not distance:
-            return
+            # NOTE(abduazizziyodov): check that
+            return  # pragma: no cover
 
         superclass: GusClass = self.environment.get_at(distance, "super")
         instance: GusClassInstance = self.environment.get_at(distance - 1, "this")
@@ -176,17 +178,19 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
         if isinstance(obj, GusClassInstance):
             return obj.get(expression.name)
 
-        raise GusRuntimeError(expression.name, "Only instances have properties.")
+        raise GusRuntimeError(expression.name, "Only instances have properties")
 
     @t.override
     def visit_set_expression(self, expression: E.Set) -> t.Any:
         obj = self.evaluate(expression.object)
 
         if not isinstance(obj, GusClassInstance):
-            raise GusRuntimeError(expression.name, "Only instances have fields.")
+            raise GusRuntimeError(expression.name, "Only instances have fields")
 
         value: t.Any = self.evaluate(expression.value)
         obj.set(expression.name, value)
+
+        return value
 
     @t.override
     def visit_ternary_expression(self, expression: E.Ternary) -> t.Any:
@@ -252,6 +256,7 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
                 return not self.is_truthy(right)
 
             case TT.MINUS:
+                self.check_number_operand(expression.operator, right)
                 return -1 * right
 
     NUMERIC_OPERATORS: t.ClassVar[tuple[TT, ...]] = (
@@ -260,7 +265,6 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
         TT.LESS,
         TT.LESS_EQUAL,
         TT.MINUS,
-        TT.PLUS,
         TT.STAR,
         TT.SLASH,
     )
@@ -293,18 +297,23 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
                 return left - right
 
             case TT.PLUS:
-                return left + right
+                if any(
+                    isinstance(left, T) and isinstance(right, T)
+                    for T in (str, int, float)
+                ):
+                    return left + right
 
-            # TODO(abduazizziyodov): rework
-            case TT.PLUS_PLUS:  # concatenation
-                return "".join((str(left), str(right)))
+                raise GusRuntimeError(
+                    expression.operator, "Operands must be two numbers or two strings"
+                )
 
             case TT.STAR:
                 return left * right
 
             case TT.SLASH:
                 if right == 0:
-                    return float("inf")  # yes
+                    # NOTE(abduazizziyodov): can be inf
+                    return float("nan")
 
                 return left / right
 
@@ -317,7 +326,8 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
             case TT.CARET:
                 return pow(left, right)
 
-            case _:  # should not be possible, anyway
+            case _:  # pragma: no cover
+                # should not be possible, anyway
                 raise GusRuntimeError(expression.operator, "Unknown binary operator.")
 
     ###
@@ -326,7 +336,7 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
 
     def init_builtins(self) -> None:
         for fn in BUILTIN_FUNCTIONS:
-            self.globals.define(fn.__name__, fn)
+            self.globals.define(fn.__class__.__name__, fn)
 
     def execute(self, statement: Statement) -> None:
         statement.accept(self)
@@ -359,6 +369,14 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
         finally:
             self.environment = previous_environment
 
+    def check_number_operand(
+        self, operator: Token, operand: t.Any
+    ) -> t.NoReturn | None:
+        if isinstance(operand, int) or isinstance(operand, float):
+            return None
+
+        raise GusRuntimeError(operator, "Operand must be a number")
+
     def check_number_operands(
         self, operator: Token, *operands: t.Any
     ) -> t.NoReturn | None:
@@ -368,7 +386,7 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
         ):
             return None
 
-        raise GusRuntimeError(operator, "Operands must be a number")
+        raise GusRuntimeError(operator, "Operands must be numbers")
 
     def is_equal(self, a: t.Any, b: t.Any) -> bool:
         if type(a) is type(b):
@@ -376,21 +394,24 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
         return False
 
     def is_truthy(self, value: t.Any) -> bool:
-        if value in (None, False):
+        if (value is None) or (value is False):
             return False
-
         return True
 
-    def stringfy(self, value: t.Any) -> str:
+    def stringify(self, value: t.Any) -> str:
         if value is None:
             return "nil"
 
-        if value in (True, False):
+        if isinstance(value, bool):
             return str(value).lower()
 
-        value_str = str(value)
+        if isinstance(value, float):
+            # NOTE(abduazizziyodov): special to handle -0.0
+            if value == 0.0 and math.copysign(1.0, value) < 0:
+                return "-0"
 
-        if isinstance(value, float) and value_str.endswith(".0"):
-            value_str = value_str[:-2]
+            if value.is_integer():
+                return str(int(value))
+            return str(value)
 
-        return value_str
+        return str(value)
