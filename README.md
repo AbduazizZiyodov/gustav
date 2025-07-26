@@ -19,19 +19,19 @@ Coming to implementation details, its a tree-walk interpreter with custom scanne
 ## TODOs
 
 > [!NOTE]
-> List of features should added | work to be done that I assume. Some interesting challenges(to me) included also.
+> Some of them are the challenges introduced in the book, most of them are proposed by me (to myself).
 
-- [ ] Better error handling (messages)
+- [ ] Better error handling messages
 - [x] Scanner support for C-style multiline-comments (e.g. `/* ... */`)
-- [ ] Support for comma expressions
+- [?] Comma expressions
 - [x] Ternary expressions (operator) support (e.g. `condition ? expr_if_true : expr_if_false` )
-- [x] Pipe operator (e.g. `g(x) |> f(y)` equivalent to `f(y,g(x))`)
-- [ ] Support lambdas (anonymous functions)
-- [ ] REPL support for statements & expressions
-- [ ] Disallowing use of uninitialized variables
-- [ ] Support for `break` and `continue` statements in loops
-- [x] Dividing by zero, should return infinity
-- [ ] Report for unused variable
-- [ ] Support for range literals
-- [x] `loop` keyword, for infinite loops
-- [x] Tests
+- [x] Pipe operator (e.g. `g(x) |> f(y)` <=> `f(y,g(x))`)
+- [ ] Support lambdas (a.k.a. anonymous functions)
+- [ ] `REPL` support for statements and expressions
+- [ ] Disallowing use of *uninitialized* variables
+- [ ] Implement `break` and `continue` statements inside loops
+- [ ] Report for unused variable (during semantic analysis)
+- [ ] Support for range literals (e.g. `1..5` <=> `[1,2,3,4,5]`)
+- [x] `loop` keyword (for infinite loops, `loop { ... }` <=> `while (true) {...}`)
+- [?] Traits
+- [x] Testing framework & test scenarios/cases
