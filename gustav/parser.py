@@ -176,6 +176,13 @@ class Parser:
         return body
 
     def parse_loop_statement(self) -> S.While:
+        """Same as while loop, but infinite.
+
+        `loop {...}` is equivalent to `while (true) {...}`
+
+        This method desugars loop statement into while
+        with only one addition - setting condition to true (literal)
+        """
         condition = E.Literal(value=True)
 
         self.consume(TT.LEFT_BRACE, "Expect '{' after 'loop'")
