@@ -24,6 +24,8 @@ RESERVED_KEYWORDS: t.Final[dict[str, TT]] = {
     "or": TT.OR,
     "print": TT.PRINT,
     "var": TT.VAR,
+    "λ": TT.LAMBDA,
+    "lambda": TT.LAMBDA,
 }
 
 

@@ -127,6 +127,10 @@ class Resolver(E.ExpressionVisitor[None], S.StatementVisitor[None]):
     # Expressions
     ###
     @t.override
+    def visit_lambda_expression(self, expr: E.Lambda) -> None:
+        self.resolve_function(expr, FunctionType.LAMBDA)
+
+    @t.override
     def visit_get_expression(self, expression: E.Get) -> None:
         self.resolve(expression.object)
 
@@ -249,7 +253,9 @@ class Resolver(E.ExpressionVisitor[None], S.StatementVisitor[None]):
         if depth is not None:
             self.interpreter.resolve(expression, depth)
 
-    def resolve_function(self, statement: S.Function, type: FunctionType) -> None:
+    def resolve_function(
+        self, statement: S.Function | E.Lambda, type: FunctionType
+    ) -> None:
         enclosing_function: FunctionType = self.current_function
         self.current_function = type
 

@@ -71,6 +71,16 @@ class Parser:
 
         self.consume(TT.LEFT_PAREN, f"Expect '(' after {kind} name")
 
+        parameters: list[Token] = self.parse_parameters()
+
+        self.consume(TT.RIGHT_PAREN, "Expect ')' after parameters")
+        self.consume(TT.LEFT_BRACE, f"Expect '{{' before {kind} body")
+
+        body: list[S.Statement] = self.parse_block()
+
+        return S.Function(name, parameters, body)
+
+    def parse_parameters(self) -> list[Token]:
         parameters: list[Token] = list()
 
         if not self.check(TT.RIGHT_PAREN):
@@ -80,12 +90,7 @@ class Parser:
                 if not self.match(TT.COMMA):
                     break
 
-        self.consume(TT.RIGHT_PAREN, "Expect ')' after parameters")
-        self.consume(TT.LEFT_BRACE, f"Expect '{{' before {kind} body")
-
-        body: list[S.Statement] = self.parse_block()
-
-        return S.Function(name, parameters, body)
+        return parameters
 
     def parse_var_declaration(self) -> S.Var:
         name: Token = self.consume(TT.IDENTIFIER, "Expect variable name")
@@ -254,6 +259,7 @@ class Parser:
             if isinstance(expr, E.Variable):
                 name: Token = expr.name
                 return E.Assign(name, value)
+
             elif isinstance(expr, E.Get):
                 get_expr: E.Get = expr
                 return E.Set(get_expr.object, get_expr.name, value)
@@ -405,6 +411,9 @@ class Parser:
         return call_expr
 
     def parse_primary(self) -> E.Expression:
+        if self.match(TT.LAMBDA):
+            return self.parse_lambda()
+
         if self.match(TT.FALSE):
             return E.Literal(False)
 
@@ -437,6 +446,17 @@ class Parser:
             return E.Groupping(expr)
 
         raise self.error(self.peek(), "Expect expression")
+
+    def parse_lambda(self) -> E.Lambda:
+        self.consume(TT.LEFT_PAREN, "Expect '(' after lambda")
+        parameters: list[Token] = self.parse_parameters()
+
+        self.consume(TT.RIGHT_PAREN, "Expect ')' after parameters")
+        self.consume(TT.LEFT_BRACE, "Expect '{' before lambda body")
+
+        body: list[S.Statement] = self.parse_block()
+
+        return E.Lambda(parameters, body)
 
     ###
     # Machinery
