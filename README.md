@@ -38,12 +38,11 @@ open .html
 - [?] Comma expressions
 - [x] Ternary expressions (operator) support (e.g. `condition ? expr_if_true : expr_if_false` )
 - [x] Pipe operator (e.g. `g(x) |> f(y)` <=> `f(y,g(x))`)
-- [ ] Support lambdas (a.k.a. anonymous functions)
+- [x] Support lambdas (a.k.a. anonymous functions)
 - [ ] `REPL` support for statements and expressions
 - [ ] Disallowing use of _uninitialized_ variables
 - [ ] Implement `break` and `continue` statements inside loops
 - [ ] Report for unused variable (during semantic analysis)
-- [ ] Support for range literals (e.g. `1..5` <=> `[1,2,3,4,5]`)
 - [x] `loop` keyword (for infinite loops, `loop { ... }` <=> `while (true) {...}`)
 - [?] Traits
 - [x] Testing framework & test scenarios/cases
