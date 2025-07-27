@@ -17,7 +17,7 @@ Coming to implementation details, its a tree-walk interpreter with custom scanne
 npm install -g ebnf2railroad
 ```
 
-Checkout interactive [diagram](./assets/grammar.html)
+Checkout interactive [diagram](./assets/.html)
 
 ```
 ebnf2railroad assets/.grammar
