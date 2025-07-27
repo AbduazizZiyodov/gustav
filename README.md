@@ -10,7 +10,7 @@ Coming to implementation details, its a tree-walk interpreter with custom scanne
 
 ## Grammar
 
-> [!INFO] 
+> [!INFO]
 > https://en.wikipedia.org/wiki/Wirth_syntax_notation
 
 ```shell
@@ -46,3 +46,4 @@ open .html
 - [x] `loop` keyword (for infinite loops, `loop { ... }` <=> `while (true) {...}`)
 - [?] Traits
 - [x] Testing framework & test scenarios/cases
+- [ ] Fix `testing/scenarios/benchmark/binary_trees.gus` (seems edge-case)
