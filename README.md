@@ -10,7 +10,19 @@ Coming to implementation details, its a tree-walk interpreter with custom scanne
 
 ## Grammar
 
-...
+> [!INFO] 
+> https://en.wikipedia.org/wiki/Wirth_syntax_notation
+
+```shell
+npm install -g ebnf2railroad
+```
+
+Checkout interactive [diagram](./assets/grammar.html)
+
+```
+ebnf2railroad assets/.grammar
+open .html
+```
 
 ## User Guide
 
@@ -28,7 +40,7 @@ Coming to implementation details, its a tree-walk interpreter with custom scanne
 - [x] Pipe operator (e.g. `g(x) |> f(y)` <=> `f(y,g(x))`)
 - [ ] Support lambdas (a.k.a. anonymous functions)
 - [ ] `REPL` support for statements and expressions
-- [ ] Disallowing use of *uninitialized* variables
+- [ ] Disallowing use of _uninitialized_ variables
 - [ ] Implement `break` and `continue` statements inside loops
 - [ ] Report for unused variable (during semantic analysis)
 - [ ] Support for range literals (e.g. `1..5` <=> `[1,2,3,4,5]`)
