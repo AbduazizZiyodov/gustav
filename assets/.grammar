@@ -39,7 +39,7 @@ while_statement = "while" , "(" , expression , ")" ,
 
 block = "{" , { declaration } , "}" ;
 
-expression = assignment ;
+expression = assignment | assignment , "|>" , call ;
 
 assignment
   = [ call , "." ] , IDENTIFIER , "=" , assignment
@@ -70,8 +70,11 @@ primary
   | "nil"                      | "this"
   | NUMBER                     | STRING
   | IDENTIFIER                 | "(" , expression , ")"
-  | "super" , "." , IDENTIFIER
+  | "super" , "." , IDENTIFIER | lambda_expression
   ;
+
+lambda_expression = ( "lambda" | "λ" ) , "(" ,
+  [ parameters ] , ")" , block ;
 
 function = IDENTIFIER , "(" , [ parameters ] , ")" , block ;
 
