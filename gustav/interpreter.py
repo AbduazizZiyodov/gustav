@@ -15,7 +15,7 @@ from gustav.builtins import BUILTIN_FUNCTIONS
 from gustav.enums import TokenType as TT
 from gustav.environment import Environment
 from gustav.exceptions import GusRuntimeError, GusReturn
-from gustav.types import GusClass, GusCallable, GusClassInstance, GusFunction
+from gustav.types import GusClass, GusCallable, GusClassInstance, GusFunction, GusLambda
 
 __all__ = ("Interpreter",)
 
@@ -148,12 +148,12 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
     # Expressions
     ###
     @t.override
-    def visit_super_expression(self, expression: E.Super) -> t.Any:
+    def visit_super_expression(self, expression: E.Super) -> GusFunction | None:
         distance: int | None = self.locals.get(expression)
 
         if not distance:
             # NOTE(abduazizziyodov): check that
-            return  # pragma: no cover
+            return None  # pragma: no cover
 
         superclass: GusClass = self.environment.get_at(distance, "super")
         instance: GusClassInstance = self.environment.get_at(distance - 1, "this")
@@ -200,6 +200,10 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
             return self.evaluate(expression.then_branch)
 
         return self.evaluate(expression.else_branch)
+
+    @t.override
+    def visit_lambda_expression(self, expression: E.Lambda) -> GusLambda:
+        return GusLambda(expression, self.environment)
 
     @t.override
     def visit_call_expression(self, expression: E.Call) -> t.Any:

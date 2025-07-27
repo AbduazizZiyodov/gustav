@@ -8,6 +8,7 @@ class FunctionType(StrEnum):
     FUNCTION = auto()
     METHOD = auto()
     INITIALIZER = auto()
+    LAMBDA = auto()
 
 
 class ClassType(StrEnum):
@@ -49,6 +50,7 @@ class TokenType(StrEnum):
     ELSE = auto()
     FALSE = auto()
     FUN = auto()
+    LAMBDA = auto()
     FOR = auto()
     IF = auto()
     NIL = auto()

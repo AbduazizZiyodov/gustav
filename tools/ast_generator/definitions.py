@@ -15,16 +15,17 @@ EXPRESSION_TYPES = {
     "Variable": "name: Token",
     "Unary": "operator: Token, right: Expression",
     "Super": "keyword: Token, method: Token",
+    "Lambda": "params: list[Token], body: list[Statement]",
 }
 
 STATEMENT_TYPES = {
     "Block": "statements: list[Statement]",
     "Class": "name: Token, superclass: E.Variable | None, methods: list['Function']",
-    "Expr": "expression: E.Expression",
-    "If": "condition: E.Expression, then_branch: Statement, else_branch: Statement | None",
+    "Expr": "expression: Expression",
+    "If": "condition: Expression, then_branch: Statement, else_branch: Statement | None",
     "Function": "name: Token, params: list[Token], body: list[Statement]",
-    "Print": "expression: E.Expression",
-    "Return": "keyword: Token, value: E.Expression | None",
-    "While": "condition: E.Expression, body: Statement",
-    "Var": "name: Token, initializer: E.Expression | None",
+    "Print": "expression: Expression",
+    "Return": "keyword: Token, value: Expression | None",
+    "While": "condition: Expression, body: Statement",
+    "Var": "name: Token, initializer: Expression | None",
 }

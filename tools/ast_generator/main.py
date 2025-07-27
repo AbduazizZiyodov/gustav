@@ -27,7 +27,7 @@ BASE_ABSTRACT_CLASS = """
 @dataclass(frozen=True, slots=True, eq=False)
 class {CLASS_NAME}(ABC):
     @abstractmethod
-    def accept[T](self, visitor: '{CLASS_NAME}Visitor[T]') -> T:
+    def accept(self, visitor: t.Any) -> t.Any:
         pass  # pragma: no cover
 """
 
@@ -59,22 +59,38 @@ def as_node_definition_mapping(types: dict[str, str]) -> NodeDefinitionMapping:
     return result
 
 
+def define_base_ast(file: TextIOWrapper) -> None:
+    IMPORTS = (
+        HEAD
+        + "import typing as t\nfrom dataclasses import dataclass\nfrom abc import ABC, abstractmethod\n\n"
+    )
+
+    file.write(IMPORTS)
+    file.write(f"__all__ = ('{EXPRESSION_BASE_NAME}', '{STATEMENT_BASE_NAME}')\n\n")
+
+    for base_name in (EXPRESSION_BASE_NAME, STATEMENT_BASE_NAME):
+        file.write(BASE_ABSTRACT_CLASS.format(CLASS_NAME=base_name) + "\n")
+
+
 def define_ast(
     file: TextIOWrapper, base_name: str, types: NodeDefinitionMapping
 ) -> None:
     IMPORTS = (
         HEAD
-        + "import typing as t\nfrom dataclasses import dataclass\nfrom abc import ABC, abstractmethod\n\n"
+        + "import typing as t\nfrom dataclasses import dataclass\n\n"
         + "from gustav.token import Token\n"
+        + "from gustav.ast.base import Expression, Statement\n"
     )
+
     if base_name == "Statement":
         IMPORTS += "from gustav.ast import expression as E\n"
 
+    IMPORTS += "\n"
+
     file.write(IMPORTS)
     file.write(
-        f"__all__ = {tuple(T for T in [*types.keys(), base_name, f'{base_name}Visitor'])}\n\n"
+        f"__all__ = {tuple(T for T in [*types.keys(), f'{base_name}Visitor', base_name])}\n\n"
     )
-    file.write(BASE_ABSTRACT_CLASS.format(CLASS_NAME=base_name) + "\n")
 
     define_visitor(file, base_name, types)
 
@@ -136,14 +152,15 @@ def main() -> int:
             LOG.debug("Writing imports for __init__.py")
             file.write(INIT_IMPORTS)
 
+        with open("gustav/ast/base.py", "wt") as file:
+            define_base_ast(file)
+
         for base_name, types in (
             (EXPRESSION_BASE_NAME, as_node_definition_mapping(EXPRESSION_TYPES)),
             (STATEMENT_BASE_NAME, as_node_definition_mapping(STATEMENT_TYPES)),
         ):
             with open(f"gustav/ast/{base_name.lower()}.py", "wt") as file:
-                LOG.debug(
-                    f"Defining ast for {base_name} with types => {tuple(types.keys())}"
-                )
+                LOG.debug(f"Defining ast for types => {tuple(types.keys())}")
                 define_ast(file, base_name, types)
 
     except Exception as exc:

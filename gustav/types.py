@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 
 from gustav.token import Token
 from gustav.logging import LOG  # noqa: F401
-from gustav.ast import statement as S
+from gustav.ast import statement as S, expression as E
 from gustav.environment import Environment
 from gustav.exceptions import GusRuntimeError, GusReturn
 
@@ -26,6 +26,33 @@ class GusCallable(t.Protocol):
     def call(
         self, interpreter: CanExecuteBlock, arguments: list[t.Any]
     ) -> t.Any: ...  # pragma: no cover
+
+
+@dataclass(slots=True, frozen=True, eq=False)
+class GusLambda(GusCallable):
+    declaration: E.Lambda
+    closure: Environment
+
+    @t.override
+    def call(self, interpreter: CanExecuteBlock, arguments: list[t.Any]) -> t.Any:
+        environment: Environment = Environment(self.closure)
+
+        for i in range(self.arity()):
+            environment.define(self.declaration.params[i].lexeme, arguments[i])
+
+        try:
+            interpreter.execute_block(self.declaration.body, environment)
+        except GusReturn as exc:
+            return exc.value
+
+        return None
+
+    @t.override
+    def arity(self) -> int:
+        return len(self.declaration.params)
+
+    def __repr__(self) -> str:
+        return "<λ fn>"
 
 
 @dataclass(slots=True, frozen=True, eq=False)
