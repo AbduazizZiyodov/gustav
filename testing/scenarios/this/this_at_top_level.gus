@@ -1,1 +1,1 @@
-this; // // expect: Error at 'this': Can't use 'this' outside of a class.
+this; // expect: [at line 1] Error at 'this': Can't use 'this' outside of a class.

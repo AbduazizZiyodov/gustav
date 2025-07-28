@@ -1,2 +1,2 @@
-// expect: Error: Unexpected character.
+// expect: [at line 2] Error: Unexpected character.
 foo(a | b);

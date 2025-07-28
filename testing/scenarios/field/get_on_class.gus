@@ -1,2 +1,2 @@
 class Foo {}
-Foo.bar; // expect: Only instances have properties.
+Foo.bar; // expect: [at line 2] Only instances have properties.

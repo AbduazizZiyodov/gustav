@@ -8,4 +8,4 @@ class B < A {
   }
 }
 
-// expect: Error at ')': Expect '.' after 'super'.
+// expect: [at line 7] Error at ')': Expect '.' after 'super'.

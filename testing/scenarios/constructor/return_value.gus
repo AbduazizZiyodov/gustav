@@ -1,5 +1,5 @@
 class Foo {
   init() {
-    return "result"; // // expect: Error at 'return': Can't return a value from an initializer.
+    return "result"; // expect: [at line 3] Error at 'return': Can't return a value from an initializer.
   }
 }

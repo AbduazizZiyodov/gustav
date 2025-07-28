@@ -2,4 +2,4 @@ class Foo {
   method(a, b) {}
 }
 
-Foo().method(1); // expect: Expected 2 arguments but got 1.
+Foo().method(1); // expect: [at line 5] Expected 2 arguments but got 1.

@@ -2,6 +2,7 @@ class Tree {
   init(item, depth) {
     this.item = item;
     this.depth = depth;
+    
     if (depth > 0) {
       var item2 = item + item;
       depth = depth - 1;
@@ -14,8 +15,6 @@ class Tree {
   }
 
   check() {
-    print "hello !!!";
-
     if (this.left == nil) {
       return this.item;
     }
