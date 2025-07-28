@@ -1,13 +1,16 @@
 import time
-import typing as t
 
-from gustav.builtins.utils import define_builtin
+from gustav.protocols import GusCallable, CanExecuteBlock
 
-__all__ = ("fn",)
-
-
-def clock(*_: t.Any) -> float:
-    return time.perf_counter()
+__all__ = ("Clock",)
 
 
-fn = define_builtin("clock", 0, clock)
+class Clock(GusCallable):
+    def arity(self) -> int:
+        return 0
+
+    def call(self, interpreter: CanExecuteBlock, arguments: list[str]) -> float:
+        return time.perf_counter()
+
+    def __repr__(self) -> str:
+        return "<native fn>"

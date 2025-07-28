@@ -24,7 +24,7 @@ except ImportError:  # pragma: no cover
     LOG.debug("Rich is not installed, to install run 'uv add --dev rich'")
 
 
-__all__ = ("report", "error", "panic", "main", "Scanner")
+__all__ = "report", "error", "panic", "main", "Scanner"
 
 had_error: bool = False
 had_runtime_error: bool = False
@@ -152,13 +152,6 @@ def panic(line: int, message: str) -> None:
     report(line, "", message)
 
 
-def report(line: int, where: str, message: str) -> None:
-    global had_error
-    had_error = True
-
-    sys.stderr.write(f"Error{where}: {message}.\n")
-
-
 def error(token: Token, message: str) -> None:
     if token.type == TT.EOF:
         report(token.line, " at end", message)
@@ -170,4 +163,11 @@ def runtime_error(exc: GusRuntimeError) -> None:
     global had_runtime_error
     had_runtime_error = True
 
-    sys.stderr.write(f"{exc.error_message}.\n")
+    sys.stderr.write(f"[at line {exc.token.line}] {exc.error_message}.\n")
+
+
+def report(line: int, where: str, message: str) -> None:
+    global had_error
+    had_error = True
+
+    sys.stderr.write(f"[at line {line}] Error{where}: {message}.\n")

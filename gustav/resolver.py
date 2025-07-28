@@ -7,14 +7,10 @@ from gustav import gustav
 from gustav.logging import LOG  # noqa: F401
 from gustav.token import Token
 from gustav.enums import FunctionType, ClassType
+from gustav.protocols import CanResolveExpression
 from gustav.ast import expression as E, statement as S
 
 __all__ = ("Resolver",)
-
-
-@t.runtime_checkable
-class CanResolveExpression(t.Protocol):
-    def resolve(self, expression: E.Expression, depth: int) -> None: ...
 
 
 class Resolver(E.ExpressionVisitor[None], S.StatementVisitor[None]):

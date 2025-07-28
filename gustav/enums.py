@@ -1,6 +1,6 @@
 from enum import StrEnum, auto
 
-__all__ = ("FunctionType", "ClassType", "TokenType")
+__all__ = "FunctionType", "ClassType", "TokenType"
 
 
 class FunctionType(StrEnum):
