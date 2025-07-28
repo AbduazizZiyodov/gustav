@@ -11,11 +11,14 @@ from gustav.ast import (
 )
 from gustav.logging import LOG  # noqa: F401
 from gustav.token import Token
-from gustav.builtins import BUILTIN_FUNCTIONS
 from gustav.enums import TokenType as TT
+from gustav.protocols import GusCallable
 from gustav.environment import Environment
+from gustav.builtins import BUILTIN_FUNCTIONS
+from gustav.functions import GusFunction, GusLambda
+from gustav.classes import GusClass, GusClassInstance
 from gustav.exceptions import GusRuntimeError, GusReturn
-from gustav.types import GusClass, GusCallable, GusClassInstance, GusFunction, GusLambda
+
 
 __all__ = ("Interpreter",)
 
@@ -340,7 +343,7 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
 
     def init_builtins(self) -> None:
         for fn in BUILTIN_FUNCTIONS:
-            self.globals.define(fn.__class__.__name__, fn)
+            self.globals.define(fn.__name__.lower(), fn())
 
     def execute(self, statement: Statement) -> None:
         statement.accept(self)

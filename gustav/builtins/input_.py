@@ -1,14 +1,18 @@
 import typing as t
 
-from gustav.builtins.utils import define_builtin
+from gustav.protocols import GusCallable, CanExecuteBlock
 
-__all__ = ("fn",)
-
-
-def _input(_: t.Any, arguments: list[t.Any]) -> str:  # pragma: no cover
-    # TODO(abduazizziyodov): handle keyboard interrupt + mock for testing
-    prompt = arguments[0]
-    return input(prompt)
+__all__ = ("Input",)
 
 
-fn = define_builtin("input", 1, _input)
+class Input(GusCallable):  # pragma: no cover
+    def arity(self) -> int:
+        return 1
+
+    def call(self, interpreter: CanExecuteBlock, arguments: list[t.Any]) -> str:
+        # TODO(abduazizziyodov): handle keyboard interrupt + mock for testing
+        prompt = arguments[0]
+        return input(prompt)
+
+    def __repr__(self) -> str:
+        return "<native fn>"
