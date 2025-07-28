@@ -33,17 +33,8 @@ open .html
 > [!NOTE]
 > Some of them are the challenges introduced in the book, most of them are proposed by me (to myself).
 
-- [ ] Better error handling messages
-- [x] Scanner support for C-style multiline-comments (e.g. `/* ... */`)
-- [?] Comma expressions
-- [x] Ternary expressions (operator) support (e.g. `condition ? expr_if_true : expr_if_false` )
-- [x] Pipe operator (e.g. `g(x) |> f(y)` <=> `f(y,g(x))`)
-- [x] Support lambdas (a.k.a. anonymous functions)
 - [ ] `REPL` support for statements and expressions
 - [ ] Disallowing use of _uninitialized_ variables
 - [ ] Implement `break` and `continue` statements inside loops
 - [ ] Report for unused variable (during semantic analysis)
-- [x] `loop` keyword (for infinite loops, `loop { ... }` <=> `while (true) {...}`)
 - [?] Traits
-- [x] Testing framework & test scenarios/cases
-- [ ] Fix `testing/scenarios/benchmark/binary_trees.gus` (seems edge-case)

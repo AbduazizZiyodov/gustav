@@ -6,3 +6,7 @@ var end = clock();
 print TIMEOUT <= (end - start);
 
 // expect: true
+
+print sleep; // expect: <native fn>
+print clock; // expect: <native fn>
+print input; // expect: <native fn>

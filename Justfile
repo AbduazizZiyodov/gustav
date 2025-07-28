@@ -3,7 +3,7 @@ TARGET := "examples/file.gus"
 GRAMMAR := "assets/.grammar"
 SCRIPT_DIR := "./scripts"
 
-default: check test
+default: clean check test
 
 run target="":
 	#!/usr/bin/env bash
