@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+
+      - name: Cache uv dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/uv
+          key: ${{ runner.os }}-uv-${{ hashFiles('pyproject.toml', 'uv.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-uv-
+
+      - name: Install dependencies with uv
+        run: uv venv -p 3.13 && source .venv/bin/activate && uv sync --dev
+
+      - name: Check formatting with ruff
+        run: |
+          source .venv/bin/activate
+          ruff format . --check
+
+      - name: Lint with ruff
+        run: |
+          source .venv/bin/activate
+          ruff check .
+
+      - name: Type check with mypy
+        run: |
+          source .venv/bin/activate
+          mypy --strict --ignore-missing-imports --explicit-package-bases .
+
+      - name: Run tests with coverage
+        run: |
+          source .venv/bin/activate
+          pytest -s -vv \
+            --cov=gustav \
+            --cov-report=term-missing \
+            --cov-report=html \
+            testing
+
+      - name: Upload HTML coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: html-coverage-report
+          path: htmlcov
