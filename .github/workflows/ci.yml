@@ -45,9 +45,10 @@ jobs:
         run: |
           source .venv/bin/activate
           pytest -s -vv \
-            --cov=gustav \
-            --cov-report=term-missing \
-            --cov-report=html \
+            --cov --cov-branch \
+            --cov-report=xml \
+            --junitxml=junit.xml \
+            -o junit_family=legacy \
             testing
 
       - name: Upload coverage reports to Codecov
