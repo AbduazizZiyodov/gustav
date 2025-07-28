@@ -1,2 +1,2 @@
-// // expect: Error at 'var': Expect expression.
+// expect: [at line 2] Error at 'var': Expect expression.
 while (true) var foo;

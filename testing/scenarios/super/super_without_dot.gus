@@ -2,7 +2,7 @@ class A {}
 
 class B < A {
   method() {
-    // expect: Error at ';': Expect '.' after 'super'.
+    // expect: [at line 6] Error at ';': Expect '.' after 'super'.
     super;
   }
 }

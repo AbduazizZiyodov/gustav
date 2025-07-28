@@ -1,4 +1,4 @@
-// expect: Error: Multiline comment is not terminated.
+// expect: [at line 3] Error: Multiline comment is not terminated.
 
 /*
 

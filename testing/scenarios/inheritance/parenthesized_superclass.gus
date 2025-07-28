@@ -1,4 +1,4 @@
 class Foo {}
 
-// expect: Error at '(': Expect superclass name.
+// expect: [at line 4] Error at '(': Expect superclass name.
 class Bar < (Foo) {}

@@ -1,4 +1,4 @@
-// expect: Error: Nesting multiline comments are not allowed.
+// expect: [at line 3] Error: Nesting multiline comments are not allowed.
 
 /*
 

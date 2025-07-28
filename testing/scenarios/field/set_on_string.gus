@@ -1,1 +1,1 @@
-"str".foo = "value"; // expect: Only instances have fields.
+"str".foo = "value"; // expect: [at line 1] Only instances have fields.

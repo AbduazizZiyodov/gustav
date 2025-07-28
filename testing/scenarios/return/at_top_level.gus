@@ -1,1 +1,1 @@
-return "wat"; // // expect: Error at 'return': Can't return from top-level code.
+return "wat"; // expect: [at line 1] Error at 'return': Can't return from top-level code.
