@@ -1,5 +1,7 @@
 # Gustav
 
+[![CI](https://github.com/AbduazizZiyodov/gustav/actions/workflows/ci.yml/badge.svg)](https://github.com/AbduazizZiyodov/gustav/actions/workflows/ci.yml) [![codecov](https://codecov.io/github/AbduazizZiyodov/gustav/graph/badge.svg?token=LMJJLRK4OF)](https://codecov.io/github/AbduazizZiyodov/gustav)
+
 > NOTE: readme is written by hand, not LLM generated "crap". I would appreciate if you read it. Thanks.
 
 ## About
@@ -10,8 +12,7 @@ Coming to implementation details, its a tree-walk interpreter with custom scanne
 
 ## Grammar
 
-> [!INFO]
-> https://en.wikipedia.org/wiki/Wirth_syntax_notation
+> [!INFO] > https://en.wikipedia.org/wiki/Wirth_syntax_notation
 
 ```shell
 npm install -g ebnf2railroad
