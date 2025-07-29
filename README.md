@@ -12,7 +12,7 @@ Coming to implementation details, its a tree-walk interpreter with custom scanne
 
 ## Grammar
 
-> [!NOTE]
+> [!TIP]
 > Its written in [Wirth Syntax Notation](https://en.wikipedia.org/wiki/Wirth_syntax_notation) instead of standard `EBNF`.
 > Understandable notation, also you can paste it directly into [this website](https://matthijsgroen.github.io/ebnf2railroad/try-yourself.html) to explore it interactively.
 
