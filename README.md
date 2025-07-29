@@ -12,20 +12,110 @@ Coming to implementation details, its a tree-walk interpreter with custom scanne
 
 ## Grammar
 
-> [!INFO] > https://en.wikipedia.org/wiki/Wirth_syntax_notation
+> [!NOTE]
+> Its written in [Wirth Syntax Notation](https://en.wikipedia.org/wiki/Wirth_syntax_notation) instead of standard `EBNF`.
+> Understandable notation, also you can paste it directly into [this website](https://matthijsgroen.github.io/ebnf2railroad/try-yourself.html) to explore it interactively.
 
-```shell
-npm install -g ebnf2railroad
+<details>
+<summary>See grammar</summary>
+
+```ebnf
+program = { declaration } , "EOF" ;
+
+declaration
+= class_declaration
+| fun_declaration
+| var_declaration
+| statement
+;
+
+class_declaration = "class" , IDENTIFIER ,
+[ "<" , IDENTIFIER ] , "{" , { function } , "}" ;
+
+fun_declaration = "fun" , function ;
+
+var_declaration = "var" , IDENTIFIER , [ "=" ,
+expression ] , ";" ;
+
+statement
+= expr_statement | for_statement | if_statement
+| print_statement | return_statement | while_statement
+| block
+;
+
+expr_statement = expression , ";" ;
+
+for_statement = "for" , "(" , ( var_declaration | expr_statement | ";" ) ,
+[ expression ] , ";" , [ expression ] , ")" ,
+statement ;
+
+if_statement = "if" , "(" , expression , ")" ,
+statement , [ "else" , statement ] ;
+
+print_statement = "print" , expression , ";" ;
+
+return_statement = "return" , [ expression ] , ";" ;
+
+while_statement = "while" , "(" , expression , ")" ,
+statement ;
+
+block = "{" , { declaration } , "}" ;
+
+expression = assignment | assignment , "|>" , call ;
+
+assignment
+= [ call , "." ] , IDENTIFIER , "=" , assignment
+| logic_or
+;
+
+logic_or = logic_and , { "or" , logic_and } ;
+
+logic_and = equality , { "and" , equality } ;
+
+equality = comparison , { ( "!=" | "==" ) , comparison } ;
+
+comparison = term , { ( ">" | ">=" | "<" | "<=" ) , term } ;
+
+term = factor , { ( "-" | "+" ) , factor } ;
+
+factor = unary , { ( "/" | "\*" ) , unary } ;
+
+unary = ( "!" | "-" ) , unary | call ;
+
+call = primary , {
+( "(" , [ arguments ] , ")"
+| "." , IDENTIFIER
+) } ;
+
+primary
+= "true" | "false"
+| "nil" | "this"
+| NUMBER | STRING
+| IDENTIFIER | "(" , expression , ")"
+| "super" , "." , IDENTIFIER | lambda_expression
+;
+
+lambda_expression = ( "lambda" | "λ" ) , "(" ,
+[ parameters ] , ")" , block ;
+
+function = IDENTIFIER , "(" , [ parameters ] , ")" , block ;
+
+parameters = IDENTIFIER , { "," , IDENTIFIER } ;
+
+arguments = expression , { "," , expression } ;
+
+(_ Lexical rules _)
+
+NUMBER = "number" ;
+
+STRING = "string" ;
+
+IDENTIFIER = "id" ;
 ```
 
-Checkout interactive [diagram](./assets/.html)
+</details>
 
-```
-ebnf2railroad assets/.grammar
-open .html
-```
-
-## User Guide
+## Guide
 
 ...
 
