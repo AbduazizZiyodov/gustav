@@ -1,20 +1,27 @@
-# Gustav
+# Gustav [^1]
 
 [![CI](https://github.com/AbduazizZiyodov/gustav/actions/workflows/ci.yml/badge.svg)](https://github.com/AbduazizZiyodov/gustav/actions/workflows/ci.yml) [![codecov](https://codecov.io/github/AbduazizZiyodov/gustav/graph/badge.svg?token=LMJJLRK4OF)](https://codecov.io/github/AbduazizZiyodov/gustav)
 
-> NOTE: readme is written by hand, not LLM generated "crap". I would appreciate if you read it. Thanks.
+<p align="center"><i>Too heavy for its own good.</i></p>
 
 ## About
 
-Interpreter implemented in pure(modern btw) python for [learning](https://craftinginterpreters.com) purposes. I intend to implement features shown in "challenges" & I also have mine too.
+Tree-Walk Interpreter implemented in pure(_modern btw_) CPython for experimenting/learning purposes. Based on amazing book [Crafting Interpreters](https://craftinginterpreters.com) by _Bob Nystrom_ (its cpython implementation of _Lox_).
 
-Coming to implementation details, its a tree-walk interpreter with custom scanner, recursive decent parser (LL) & resolver for semantic analysis.
+Interpreter consists of basic components as mentioned in the book: `Scanner => Parser => Resolver => Interpreter`.
+
+Manual/hand-written basic single-pass scanner(a.k.a lexer). Then we have classic top-down, recursive descent parser (`LL(1)` btw). Resolver is used for semantic analysis which "mostly" performs lexical scope resolution before interpretation. So there is no type checking, hoisting or any other fancy features, just lexical scope analyzer. Then, we can see tree-walk interpreter which wires all these components, uses visitor pattern and evaluates AST nodes directly.
+
+## Future Work
+
+Implementing "Bytecode Virtual Machine" variation in separate branch.
 
 ## Grammar
 
-> [!TIP]
-> Its written in [Wirth Syntax Notation](https://en.wikipedia.org/wiki/Wirth_syntax_notation) instead of standard `EBNF`.
-> Understandable notation, also you can paste it directly into [this website](https://matthijsgroen.github.io/ebnf2railroad/try-yourself.html) to explore it interactively.
+Grammar definitions are written using [Wirth Syntax Notation](https://en.wikipedia.org/wiki/Wirth_syntax_notation) instead of the more common `BNF`/`EBNF`. For this project, Wirth notation has no significant drawbacks and is fully compatible with the syntax diagram tool that I saw.
+
+> **TIP**  
+> You can paste the grammar into [this site](https://matthijsgroen.github.io/ebnf2railroad/try-yourself.html) to view and explore it as interactive syntax diagrams.
 
 <details>
 <summary>See grammar</summary>
@@ -22,51 +29,51 @@ Coming to implementation details, its a tree-walk interpreter with custom scanne
 ```ebnf
 program = { declaration } , "EOF" ;
 
-declaration
-= class_declaration
-| fun_declaration
-| var_declaration
-| statement
-;
+declaration = class_declaration
+            | fun_declaration
+            | var_declaration
+            | statement ;
 
-class_declaration = "class" , IDENTIFIER ,
-[ "<" , IDENTIFIER ] , "{" , { function } , "}" ;
+class_declaration = "class" , IDENTIFIER , [ "<" , IDENTIFIER ] ,
+                    "{" , { function } , "}" ;
 
 fun_declaration = "fun" , function ;
 
-var_declaration = "var" , IDENTIFIER , [ "=" ,
-expression ] , ";" ;
+var_declaration = "var" , IDENTIFIER , [ "=" , expression ] , ";" ;
 
-statement
-= expr_statement | for_statement | if_statement
-| print_statement | return_statement | while_statement
-| block
-;
+statement = expr_statement
+          | for_statement
+          | if_statement
+          | print_statement
+          | return_statement
+          | while_statement
+          | block ;
 
 expr_statement = expression , ";" ;
 
-for_statement = "for" , "(" , ( var_declaration | expr_statement | ";" ) ,
-[ expression ] , ";" , [ expression ] , ")" ,
-statement ;
+for_statement = "for" , "(" , ( var_declaration | expr_statement | ";" ) , [ expression ] , ";" , [ expression ] , ")" ,
+                    statement ;
 
 if_statement = "if" , "(" , expression , ")" ,
-statement , [ "else" , statement ] ;
+                    statement ,
+                [ "else" , statement ] ;
 
 print_statement = "print" , expression , ";" ;
 
 return_statement = "return" , [ expression ] , ";" ;
 
 while_statement = "while" , "(" , expression , ")" ,
-statement ;
+                    statement ;
 
 block = "{" , { declaration } , "}" ;
 
 expression = assignment | assignment , "|>" , call ;
 
-assignment
-= [ call , "." ] , IDENTIFIER , "=" , assignment
-| logic_or
-;
+assignment = [ call , "." ] , IDENTIFIER , "=" , assignment | ternary ;
+
+ternary = equality , [ "?" , assignment , ":" , assignment ] ;
+
+equality = comparison , { ( "!=" | "==" ) , comparison } ;
 
 logic_or = logic_and , { "or" , logic_and } ;
 
@@ -83,20 +90,21 @@ factor = unary , { ( "/" | "\*" ) , unary } ;
 unary = ( "!" | "-" ) , unary | call ;
 
 call = primary , {
-( "(" , [ arguments ] , ")"
-| "." , IDENTIFIER
-) } ;
+    ( "(" , [ arguments ] , ")" | "." , IDENTIFIER )
+} ;
 
-primary
-= "true" | "false"
-| "nil" | "this"
-| NUMBER | STRING
-| IDENTIFIER | "(" , expression , ")"
-| "super" , "." , IDENTIFIER | lambda_expression
-;
+primary = "true"
+        | "false"
+        | "nil"
+        | "this"
+        | NUMBER
+        | STRING
+        | IDENTIFIER
+        | "(" , expression , ")"
+        | "super" , "." , IDENTIFIER
+        | lambda_expression ;
 
-lambda_expression = ( "lambda" | "λ" ) , "(" ,
-[ parameters ] , ")" , block ;
+lambda_expression = ( "lambda" | "λ" ) , "(" , [ parameters ] , ")" , block ;
 
 function = IDENTIFIER , "(" , [ parameters ] , ")" , block ;
 
@@ -104,28 +112,44 @@ parameters = IDENTIFIER , { "," , IDENTIFIER } ;
 
 arguments = expression , { "," , expression } ;
 
-(_ Lexical rules _)
-
 NUMBER = "number" ;
-
 STRING = "string" ;
-
 IDENTIFIER = "id" ;
 ```
 
 </details>
 
-## Guide
+## "Features" & Usage Guide
 
 ...
 
-## TODOs
+## Development
 
-> [!NOTE]
-> Some of them are the challenges introduced in the book, most of them are proposed by me (to myself).
+Requirements
 
-- [ ] `REPL` support for statements and expressions
-- [ ] Disallowing use of _uninitialized_ variables
-- [ ] Implement `break` and `continue` statements inside loops
-- [ ] Report for unused variable (during semantic analysis)
-- [?] Traits
+- `uv`
+- `just`
+
+```shell
+uv sync --dev
+```
+
+If you want to update/extend AST nodes, edit `tools/ast_generator/definitions.py` then run
+
+```
+just generate_ast
+```
+
+Run checks (formatting, linting & type-checking):
+
+```shell
+just check
+```
+
+Testing:
+
+```shell
+just test
+```
+
+[^1]: The name _Gustav_ is inspired by the [Schwerer Gustav](https://en.wikipedia.org/wiki/Schwerer_Gustav), a massive German railway gun built during WW2. The intention is not to glorify(romantize) war or any political ideology — especially not **Nazism** — but to appreciate the engineering behind it. Its also heavy, as current implementation (in cpython).
