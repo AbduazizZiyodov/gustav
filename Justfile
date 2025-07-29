@@ -1,6 +1,5 @@
 DEBUG := "yes"
 TARGET := "examples/file.gus"
-GRAMMAR := "assets/.grammar"
 SCRIPT_DIR := "./scripts"
 
 default: clean check test
@@ -30,9 +29,6 @@ test:
 		--cov-report=term-missing \
 		--cov-report=html \
 		testing
-
-generate_diagram:
-	ebnf2railroad -t Gustav-Grammar --write-style --no-text-formatting {{GRAMMAR}}
 
 clean:
 	py3clean . && rm -rf htmlcov __pycache__ .mypy_cache .ruff_cache .coverage.*
