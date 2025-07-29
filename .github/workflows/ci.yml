@@ -2,6 +2,10 @@ name: CI
 
 on:
   push:
+    paths:
+      - "gustav/**"
+      - "testing/**"
+      - ".github/**"
 
 jobs:
   test:
