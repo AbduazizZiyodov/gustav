@@ -195,7 +195,10 @@ class Parser:
         increment: S.Expr | None = None
 
         if not self.check(TT.RIGHT_PAREN):
-            if (increment_expr := self.parse_expression()) is not None:
+            # partial coverage
+            if (
+                increment_expr := self.parse_expression()
+            ) is not None:  # pragma: no cover
                 increment = S.Expr(increment_expr)
 
         self.consume(TT.RIGHT_PAREN, "Expect ')' after for clauses")

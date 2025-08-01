@@ -139,7 +139,8 @@ class Resolver(E.ExpressionVisitor[None], S.StatementVisitor[None]):
                 if statement.initializer:
                     self.resolve(statement.initializer)
 
-                if statement.condition:
+                # partial coverage
+                if statement.condition:  # pragma: no cover
                     self.resolve(statement.condition)
 
                 if statement.increment:

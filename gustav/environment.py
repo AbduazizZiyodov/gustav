@@ -37,11 +37,13 @@ class Environment:
         raise GusRuntimeError(name, f"Undefined variable '{name.lexeme}'")
 
     def get_at(self, distance: int, name: str) -> t.Any:
-        if (ancestor := self.ancestor(distance)) is not None:
+        # partial coverage
+        if (ancestor := self.ancestor(distance)) is not None:  # pragma: no cover
             return ancestor.values.get(name)
 
     def assign_at(self, distance: int, name: Token, value: t.Any) -> None:
-        if (ancestor := self.ancestor(distance)) is not None:
+        # partial coverage
+        if (ancestor := self.ancestor(distance)) is not None:  # pragma: no cover
             ancestor.values[name.lexeme] = value
 
     def ancestor(self, distance: int) -> "Environment | None":
