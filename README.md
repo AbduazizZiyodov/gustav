@@ -1,11 +1,12 @@
-# Gustav [^1]
+<div align="center">
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./assets/logo_dark.svg">
   <source media="(prefers-color-scheme: light)" srcset="./assets/logo_light.svg">
   <img alt="Fallback image description" src="./assets/logo_light.svg">
-</picture>
+</picture>[^1]
 
+</div>
 
 <p align="center"><i>Too heavy for its own good.</i></p>
 
