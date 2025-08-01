@@ -30,7 +30,7 @@ Grammar definitions are written using [Wirth Syntax Notation](https://en.wikiped
 <details>
 <summary>See grammar</summary>
 
-> [!TIP]  
+> [!TIP]
 > You can paste the grammar into [this site](https://matthijsgroen.github.io/ebnf2railroad/try-yourself.html) to view and explore it as interactive syntax diagrams.
 > ![grammar_diagram_example](./assets/grammar_diagram_example.png)
 
@@ -129,26 +129,225 @@ IDENTIFIER = "id" ;
 
 </details>
 
-## "Features" & Usage Guide
+## "Features" & User Guide
 
-...
+Its dynamically typed, it has booleans, numbers, strings & nil data types.
+
+Basic arithmetic expressions
+
+```
+add + me;
+subtract - me;
+multiply * me;
+divide / me;
+-negateMe;
+```
+
+Ternary expressions(added by me)
+
+```
+condition ? thenArm : elseArm;
+```
+
+Comparision & equality
+
+```
+less < than;
+lessThan <= orEqual;
+greater > than;
+greaterThan >= orEqual;
+
+1 == 2;         // false.
+"cat" != "dog"; // true.
+
+314 == "pi"; // false.
+```
+
+Logical operators
+
+```
+!true;  // false.
+!false; // true.
+
+true and false; // false.
+true and true;  // true.
+
+false or false; // false.
+true or false;  // true.
+```
+
+Print statement
+
+```
+print "Gustav";
+
+{
+  print "Gustav from block";
+}
+```
+
+Variables
+
+```
+var imAVariable = "here is my value";
+var iAmNil;
+```
+
+Control flow
+
+```
+if (condition) {
+  print "yes";
+} else {
+  print "no";
+}
+```
+
+```
+var a = 1;
+while (a < 10) {
+  print a;
+  a = a + 1;
+}
+```
+
+```
+for (var a = 1; a < 10; a = a + 1) {
+  print a;
+}
+```
+
+```
+loop { // same as `while (true)`
+  print "Gustav!";
+}
+```
+
+Functions
+
+```
+fun printSum(a, b) {
+  print a + b;
+}
+```
+
+```
+
+var make_adder = λ(x) {
+  return λ(y) { return x + y; };
+};
+
+var add_two = make_adder(2);
+print add_two(3); // 5
+print make_adder(10)(1); // 11
+```
+
+Closures
+
+```
+fun addPair(a, b) {
+  return a + b;
+}
+
+fun identity(a) {
+  return a;
+}
+
+print identity(addPair)(1, 2); // Prints "3".
+```
+
+Classes
+
+```
+class Breakfast {
+  cook() {
+    print "Eggs a-fryin'!";
+  }
+
+  serve(who) {
+    print "Enjoy your breakfast, " + who + ".";
+  }
+}
+
+// Store it in variables.
+var someVariable = Breakfast;
+
+// Pass it to functions.
+someFunction(Breakfast);
+
+```
+
+```
+class Breakfast {
+  init(meat, bread) {
+    this.meat = meat;
+    this.bread = bread;
+  }
+
+  // ...
+}
+
+var baconAndToast = Breakfast("bacon", "toast");
+baconAndToast.serve("Dear Reader");
+// "Enjoy your bacon and toast, Dear Reader."
+```
+
+```
+class Brunch < Breakfast {
+  drink() {
+    print "How about a Bloody Mary?";
+  }
+}
+```
+
+```
+class Brunch < Breakfast {
+  init(meat, bread, drink) {
+    super.init(meat, bread);
+    this.drink = drink;
+  }
+}
+```
+
+Builtin functions
+
+```
+print clock();
+var name = input("Enter your name> ");
+sleep(5)
+```
+
+## Running
+
+Python version over `3.13` is recommended. Clone this repository, if you have `uv` run `uv sync` or use your system's "python".
+
+```shell
+<python> -m gustav <file>
+```
+
+You can enable debug flag by setting `DEBUG=yes` as environment variable (it will show entire process, ast nodes, and some debug logs during runtime).
+
+if you don't provide file as argument you will get `REPL` prompt. Which I see as "useless", because there is no support for statement/expressions. I wanted to implement this via `curses` library, I though its not worth, instead I'll explore other concepts.
 
 ## Development
 
 Requirements
 
-- `uv`
-- `just`
+- `uv` - https://docs.astral.sh/uv
+- `just` - https://just.systems/man/en
 
 ```shell
 uv sync --dev
+uv run pre-commit install
 ```
 
-If you want to update/extend AST nodes, edit `tools/ast_generator/definitions.py` then run
+Make your changes. If you want to update/extend AST nodes, edit `tools/ast_generator/definitions.py`(format is simple) then run
 
 ```
 just generate_ast
 ```
+
+which will generate AST files in `gustav/ast.
 
 Run checks (formatting, linting & type-checking):
 
@@ -156,10 +355,12 @@ Run checks (formatting, linting & type-checking):
 just check
 ```
 
-Testing:
+Test with coverage check:
 
 ```shell
 just test
+# or
+just test-no-cover
 ```
 
 [^1]: The name _Gustav_ is inspired by the [Schwerer Gustav](https://en.wikipedia.org/wiki/Schwerer_Gustav), a massive German railway gun built during WW2. The intention is not to glorify(romanticize) war or any political ideology - especially not **Nazism** - but to appreciate the engineering behind it. Current implementation (in cpython) is heavy as this railway gun.
