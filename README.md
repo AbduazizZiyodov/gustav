@@ -1,5 +1,7 @@
 # Gustav [^1]
 
+![logo](./assets/logo.svg)
+
 <p align="center"><i>Too heavy for its own good.</i></p>
 
 <p align="center">
