@@ -27,103 +27,113 @@ Implementing "Bytecode Virtual Machine" variation in separate branch.
 
 Grammar definitions are written using [Wirth Syntax Notation](https://en.wikipedia.org/wiki/Wirth_syntax_notation) instead of the more common `BNF`/`EBNF`. For this project, Wirth notation has no significant drawbacks and is fully compatible with the syntax diagram tool that I saw (see below).
 
-<details>
-<summary>See grammar</summary>
-
 > [!TIP]
 > You can paste the grammar into [this site](https://matthijsgroen.github.io/ebnf2railroad/try-yourself.html) to view and explore it as interactive syntax diagrams.
 > ![grammar_diagram_example](./assets/grammar_diagram_example.png)
 
+<details>
+<summary>See grammar</summary>
+
 ```ebnf
 program = { declaration } , "EOF" ;
 
-declaration = class_declaration
-            | fun_declaration
-            | var_declaration
-            | statement ;
+declaration
+  = class_declaration
+  | fun_declaration
+  | var_declaration
+  | statement
+  ;
 
-class_declaration = "class" , IDENTIFIER , [ "<" , IDENTIFIER ] ,
-                    "{" , { function } , "}" ;
+class_declaration = "class" , IDENTIFIER ,
+  [ "<" , IDENTIFIER ] , "{" , { function } , "}" ;
 
 fun_declaration = "fun" , function ;
 
-var_declaration = "var" , IDENTIFIER , [ "=" , expression ] , ";" ;
+var_declaration = "var" , IDENTIFIER , [ "=" ,
+  expression ] , ";" ;
 
-statement = expr_statement
-          | for_statement
-          | if_statement
-          | print_statement
-          | return_statement
-          | while_statement
-          | loop_statement
-          | block
-          | break_statement
-          | continue_statement ;
+statement
+  = expr_statement   | for_statement
+  | if_statement     | print_statement
+  | return_statement | while_statement
+  | loop_statement   | block
+  | break_statement  | continue_statement
+  ;
 
 expr_statement = expression , ";" ;
 
-for_statement = "for" , "(" , ( var_declaration | expr_statement | ";" ) , [ expression ] , ";" , [ expression ] , ")" ,
-                    statement ;
+for_statement = "for" , "(" , ( var_declaration | expr_statement | ";" ) ,
+  [ expression ] , ";" , [ expression ] , ")" ,
+  statement ;
 
 if_statement = "if" , "(" , expression , ")" ,
-                    statement ,
-                [ "else" , statement ] ;
+  statement , [ "else" , statement ] ;
 
 print_statement = "print" , expression , ";" ;
 
 return_statement = "return" , [ expression ] , ";" ;
 
 while_statement = "while" , "(" , expression , ")" ,
-                    statement ;
+  statement ;
 
 loop_statement = "loop" , statement ;
 
 block = "{" , { declaration } , "}" ;
 
 break_statement = "break" , ";" ;
+
 continue_statement = "continue" , ";" ;
 
 expression = assignment ;
 
-assignment = ( call , "." , IDENTIFIER , "=" , assignment )
-           | logic_or ;
+assignment
+  = ( call , "." , IDENTIFIER , "=" , assignment )
+  | logic_or
+  ;
 
 logic_or = logic_and , { "or" , logic_and } ;
+
 logic_and = equality , { "and" , equality } ;
 
 equality = comparison , { ( "!=" | "==" ) , comparison } ;
+
 comparison = term , { ( ">" | ">=" | "<" | "<=" ) , term } ;
+
 term = factor , { ( "-" | "+" | "++" | "^" ) , factor } ;
+
 factor = unary , { ( "/" | "*" ) , unary } ;
 
-unary = ( "!" | "-" ) , unary
-      | call ;
+unary = ( "!" | "-" ) , unary | call ;
 
 call = primary , {
-    ( "(" , [ arguments ] , ")" | "." , IDENTIFIER )
-} , { "|>" , call } ;
+  ( "(" , [ arguments ] , ")"
+  | "." , IDENTIFIER
+  ) } , { "|>" , call } ;
 
-primary = "true"
-        | "false"
-        | "nil"
-        | "this"
-        | NUMBER
-        | STRING
-        | IDENTIFIER
-        | "(" , expression , ")"
-        | "super" , "." , IDENTIFIER
-        | lambda_expression ;
+primary
+  = "true"                     | "false"
+  | "nil"                      | "this"
+  | NUMBER                     | STRING
+  | IDENTIFIER                 | "(" , expression , ")"
+  | "super" , "." , IDENTIFIER | lambda_expression
+  ;
 
-ternary = equality , [ "?" , assignment , ":" , assignment ] ;
+ternary = equality , [ "?" , assignment , ":" ,
+  assignment ] ;
 
-lambda_expression = ( "lambda" | "λ" ) , "(" , [ parameters ] , ")" , block ;
+lambda_expression = ( "lambda" | "λ" ) , "(" ,
+  [ parameters ] , ")" , block ;
 
 function = IDENTIFIER , "(" , [ parameters ] , ")" , block ;
+
 parameters = IDENTIFIER , { "," , IDENTIFIER } ;
+
 arguments = expression , { "," , expression } ;
 
 NUMBER = "number" ;
+
 STRING = "string" ;
+
 IDENTIFIER = "id" ;
 ```
 
