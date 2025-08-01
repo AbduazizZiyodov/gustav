@@ -103,7 +103,7 @@ def run_from_file(file_name: str) -> int:
     source: str = str()
 
     try:
-        with open(file_name, "r") as file:
+        with open(file_name, "r", encoding="utf-8") as file:
             source = file.read()
 
     except FileNotFoundError:  # pragma: no cover

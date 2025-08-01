@@ -29,6 +29,8 @@ test:
 		--cov-report=term-missing \
 		--cov-report=html \
 		testing
+test-no-cover:
+	pytest -s -vv testing
 
 clean:
 	py3clean . && rm -rf htmlcov __pycache__ .mypy_cache .ruff_cache .coverage.*

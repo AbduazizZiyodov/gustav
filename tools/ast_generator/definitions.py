@@ -28,4 +28,7 @@ STATEMENT_TYPES = {
     "Return": "keyword: Token, value: Expression | None",
     "While": "condition: Expression, body: Statement",
     "Var": "name: Token, initializer: Expression | None",
+    "For": "initializer: Var | Expr | None, condition: Expression | E.Literal, increment: Expr | None, body: Statement",
+    "Break": "keyword: Token",
+    "Continue": "keyword: Token",
 }

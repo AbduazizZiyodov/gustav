@@ -1,5 +1,7 @@
 import typing as t  # noqa: F401
 
+from functools import wraps
+
 from dataclasses import dataclass, field
 
 from gustav import gustav
@@ -11,6 +13,23 @@ from gustav.ast import expression as E, statement as S
 
 __all__ = ("Parser",)
 
+P = t.ParamSpec("P")
+T = t.TypeVar("T")
+
+
+def control_loop_depth(
+    f: t.Callable[t.Concatenate["Parser", P], T],
+) -> t.Callable[t.Concatenate["Parser", P], T]:
+    @wraps(f)
+    def wrapper(parser: "Parser", *args: P.args, **kwargs: P.kwargs) -> T:
+        try:
+            parser.loop_depth += 1
+            return f(parser, *args, **kwargs)
+        finally:
+            parser.loop_depth -= 1
+
+    return t.cast(t.Callable[t.Concatenate["Parser", P], T], wrapper)
+
 
 @dataclass(slots=True)
 class Parser:
@@ -18,6 +37,7 @@ class Parser:
 
     tokens: list[Token]
     current: int = field(default=0)
+    loop_depth: int = field(default=0)
 
     def parse(self) -> list[S.Statement]:
         statements: list[S.Statement] = list()
@@ -104,6 +124,12 @@ class Parser:
         return S.Var(name, initializer)
 
     def parse_statement(self) -> S.Statement:
+        if self.match(TT.BREAK):
+            return self.parse_break_statement()
+
+        if self.match(TT.CONTINUE):
+            return self.parse_continue_statement()
+
         if self.match(TT.PRINT):
             return self.parse_print_statement()
 
@@ -127,6 +153,14 @@ class Parser:
 
         return self.parse_expression_statement()
 
+    def parse_break_statement(self) -> S.Break:
+        self.consume(TT.SEMICOLON, "Expect ';' after break statement")
+        return S.Break(self.get_previous())
+
+    def parse_continue_statement(self) -> S.Continue:
+        self.consume(TT.SEMICOLON, "Expect ';' after continue statement")
+        return S.Continue(self.get_previous())
+
     def parse_return_statement(self) -> S.Return:
         keyword: Token = self.get_previous()
         value: E.Expression | None = None
@@ -138,8 +172,8 @@ class Parser:
 
         return S.Return(keyword, value)
 
-    def parse_for_statement(self) -> S.Statement:
-        """Desugar 'for loops' into 'while loops'"""
+    @control_loop_depth
+    def parse_for_statement(self) -> S.For:
         self.consume(TT.LEFT_PAREN, "Expect '(' after 'for'")
 
         initializer: S.Var | S.Expr | None
@@ -158,44 +192,36 @@ class Parser:
 
         self.consume(TT.SEMICOLON, "Expect ';' after loop condition")
 
-        increment: E.Expression | None = None
+        increment: S.Expr | None = None
 
         if not self.check(TT.RIGHT_PAREN):
-            increment = self.parse_expression()
+            if (increment_expr := self.parse_expression()) is not None:
+                increment = S.Expr(increment_expr)
 
         self.consume(TT.RIGHT_PAREN, "Expect ')' after for clauses")
 
         body: S.Statement = self.parse_statement()
 
-        if increment is not None:
-            body = S.Block([body, S.Expr(increment)])
-
         if condition is None:
             condition = E.Literal(True)
 
-        body = S.While(condition, body)
+        return S.For(initializer, condition, increment, body)
 
-        if initializer is not None:
-            body = S.Block([initializer, body])
-
-        return body
-
+    @control_loop_depth
     def parse_loop_statement(self) -> S.While:
         """Same as while loop, but infinite.
 
-        `loop {...}` is equivalent to `while (true) {...}`
+        `loop {...}` (actually its `loop <statement>`) is equivalent to `while (true) {...}`
 
         This method desugars loop statement into while
         with only one addition - setting condition to true (literal)
         """
         condition = E.Literal(value=True)
-
-        self.consume(TT.LEFT_BRACE, "Expect '{' after 'loop'")
         body: S.Statement = self.parse_statement()
-        self.consume(TT.RIGHT_BRACE, "Expect '}' after block")
 
-        return S.While(condition, body)
+        return S.While(condition, body=body)
 
+    @control_loop_depth
     def parse_while_statement(self) -> S.While:
         self.consume(TT.LEFT_PAREN, "Expect '(' after 'while'")
         condition: E.Expression = self.parse_expression()

@@ -192,4 +192,4 @@ class Scanner:
 
     @staticmethod
     def is_alpha_numeric(char: str) -> bool:
-        return char.isalnum() or char == "_"
+        return char.isascii() and (char.isalnum() or char == "_")
