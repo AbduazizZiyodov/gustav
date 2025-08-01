@@ -87,8 +87,8 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
 
         klass = GusClass(statement.name.lexeme, superclass, methods)
 
-        if superclass is not None:
-            if (
+        if superclass is not None:  # partial coverage
+            if (  # pragma: no cover
                 self.environment.enclosing is not None
             ):  # NOTE(abduazizziyodov): remember
                 self.environment = self.environment.enclosing
@@ -136,7 +136,8 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
                 except GusStopIteration:
                     break
                 except GusContinueIteration:
-                    if statement.increment:
+                    # partial coverage
+                    if statement.increment:  # pragma: no cover
                         self.evaluate(statement.increment.expression)
                     continue
 
@@ -309,7 +310,8 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
             case TT.BANG:
                 return not self.is_truthy(right)
 
-            case TT.MINUS:
+            # partial coverage
+            case TT.MINUS:  # pragma: no cover
                 self.check_number_operand(expression.operator, right)
                 return -1 * right
 

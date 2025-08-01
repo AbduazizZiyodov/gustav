@@ -33,13 +33,6 @@ def run_file(file_path: Path, output_as_str: bool = False) -> str | list[str]:
     return output.splitlines() if not output_as_str else output
 
 
-def compare_output(file_path: Path) -> bool:
-    expected = extract_expected(file_path)
-    actual = run_file(file_path)
-
-    return expected == actual
-
-
 def run_scanner(source: str) -> list[str]:
     return list(map(lambda token: token.__test_repr__(), Scanner(source).get_tokens()))
 
