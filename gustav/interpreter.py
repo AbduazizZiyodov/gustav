@@ -9,6 +9,12 @@ from gustav.ast import (
     expression as E,
     statement as S,
 )
+from gustav.exceptions import (
+    GusRuntimeError,
+    GusReturn,
+    GusStopIteration,
+    GusContinueIteration,
+)
 from gustav.logging import LOG  # noqa: F401
 from gustav.token import Token
 from gustav.enums import TokenType as TT
@@ -17,7 +23,6 @@ from gustav.environment import Environment
 from gustav.builtins import BUILTIN_FUNCTIONS
 from gustav.functions import GusFunction, GusLambda
 from gustav.classes import GusClass, GusClassInstance
-from gustav.exceptions import GusRuntimeError, GusReturn
 
 
 __all__ = ("Interpreter",)
@@ -42,6 +47,16 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
     ###
     # Statements
     ###
+
+    @t.override
+    def visit_break_statement(self, statement: S.Break) -> t.Never:
+        LOG.debug("BREAK called")
+        raise GusStopIteration()
+
+    @t.override
+    def visit_continue_statement(self, statement: S.Continue) -> None:
+        LOG.debug("CONTINUE called")
+        raise GusContinueIteration()
 
     @t.override
     def visit_class_statement(self, statement: S.Class) -> None:
@@ -97,7 +112,39 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
     @t.override
     def visit_while_statement(self, statement: S.While) -> None:
         while self.is_truthy(self.evaluate(statement.condition)):
-            self.execute(statement.body)
+            try:
+                self.execute(statement.body)
+            except GusStopIteration:
+                break
+            except GusContinueIteration:
+                continue
+
+    @t.override
+    def visit_for_statement(self, statement: S.For) -> None:
+        loop_environment = Environment(self.environment)
+
+        previous_environment = self.environment
+        self.environment = loop_environment
+
+        try:
+            if statement.initializer:
+                self.execute(statement.initializer)
+
+            while self.is_truthy(self.evaluate(statement.condition)):
+                try:
+                    self.execute(statement.body)
+                except GusStopIteration:
+                    break
+                except GusContinueIteration:
+                    if statement.increment:
+                        self.evaluate(statement.increment.expression)
+                    continue
+
+                if statement.increment:
+                    self.evaluate(statement.increment.expression)
+
+        finally:
+            self.environment = previous_environment
 
     @t.override
     def visit_logical_expression(self, expression: E.Logical) -> t.Any:

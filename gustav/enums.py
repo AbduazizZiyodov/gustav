@@ -56,6 +56,9 @@ class TokenType(StrEnum):
     NIL = auto()
     OR = auto()
 
+    BREAK = auto()
+    CONTINUE = auto()
+
     PRINT = auto()
 
     RETURN = auto()

@@ -20,6 +20,8 @@ class Resolver(E.ExpressionVisitor[None], S.StatementVisitor[None]):
         self.current_class = ClassType.NONE
         self.current_function = FunctionType.NONE
 
+        self.in_loop: bool = False
+
         self.scope: Scope = Scope()
 
     ###
@@ -39,6 +41,16 @@ class Resolver(E.ExpressionVisitor[None], S.StatementVisitor[None]):
             self.resolve(statement.initializer)
 
         self.define(statement.name)
+
+    @t.override
+    def visit_break_statement(self, statement: S.Break) -> None:
+        if not self.in_loop:
+            gustav.error(statement.keyword, "Can't use 'break' outside of a loop")
+
+    @t.override
+    def visit_continue_statement(self, statement: S.Continue) -> None:
+        if not self.in_loop:
+            gustav.error(statement.keyword, "Can't use 'continue' outside of a loop")
 
     @t.override
     def visit_class_statement(self, statement: S.Class) -> None:
@@ -116,12 +128,29 @@ class Resolver(E.ExpressionVisitor[None], S.StatementVisitor[None]):
 
     @t.override
     def visit_while_statement(self, statement: S.While) -> None:
-        self.resolve(statement.condition)
-        self.resolve(statement.body)
+        with self.within_loop():
+            self.resolve(statement.condition)
+            self.resolve(statement.body)
+
+    @t.override
+    def visit_for_statement(self, statement: S.For) -> None:
+        with self.within_loop():
+            with self.scope.enter():
+                if statement.initializer:
+                    self.resolve(statement.initializer)
+
+                if statement.condition:
+                    self.resolve(statement.condition)
+
+                if statement.increment:
+                    self.resolve(statement.increment)
+
+                self.resolve(statement.body)
 
     ###
     # Expressions
     ###
+
     @t.override
     def visit_lambda_expression(self, expr: E.Lambda) -> None:
         self.resolve_function(expr, FunctionType.LAMBDA)
@@ -252,6 +281,11 @@ class Resolver(E.ExpressionVisitor[None], S.StatementVisitor[None]):
     def resolve_function(
         self, statement: S.Function | E.Lambda, type: FunctionType
     ) -> None:
+        enclosing_loop = self.in_loop
+
+        # NOTE(abduazizziyodov): for (...) { lambda() { break; }(); }
+        self.in_loop = False
+
         enclosing_function: FunctionType = self.current_function
         self.current_function = type
 
@@ -263,6 +297,18 @@ class Resolver(E.ExpressionVisitor[None], S.StatementVisitor[None]):
             self.resolve(statement.body)
 
         self.current_function = enclosing_function
+
+        self.in_loop = enclosing_loop
+
+    @contextlib.contextmanager
+    def within_loop(self) -> t.Generator[None, t.Any, None]:
+        outer = self.in_loop
+        self.in_loop = True
+
+        try:
+            yield
+        finally:
+            self.in_loop = outer
 
 
 @dataclass

@@ -22,3 +22,11 @@ class GusReturn(RuntimeError):
 
     def __init__(self, value: t.Any, *args: t.Any) -> None:
         self.value = value
+
+
+class GusStopIteration(RuntimeError):
+    pass
+
+
+class GusContinueIteration(RuntimeError):
+    pass

@@ -1,8 +1,15 @@
 # Gustav [^1]
 
-[![CI](https://github.com/AbduazizZiyodov/gustav/actions/workflows/ci.yml/badge.svg)](https://github.com/AbduazizZiyodov/gustav/actions/workflows/ci.yml) [![codecov](https://codecov.io/github/AbduazizZiyodov/gustav/graph/badge.svg?token=LMJJLRK4OF)](https://codecov.io/github/AbduazizZiyodov/gustav)
-
 <p align="center"><i>Too heavy for its own good.</i></p>
+
+<p align="center">
+<a href="https://github.com/AbduazizZiyodov/gustav/actions/workflows/ci.yml">
+  <img src="https://github.com/AbduazizZiyodov/gustav/actions/workflows/ci.yml/badge.svg" alt="CI">
+</a>
+<a href="https://codecov.io/github/AbduazizZiyodov/gustav" > 
+ <img src="https://codecov.io/github/AbduazizZiyodov/gustav/branch/master/graph/badge.svg?token=LMJJLRK4OF"/> 
+ </a>
+</p>
 
 ## About
 
@@ -18,13 +25,14 @@ Implementing "Bytecode Virtual Machine" variation in separate branch.
 
 ## Grammar
 
-Grammar definitions are written using [Wirth Syntax Notation](https://en.wikipedia.org/wiki/Wirth_syntax_notation) instead of the more common `BNF`/`EBNF`. For this project, Wirth notation has no significant drawbacks and is fully compatible with the syntax diagram tool that I saw.
-
-> **TIP**  
-> You can paste the grammar into [this site](https://matthijsgroen.github.io/ebnf2railroad/try-yourself.html) to view and explore it as interactive syntax diagrams.
+Grammar definitions are written using [Wirth Syntax Notation](https://en.wikipedia.org/wiki/Wirth_syntax_notation) instead of the more common `BNF`/`EBNF`. For this project, Wirth notation has no significant drawbacks and is fully compatible with the syntax diagram tool that I saw (see below).
 
 <details>
 <summary>See grammar</summary>
+
+> [!TIP]  
+> You can paste the grammar into [this site](https://matthijsgroen.github.io/ebnf2railroad/try-yourself.html) to view and explore it as interactive syntax diagrams.
+> ![grammar_diagram_example](./assets/grammar_diagram_example.png)
 
 ```ebnf
 program = { declaration } , "EOF" ;
@@ -47,7 +55,10 @@ statement = expr_statement
           | print_statement
           | return_statement
           | while_statement
-          | block ;
+          | loop_statement
+          | block
+          | break_statement
+          | continue_statement ;
 
 expr_statement = expression , ";" ;
 
@@ -65,33 +76,32 @@ return_statement = "return" , [ expression ] , ";" ;
 while_statement = "while" , "(" , expression , ")" ,
                     statement ;
 
+loop_statement = "loop" , statement ;
+
 block = "{" , { declaration } , "}" ;
 
-expression = assignment | assignment , "|>" , call ;
+break_statement = "break" , ";" ;
+continue_statement = "continue" , ";" ;
 
-assignment = [ call , "." ] , IDENTIFIER , "=" , assignment | ternary ;
+expression = assignment ;
 
-ternary = equality , [ "?" , assignment , ":" , assignment ] ;
-
-equality = comparison , { ( "!=" | "==" ) , comparison } ;
+assignment = ( call , "." , IDENTIFIER , "=" , assignment )
+           | logic_or ;
 
 logic_or = logic_and , { "or" , logic_and } ;
-
 logic_and = equality , { "and" , equality } ;
 
 equality = comparison , { ( "!=" | "==" ) , comparison } ;
-
 comparison = term , { ( ">" | ">=" | "<" | "<=" ) , term } ;
+term = factor , { ( "-" | "+" | "++" | "^" ) , factor } ;
+factor = unary , { ( "/" | "*" ) , unary } ;
 
-term = factor , { ( "-" | "+" ) , factor } ;
-
-factor = unary , { ( "/" | "\*" ) , unary } ;
-
-unary = ( "!" | "-" ) , unary | call ;
+unary = ( "!" | "-" ) , unary
+      | call ;
 
 call = primary , {
     ( "(" , [ arguments ] , ")" | "." , IDENTIFIER )
-} ;
+} , { "|>" , call } ;
 
 primary = "true"
         | "false"
@@ -104,12 +114,12 @@ primary = "true"
         | "super" , "." , IDENTIFIER
         | lambda_expression ;
 
+ternary = equality , [ "?" , assignment , ":" , assignment ] ;
+
 lambda_expression = ( "lambda" | "λ" ) , "(" , [ parameters ] , ")" , block ;
 
 function = IDENTIFIER , "(" , [ parameters ] , ")" , block ;
-
 parameters = IDENTIFIER , { "," , IDENTIFIER } ;
-
 arguments = expression , { "," , expression } ;
 
 NUMBER = "number" ;
@@ -152,4 +162,4 @@ Testing:
 just test
 ```
 
-[^1]: The name _Gustav_ is inspired by the [Schwerer Gustav](https://en.wikipedia.org/wiki/Schwerer_Gustav), a massive German railway gun built during WW2. The intention is not to glorify(romantize) war or any political ideology — especially not **Nazism** — but to appreciate the engineering behind it. Its also heavy, as current implementation (in cpython).
+[^1]: The name _Gustav_ is inspired by the [Schwerer Gustav](https://en.wikipedia.org/wiki/Schwerer_Gustav), a massive German railway gun built during WW2. The intention is not to glorify(romanticize) war or any political ideology - especially not **Nazism** - but to appreciate the engineering behind it. Current implementation (in cpython) is heavy as this railway gun.

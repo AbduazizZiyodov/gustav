@@ -20,9 +20,8 @@ class Environment:
         if name.lexeme in self.values:
             return self.values.get(name.lexeme)
 
-        # TODO(abduazizziyodov): cover
-        if self.enclosing is not None:  # pragma: no cover
-            return self.enclosing.get(name)
+        if self.enclosing is not None:
+            return self.enclosing.get(name)  # pragma: no cover
 
         raise GusRuntimeError(name, f"Undefined variable '{name.lexeme}'")
 
@@ -31,7 +30,6 @@ class Environment:
             self.values[name.lexeme] = value
             return
 
-        # TODO(abduazizziyodov): cover
         if self.enclosing is not None:  # pragma: no cover
             self.enclosing.assign(name, value)
             return
