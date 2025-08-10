@@ -14,7 +14,6 @@ class Environment:
 
     def define(self, name: str, value: t.Any) -> None:
         self.values[name] = value
-        return None
 
     def get(self, name: Token) -> t.Any | t.NoReturn:
         if name.lexeme in self.values:

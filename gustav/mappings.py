@@ -24,7 +24,7 @@ RESERVED_KEYWORDS: t.Final[dict[str, TT]] = {
     "or": TT.OR,
     "print": TT.PRINT,
     "var": TT.VAR,
-    "\u03bb": TT.LAMBDA,
+    "\u03bb": TT.LAMBDA,  # Lambda symbol
     "lambda": TT.LAMBDA,
     "break": TT.BREAK,
     "continue": TT.CONTINUE,
@@ -44,5 +44,5 @@ SINGLE_TOKEN_MAPPING: t.Final[dict[str, TT]] = {
     "^": TT.CARET,
     "?": TT.QUESTION_MARK,
     ":": TT.COLON,
-    "\u03bb": TT.LAMBDA,
+    "\u03bb": TT.LAMBDA,  # Lambda symbol
 }

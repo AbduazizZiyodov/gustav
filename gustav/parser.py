@@ -11,7 +11,14 @@ from gustav.enums import TokenType as TT
 from gustav.exceptions import GusParseError
 from gustav.ast import expression as E, statement as S
 
-__all__ = ("Parser",)
+__all__ = ("Parser", "UNINITIALIZED")
+
+
+@object.__new__
+class UNINITIALIZED:
+    def __repr__(self) -> str:
+        return self.__class__.__name__  # pragma: no cover
+
 
 P = t.ParamSpec("P")
 T = t.TypeVar("T")
@@ -114,7 +121,7 @@ class Parser:
 
     def parse_var_declaration(self) -> S.Var:
         name: Token = self.consume(TT.IDENTIFIER, "Expect variable name")
-        initializer: E.Expression | None = None
+        initializer: E.Expression = E.Literal(UNINITIALIZED)
 
         if self.match(TT.EQUAL):
             initializer = self.parse_expression()

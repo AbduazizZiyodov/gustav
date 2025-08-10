@@ -10,5 +10,4 @@ logging.basicConfig(
     format="[%(levelname)s | %(funcName)s():%(lineno)d] %(message)s",
 )
 
-
 LOG = logging.getLogger(__name__)

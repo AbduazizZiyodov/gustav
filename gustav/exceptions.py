@@ -18,6 +18,10 @@ class GusRuntimeError(RuntimeError):
 
 
 class GusReturn(RuntimeError):
+    """Used for unwinding, to get desired position in call stack.
+    Not a good practice, however enough for tree-walk interpreter.
+    """
+
     __slots__ = ("value",)
 
     def __init__(self, value: t.Any, *args: t.Any) -> None:
@@ -25,8 +29,12 @@ class GusReturn(RuntimeError):
 
 
 class GusStopIteration(RuntimeError):
+    """Used in break statement"""
+
     pass
 
 
 class GusContinueIteration(RuntimeError):
+    """Used in continue statement"""
+
     pass

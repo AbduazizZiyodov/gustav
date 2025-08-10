@@ -2,4 +2,7 @@ class Foo {
   init(a, b) {}
 }
 
-var foo = Foo(1); // expect: [at line 5] Expected 2 arguments but got 1.
+var foo = Foo(1);
+// expect: [WARNING] at line 2: Variable 'a' is not used.
+// expect: [WARNING] at line 2: Variable 'b' is not used.
+// expect: [at line 5] Expected 2 arguments but got 1.

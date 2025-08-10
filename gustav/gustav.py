@@ -152,6 +152,10 @@ def panic(line: int, message: str) -> None:
     report(line, "", message)
 
 
+def warning(token: Token, message: str) -> None:
+    sys.stderr.write(f"[WARNING] at line {token.line}: {message}.\n")
+
+
 def error(token: Token, message: str) -> None:
     if token.type == TT.EOF:
         report(token.line, " at end", message)

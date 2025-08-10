@@ -2,3 +2,4 @@ var a = "outer";
 {
   var a = a; // expect: [at line 3] Error at 'a': Can't read local variable in its own initializer.
 }
+// expect: [WARNING] at line 3: Variable 'a' is not used.
