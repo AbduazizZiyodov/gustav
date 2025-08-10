@@ -17,6 +17,12 @@ class ClassType(StrEnum):
     SUBCLASS = auto()
 
 
+class VariableState(StrEnum):
+    USED = auto()
+    DECLARED = auto()
+    DEFINED = auto()
+
+
 class TokenType(StrEnum):
     LEFT_PAREN = auto()
     RIGHT_PAREN = auto()

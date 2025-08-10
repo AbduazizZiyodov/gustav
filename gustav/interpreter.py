@@ -17,13 +17,13 @@ from gustav.exceptions import (
 )
 from gustav.logging import LOG  # noqa: F401
 from gustav.token import Token
+from gustav.parser import UNINITIALIZED
 from gustav.enums import TokenType as TT
 from gustav.protocols import GusCallable
 from gustav.environment import Environment
 from gustav.builtins import BUILTIN_FUNCTIONS
 from gustav.functions import GusFunction, GusLambda
 from gustav.classes import GusClass, GusClassInstance
-
 
 __all__ = ("Interpreter",)
 
@@ -50,12 +50,10 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
 
     @t.override
     def visit_break_statement(self, statement: S.Break) -> t.Never:
-        LOG.debug("BREAK called")
         raise GusStopIteration()
 
     @t.override
     def visit_continue_statement(self, statement: S.Continue) -> None:
-        LOG.debug("CONTINUE called")
         raise GusContinueIteration()
 
     @t.override
@@ -181,11 +179,7 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
 
     @t.override
     def visit_var_statement(self, statement: S.Var) -> None:
-        value: t.Any = None
-
-        if statement.initializer is not None:
-            value = self.evaluate(statement.initializer)
-
+        value = self.evaluate(statement.initializer)
         self.environment.define(statement.name.lexeme, value)
 
     @t.override
@@ -292,7 +286,15 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
 
     @t.override
     def visit_variable_expression(self, expression: E.Variable) -> t.Any:
-        return self.look_up_variable(expression.name, expression)
+        value = self.look_up_variable(expression.name, expression)
+
+        if value is UNINITIALIZED:
+            raise GusRuntimeError(
+                expression.name,
+                f"Can't use uninitialized variable '{expression.name.lexeme}'",
+            )
+
+        return value
 
     @t.override
     def visit_literal_expression(self, expression: E.Literal) -> t.Any:
@@ -330,11 +332,8 @@ class Interpreter(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
         left = self.evaluate(expression.left)
         right = self.evaluate(expression.right)
 
-        def check_for_number() -> t.NoReturn | None:
-            return self.check_number_operands(expression.operator, left, right)
-
         if expression.operator.type in Interpreter.NUMERIC_OPERATORS:
-            check_for_number()
+            self.check_number_operands(expression.operator, left, right)
 
         match expression.operator.type:
             case TT.GREATER:
