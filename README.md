@@ -3,7 +3,7 @@
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./assets/logo_dark.svg">
   <source media="(prefers-color-scheme: light)" srcset="./assets/logo_light.svg">
-  <img alt="Fallback image description" src="./assets/logo_dark.svg">
+  <img alt="Fallback image description" src="./assets/logo_light.svg">
 </picture>
 
 </div>
@@ -15,19 +15,19 @@
   <img src="https://github.com/AbduazizZiyodov/gustav/actions/workflows/ci.yml/badge.svg" alt="CI">
 </a>
 <a href="https://codecov.io/github/AbduazizZiyodov/gustav" >
- <img src="https://codecov.io/github/AbduazizZiyodov/gustav/branch/master/graph/badge.svg?token=LMJJLRK4OF"/>
+ <img src="https://codecov.io/github/AbduazizZiyodov/gustav/branch/master/graph/badge.svg?token=LMJJLRK4OF" alt="codecov"/>
  </a>
 </p>
 
 ## About[^1]
 
-Tree-Walk Interpreter implemented in CPython for experimenting/learning purposes. Based on amazing book [Crafting Interpreters](https://craftinginterpreters.com) by _Bob Nystrom_ (based on _Lox_).
+Tree-Walk Interpreter implemented in cpython for experimenting/learning purposes. Based on amazing book [Crafting Interpreters](https://craftinginterpreters.com) by _Bob Nystrom_ (based on _Lox_).
 
 Interpreter consists of basic components as mentioned in the book: `Scanner => Parser => Resolver => Interpreter`.
 
 Manual/hand-written basic single-pass scanner(a.k.a lexer). Then we have classic top-down, recursive descent parser (`LL(1)` btw). Resolver is used for semantic analysis which "mostly" performs lexical scope resolution before interpretation. So there is no type checking, hoisting or any other fancy features, just lexical scope analyzer. Then, we can see tree-walk interpreter which wires all these components, uses visitor pattern and evaluates AST nodes directly.
 
-Most of the challenges(that I think important) are implemented.
+Most of the challenges(that I think important) are implemented. Take a look at source code, maybe you'll learn something.
 
 ## Future Work
 
@@ -180,7 +180,7 @@ comment
 */
 ```
 
-Nesting multiple comments are NOT allowed:
+Nesting multiple multiline comments are NOT allowed:
 
 ```js
 /*
@@ -195,7 +195,7 @@ comment
 
 ### Comparison and Equality
 
-Supports standard comparison operators: <, >, <=, >=, ==, !=.
+Supports standard comparison operators: `<`, `>`, `<=`, `>=`, `==`, `!=`.
 
 ```js
 12 < 2;                 // false
@@ -205,7 +205,7 @@ print "abduaziz" == "abdulaziz"; // false
 
 ### Logical Operators
 
-Logical operators include and, or, and ! (not).
+Logical operators include `and`, `or`, and `!` (not). `yes/no` maps into `true/false`.
 
 ```js
 !true;            // false
@@ -214,11 +214,12 @@ true and false;   // false
 true and true;    // true
 false or false;   // false
 true or false;    // true
+yes == true;      // true
 ```
 
 ### Print Statement
 
-Like Python 2, print is a statement, not a function.
+Like cpython 2, print is a statement, not a function.
 
 ```js
 print "Gustav!";
@@ -273,9 +274,10 @@ Ternary expression
 (1 > 2) ? "gt" : "le";// le
 ```
 
-### While Loop
+> [!NOTE]
+> Both `break` and `continue` statements are supported in `for`, `while` & `loop` statements.
 
-`break` and `continue` statements are supported.
+### While Loop
 
 ```js
 var c = 0;
@@ -289,7 +291,7 @@ while (c < 3)
 
 ### For Loop
 
-`break` and `continue` statements are supported. `For` has separate definition as AST node, it won't be desugared into `While` statement like in the book.
+`For` has separate definition as AST node, it won't be desugared into `While` statement like in the book.
 
 ```js
 for (var j = 0; j < 5; j = j + 1)
@@ -303,13 +305,29 @@ for (var j = 0; j < 5; j = j + 1)
 
 ### Loop Statement
 
-Use loop for infinite loops instead of `while (true)`.
+Use `loop` for infinite loops instead of `while (true)`.
 
 ```js
+var name;
 loop {
-  print "Gustav!";
+  name = input("Are you male or female?> ");
+
+  if (name == "email") {
+    print "nice!";
+    break;
+  } else {
+    print "nope";
+  }
 }
-// Prints "Gustav!" infinitely
+
+// Are you male or female?> male
+// nope
+// Are you male or female?> gigachad
+// nope
+// Are you male or female?> abduaziz
+// nope
+// Are you male or female?> email
+// nice!
 ```
 
 ### Functions
@@ -327,7 +345,7 @@ print fib(8); // 21
 Lambdas are supported and can be defined using `lambda` or `λ`.
 
 ```js
-var add = λ(x) {
+var add = λ(x) { // lambda(x) {} is also fine
   return λ(y) {
     return x + y;
   };
@@ -358,7 +376,7 @@ fun g(y) { return y - 1; }
 
 print f(2) |> g(); // 3
 
-// Using lambdas
+// using lambdas
 print λ(x) { return x^2; }(2) |> λ(y) { return y - 1; }(); // 3
 
 fun square(n) { return n * n; }
@@ -427,9 +445,9 @@ print tree.contains(12);  // false
 tree.print_in_order();    // 3 5 7 10 15
 ```
 
-**Inheritance**
+#### Inheritance
 
-Multiple inheritance is not supported. Traits may be considered as a future alternative (Feature deserves1 in VM implementation).
+Multiple inheritance is not supported. Traits may be considered as a future alternative (Feature deserves in VM implementation). Use `<` for inheriting.
 
 ```js
 class A {
@@ -448,9 +466,9 @@ var b = B("value");
 b.test(); // value
 ```
 
-**Super Expression**
+#### Super Expression
 
-Use super to call methods or initializers from the superclass.
+Use `super` to call methods or initializers from the superclass.
 
 ```js
 class A {
@@ -483,9 +501,9 @@ C().test(); // A
 The following built-in functions are provided: `clock`, `input`, and `sleep`.
 
 ```js
-print clock();                     // returns float value of time in seconds, proxy to time.perfcounter from cpython
+print clock();                         // returns float value of time in seconds, proxy to time.perfcounter from cpython
 var name = input("Enter your name> "); // proxy to builtin input function from cpython
-sleep(5);                          // proxy to time.sleep function from cpython
+sleep(5);                              // proxy to time.sleep function from cpython
 ```
 
 ## Running
