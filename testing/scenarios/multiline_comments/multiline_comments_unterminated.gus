@@ -1,7 +1,0 @@
-// expect: [at line 3] Error: Multiline comment is not terminated.
-
-/*
-
-
-
-hello

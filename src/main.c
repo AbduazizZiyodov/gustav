@@ -2,7 +2,6 @@
 #include <stdlib.h>
 
 int main() {
-  int *p = 32;
-  printf("HELL world");
+  printf("Hell world, JEZZ");
   return EXIT_SUCCESS;
 }

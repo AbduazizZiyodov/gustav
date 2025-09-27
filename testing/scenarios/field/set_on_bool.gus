@@ -1,1 +1,0 @@
-true.foo = "value"; // expect: [at line 1] Only instances have fields.
