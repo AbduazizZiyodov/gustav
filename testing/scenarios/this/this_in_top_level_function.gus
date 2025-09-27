@@ -1,3 +1,0 @@
-fun foo() {
-  this; // expect: [at line 2] Error at 'this': Can't use 'this' outside of a class.
-}

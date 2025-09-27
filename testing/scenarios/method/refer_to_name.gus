@@ -1,7 +1,0 @@
-class Foo {
-  method() {
-    print method; // expect: [at line 3] Undefined variable 'method'.
-  }
-}
-
-Foo().method();

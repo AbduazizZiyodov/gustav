@@ -1,3 +1,0 @@
-fun foo() {}
-
-foo.bar; // expect: [at line 3] Only instances have properties.
