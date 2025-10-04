@@ -262,6 +262,14 @@ for (
     iter = iter + 1
 )
     print fibo();
+
+// 0
+// 1
+// 1
+// ...
+// 4181
+// 6765
+// 10946
 ```
 
 Function piping is supported via the `|>` operator.
