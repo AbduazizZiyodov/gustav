@@ -16,12 +16,12 @@
     <source media="(prefers-color-scheme: light)" srcset="https://abduaziz.ziyodov.uz/badges/ai-free-light.svg">
     <img alt="bruh" src="https://abduaziz.ziyodov.uz/badges/ai-free-dark.svg">
   </picture>
-<a href="https://github.com/AbduazizZiyodov/gustav/actions/workflows/ci.yml">
-  <img src="https://github.com/AbduazizZiyodov/gustav/actions/workflows/ci.yml/badge.svg" alt="CI">
-</a>
-<a href="https://codecov.io/github/AbduazizZiyodov/gustav" >
- <img src="https://codecov.io/github/AbduazizZiyodov/gustav/branch/master/graph/badge.svg?token=LMJJLRK4OF" alt="codecov"/>
- </a>
+  <a href="https://github.com/AbduazizZiyodov/gustav/actions/workflows/ci.yml">
+    <img src="https://github.com/AbduazizZiyodov/gustav/actions/workflows/ci.yml/badge.svg" alt="CI">
+  </a>
+  <a href="https://codecov.io/github/AbduazizZiyodov/gustav" >
+   <img src="https://codecov.io/github/AbduazizZiyodov/gustav/branch/master/graph/badge.svg?token=LMJJLRK4OF" alt="codecov"/>
+  </a>
 </p>
 
 ## About[^1]
