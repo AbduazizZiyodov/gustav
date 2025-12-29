@@ -11,6 +11,11 @@
 <p align="center"><i>Too heavy for its own good.</i></p>
 
 <p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://abduaziz.ziyodov.uz/badges/ai-free-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="https://abduaziz.ziyodov.uz/badges/ai-free-light.svg">
+    <img alt="bruh" src="https://abduaziz.ziyodov.uz/badges/ai-free-dark.svg">
+  </picture>
 <a href="https://github.com/AbduazizZiyodov/gustav/actions/workflows/ci.yml">
   <img src="https://github.com/AbduazizZiyodov/gustav/actions/workflows/ci.yml/badge.svg" alt="CI">
 </a>
