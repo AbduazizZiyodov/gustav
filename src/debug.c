@@ -42,7 +42,7 @@ size_t disassemble_instruction(Chunk *chunk, size_t offset)
 
 static size_t simple_instruction(const char *name, size_t offset)
 {
-	LOG_DEBUG("%04d %s", offset, name);
+	LOG_TRACE("%04d %s", offset, name);
 	return offset + 1;
 }
 
@@ -51,6 +51,6 @@ static size_t constant_instruction(const char *name, Chunk *chunk,
 {
 	uint8_t constant = chunk->code[offset + 1];
 	Value value = chunk->constants.values[constant];
-	LOG_DEBUG("%04d %s %04d value=%g", offset, name, constant, value);
+	LOG_TRACE("%04d %s %04d value=%g", offset, name, constant, value);
 	return offset + 2;
 }
