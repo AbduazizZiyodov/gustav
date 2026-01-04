@@ -9,6 +9,7 @@ void init_chunk(Chunk *chunk)
 	chunk->code = NULL;
 	chunk->lines = NULL;
 	init_value_array(&chunk->constants);
+	LOG_DEBUG("Chunk was initialized");
 }
 
 void write_chunk(Chunk *chunk, uint8_t byte, int line)
@@ -33,10 +34,17 @@ void free_chunk(Chunk *chunk)
 
 	free_value_array(&chunk->constants);
 	init_chunk(chunk);
+	LOG_DEBUG("Chunk was freed");
 }
 
 size_t add_constant(Chunk *chunk, Value value)
 {
 	write_value_array(&chunk->constants, value);
+
+	if (chunk->constants.count > UINT8_MAX) {
+		fprintf(stderr, "Error: Too many constants in one chunk.\n");
+		exit(EXIT_FAILURE);
+	}
+
 	return chunk->constants.count - 1;
 }

@@ -25,6 +25,7 @@ add_executable(gustav
     src/log.c
     src/debug.c
     src/value.c
+    src/vm.c
 )
 
 target_include_directories(gustav 
@@ -60,7 +61,6 @@ target_link_options(gustav PRIVATE
 
 install(TARGETS gustav DESTINATION bin)
 
-message(STATUS "[BUILD_CONFIG]")
 message(STATUS "project=${PROJECT_NAME} v${PROJECT_VERSION}")
 message(STATUS "build_type=${CMAKE_BUILD_TYPE}")
 message(STATUS "c_compiler=${CMAKE_C_COMPILER}")
@@ -68,4 +68,3 @@ message(STATUS "compiler_id=${CMAKE_C_COMPILER_ID}")
 message(STATUS "compiler_version=${CMAKE_C_COMPILER_VERSION}")
 message(STATUS "c_standard=C${CMAKE_C_STANDARD}")
 message(STATUS "output_dir=${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
-message(STATUS "[/BUILD_CONFIG]")
