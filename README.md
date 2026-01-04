@@ -10,4 +10,5 @@
 
 # NOTES
 
-- Generic array implementation
+- [ ] Generic array implementation
+- [ ] `OP_CONSTANT_LONG` implementation
