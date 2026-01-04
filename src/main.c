@@ -25,14 +25,7 @@ int main(void)
 
 	size_t constant;
 
-	MAKE_CONSTANT(chunk, 2.2, line_no);
-	MAKE_CONSTANT(chunk, 3.4, line_no);
-
-	write_chunk(&chunk, OP_ADD, line_no);
-
-	MAKE_CONSTANT(chunk, 5.6, line_no);
-
-	write_chunk(&chunk, OP_DIVIDE, line_no);
+	MAKE_CONSTANT(chunk, 2.1, line_no);
 	write_chunk(&chunk, OP_NEGATE, line_no);
 
 	write_chunk(&chunk, OP_RETURN, line_no);

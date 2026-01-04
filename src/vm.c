@@ -51,16 +51,18 @@ static InterpretResult run(void)
 
 	for (;;) {
 #ifdef DEBUG_TRACE_EXECUTION
-		LOG_TRACE("### STACK ###");
-		int i = 0;
+		LOG_TRACE("== Stack ==");
+
+		uint16_t i = 0;
 		for (Value *slot = vm.stack; slot < vm.stack_top; i++, slot++) {
 			LOG_TRACE("[%d] %g", i, *slot);
 		}
-		printf("\n");
+
 		disassemble_instruction(vm.chunk,
 					(size_t)(vm.ip - vm.chunk->code));
 #endif
 		uint8_t instruction;
+		Value top_value;
 
 		switch (instruction = READ_BYTE()) {
 		case OP_CONSTANT:
@@ -81,7 +83,9 @@ static InterpretResult run(void)
 			BINARY_OP(/);
 			break;
 		case OP_NEGATE:
-			push(-pop());
+			// doing it in-place - no pop/push
+			top_value = *(vm.stack_top - 1);
+			*(vm.stack_top - 1) = -top_value;
 			break;
 		case OP_RETURN:
 			LOG_TRACE("RETURN => %g", pop());
