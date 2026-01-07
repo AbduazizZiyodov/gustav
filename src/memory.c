@@ -1,6 +1,6 @@
 #include <stdlib.h>
 
-#include <memory.h>
+#include "memory.h"
 
 void *reallocate(void *pointer, size_t old_size __attribute__((unused)),
 		 size_t new_size)

@@ -1,7 +1,6 @@
 #ifndef GUSTAV_VM_H
 #define GUSTAV_VM_H
 
-#include "common.h"
 #include "chunk.h"
 #include "value.h"
 
@@ -22,7 +21,7 @@ typedef enum {
 
 void init_vm(void);
 void free_vm(void);
-InterpretResult interpret(Chunk *chunk);
+InterpretResult interpret(const char *source);
 
 void push(Value value);
 Value pop(void);

@@ -1,8 +1,8 @@
 #ifndef GUSTAV_CHUNK_H
 #define GUSTAV_CHUNK_H
 
-#include "common.h"
 #include "value.h"
+#include <stdint.h>
 
 typedef enum {
 	OP_CONSTANT,
