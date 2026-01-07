@@ -1,5 +1,5 @@
 #include "debug.h"
-#include "common.h"
+#include "log.h"
 #include "value.h"
 
 static size_t simple_instruction(const char *name, size_t offset);

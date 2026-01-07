@@ -1,6 +1,7 @@
 #ifndef GUSTAV_MEMORY_H
 #define GUSTAV_MEMORY_H
-#include <common.h>
+
+#include <stddef.h>
 
 #define GROW_CAPACITY(capacity) ((capacity) < 8 ? 8 : (size_t)((capacity) * 2))
 

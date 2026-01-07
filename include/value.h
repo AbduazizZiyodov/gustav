@@ -1,7 +1,7 @@
 #ifndef GUSTAV_VALUE_H
 #define GUSTAV_VALUE_H
 
-#include "common.h"
+#include <stddef.h>
 
 typedef double Value;
 

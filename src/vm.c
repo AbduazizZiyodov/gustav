@@ -1,10 +1,9 @@
-#include "common.h"
 #include "vm.h"
-#include "debug.h"
+#include "compiler.h"
+#include "log.h"
 
 static VM vm;
 
-/// Stack
 static void reset_stack(void)
 {
 	vm.stack_top = vm.stack;
@@ -22,7 +21,6 @@ Value pop(void)
 	return *vm.stack_top;
 }
 
-/// VM
 void init_vm(void)
 {
 	LOG_INFO("VM was initialized");
@@ -34,73 +32,9 @@ void free_vm(void)
 	LOG_INFO("VM was freed");
 }
 
-/// Interpretation
-static InterpretResult run(void)
+InterpretResult interpret(const char *source)
 {
-#define READ_BYTE() (*vm.ip++)
-#define READ_CONSTANT() (vm.chunk->constants.values[READ_BYTE()])
-#define BINARY_OP(op)             \
-	do {                      \
-		double b = pop(); \
-		double a = pop(); \
-		push(a op b);     \
-	} while (false);
-
-	LOG_INFO("Begin run()");
-	Value constant;
-
-	for (;;) {
-#ifdef DEBUG_TRACE_EXECUTION
-		LOG_TRACE("== Stack ==");
-
-		uint16_t i = 0;
-		for (Value *slot = vm.stack; slot < vm.stack_top; i++, slot++) {
-			LOG_TRACE("[%d] %g", i, *slot);
-		}
-
-		disassemble_instruction(vm.chunk,
-					(size_t)(vm.ip - vm.chunk->code));
-#endif
-		uint8_t instruction;
-		Value top_value;
-
-		switch (instruction = READ_BYTE()) {
-		case OP_CONSTANT:
-			constant = READ_CONSTANT();
-			push(constant);
-			LOG_TRACE("CONSTANT=%g", constant);
-			break;
-		case OP_ADD:
-			BINARY_OP(+);
-			break;
-		case OP_SUBTRACT:
-			BINARY_OP(-);
-			break;
-		case OP_MULTIPLY:
-			BINARY_OP(*);
-			break;
-		case OP_DIVIDE:
-			BINARY_OP(/);
-			break;
-		case OP_NEGATE:
-			// doing it in-place - no pop/push
-			top_value = *(vm.stack_top - 1);
-			*(vm.stack_top - 1) = -top_value;
-			break;
-		case OP_RETURN:
-			LOG_TRACE("RETURN => %g", pop());
-			return INTERPRET_OK;
-		}
-	}
-
-#undef READ_BYTE
-#undef READ_CONSTANT
-#undef BINARY_OP
-}
-
-InterpretResult interpret(Chunk *chunk)
-{
-	vm.chunk = chunk;
-	vm.ip = vm.chunk->code;
-	return run();
+	LOG_DEBUG("Compiling ...");
+	compile(source);
+	return INTERPRET_OK;
 }
