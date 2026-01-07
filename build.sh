@@ -1,9 +1,9 @@
 clang-format --verbose -i src/* include/*
 
-rm -rf build/
-mkdir build && cd build
+mkdir -p build
 
+cd build
 cmake ..
-make
+ln -sf build/compile_commands.json ../compile_commands.json
 
-sudo make install
+make
