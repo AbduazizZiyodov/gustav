@@ -48,6 +48,7 @@
 	DO(TOKEN_VAR)           \
 	DO(TOKEN_WHILE)         \
 	DO(TOKEN_ERROR)         \
+	DO(TOKEN_IS)            \
 	DO(TOKEN_EOF)
 
 #define GENERATE_ENUM(ENUM) ENUM,

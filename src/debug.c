@@ -35,6 +35,8 @@ size_t disassemble_instruction(Chunk *chunk, size_t offset)
 		return simple_instruction("OP_FALSE", offset);
 	case OP_EQUAL:
 		return simple_instruction("OP_EQUAL", offset);
+	case OP_IS:
+		return simple_instruction("OP_IS", offset);
 	case OP_GREATER:
 		return simple_instruction("OP_GREATER", offset);
 	case OP_LESS:
