@@ -9,7 +9,8 @@ static size_t constant_instruction(const char *name, Chunk *chunk,
 
 void disassemble_chunk(Chunk *chunk, const char *name)
 {
-	fprintf(stdout, "\n");
+	printf("\n");
+
 	LOG_DEBUG("== %s ==", name);
 	for (size_t offset = 0; offset < chunk->count;) {
 		offset = disassemble_instruction(chunk, offset);

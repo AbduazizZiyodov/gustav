@@ -93,7 +93,7 @@ static void advance(void)
 {
 	parser_state.previous = parser_state.current;
 
-	for (;;) {
+	while (true) {
 		parser_state.current = scan_token();
 
 		if (parser_state.current.type != TOKEN_ERROR)

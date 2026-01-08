@@ -19,6 +19,8 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug)
 endif()
 
+set(LINE_LENGTH 1024 CACHE STRING "Maximum line length for REPL")
+
 add_executable(gustav 
     src/main.c 
     src/chunk.c 
@@ -38,6 +40,7 @@ target_include_directories(gustav
 
 target_compile_definitions(gustav PRIVATE 
     LOG_USE_COLOR
+    LINE_LENGTH=${LINE_LENGTH}
     $<$<CONFIG:Debug>:DEBUG_BUILD>
     $<$<CONFIG:Release>:RELEASE_BUILD>
 )

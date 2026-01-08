@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,10 +7,11 @@
 
 static void repl(void)
 {
-	char line[1024];
+	char line[LINE_LENGTH];
+	unsigned long long command_num = 0;
 
-	for (;;) {
-		printf("=> ");
+	while (true) {
+		printf("[%lld] => ", command_num++);
 
 		if (!fgets(line, sizeof(line), stdin)) {
 			printf("\n");
