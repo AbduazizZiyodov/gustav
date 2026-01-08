@@ -4,6 +4,18 @@
 
 #include "scanner.h"
 
+static bool is_at_end(void);
+static void skip_whitespace(void);
+static Token make_token(TokenType type);
+static char advance(void);
+static bool is_alpha(char c);
+static Token make_identifier_token(void);
+static bool is_digit(char c);
+static Token make_number_token(void);
+static bool match(char expected);
+static Token make_string_token(void);
+static Token make_error_token(const char *message);
+
 typedef struct {
 	const char *start;
 	const char *current;
@@ -19,12 +31,69 @@ void init_scanner(const char *source)
 	scanner_state.line = 1;
 }
 
+Token scan_token(void)
+{
+	skip_whitespace();
+
+	scanner_state.start = scanner_state.current;
+
+	if (is_at_end())
+		return make_token(TOKEN_EOF);
+
+	char c = advance();
+
+	if (is_alpha(c))
+		return make_identifier_token();
+
+	if (is_digit(c))
+		return make_number_token();
+
+	switch (c) {
+	case '(':
+		return make_token(TOKEN_LEFT_PAREN);
+	case ')':
+		return make_token(TOKEN_RIGHT_PAREN);
+	case '{':
+		return make_token(TOKEN_LEFT_BRACE);
+	case '}':
+		return make_token(TOKEN_RIGHT_BRACE);
+	case ';':
+		return make_token(TOKEN_SEMICOLON);
+	case ',':
+		return make_token(TOKEN_COMMA);
+	case '.':
+		return make_token(TOKEN_DOT);
+	case '-':
+		return make_token(TOKEN_MINUS);
+	case '+':
+		return make_token(TOKEN_PLUS);
+	case '/':
+		return make_token(TOKEN_SLASH);
+	case '*':
+		return make_token(TOKEN_STAR);
+	case '!':
+		return make_token(match('=') ? TOKEN_BANG_EQUAL : TOKEN_BANG);
+	case '=':
+		return make_token(match('=') ? TOKEN_EQUAL_EQUAL : TOKEN_EQUAL);
+	case '<':
+		return make_token(match('=') ? TOKEN_LESS_EQUAL : TOKEN_LESS);
+	case '>':
+		return make_token(match('=') ? TOKEN_GREATER_EQUAL :
+					       TOKEN_GREATER);
+	case '"':
+		return make_string_token();
+	}
+
+	return make_error_token("Unexpected character.");
+}
+
 static Token make_token(TokenType type)
 {
+	size_t length = (size_t)(scanner_state.current - scanner_state.start);
+
 	return (Token){ .type = type,
 			.start = scanner_state.start,
-			.length = (size_t)(scanner_state.current -
-					   scanner_state.start),
+			.length = length,
 			.line = scanner_state.line };
 }
 
@@ -63,15 +132,18 @@ static bool match(char expected)
 {
 	if (is_at_end())
 		return false;
+
 	if (*scanner_state.current != expected)
 		return false;
+
 	scanner_state.current++;
+
 	return true;
 }
 
 static void skip_whitespace(void)
 {
-	for (;;) {
+	while (true) {
 		char c = peek();
 
 		switch (c) {
@@ -206,59 +278,4 @@ static Token make_identifier_token(void)
 		advance();
 
 	return make_token(get_identifier_type());
-}
-
-Token scan_token(void)
-{
-	skip_whitespace();
-
-	scanner_state.start = scanner_state.current;
-
-	if (is_at_end())
-		return make_token(TOKEN_EOF);
-
-	char c = advance();
-
-	if (is_alpha(c))
-		return make_identifier_token();
-	if (is_digit(c))
-		return make_number_token();
-
-	switch (c) {
-	case '(':
-		return make_token(TOKEN_LEFT_PAREN);
-	case ')':
-		return make_token(TOKEN_RIGHT_PAREN);
-	case '{':
-		return make_token(TOKEN_LEFT_BRACE);
-	case '}':
-		return make_token(TOKEN_RIGHT_BRACE);
-	case ';':
-		return make_token(TOKEN_SEMICOLON);
-	case ',':
-		return make_token(TOKEN_COMMA);
-	case '.':
-		return make_token(TOKEN_DOT);
-	case '-':
-		return make_token(TOKEN_MINUS);
-	case '+':
-		return make_token(TOKEN_PLUS);
-	case '/':
-		return make_token(TOKEN_SLASH);
-	case '*':
-		return make_token(TOKEN_STAR);
-	case '!':
-		return make_token(match('=') ? TOKEN_BANG_EQUAL : TOKEN_BANG);
-	case '=':
-		return make_token(match('=') ? TOKEN_EQUAL_EQUAL : TOKEN_EQUAL);
-	case '<':
-		return make_token(match('=') ? TOKEN_LESS_EQUAL : TOKEN_LESS);
-	case '>':
-		return make_token(match('=') ? TOKEN_GREATER_EQUAL :
-					       TOKEN_GREATER);
-	case '"':
-		return make_string_token();
-	}
-
-	return make_error_token("Unexpected character.");
 }

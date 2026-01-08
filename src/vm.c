@@ -3,6 +3,7 @@
 #include "common.h"
 #include "compiler.h"
 #include "log.h"
+#include <stdbool.h>
 #include <stdio.h>
 
 #ifdef DEBUG_TRACE_EXECUTION
@@ -10,11 +11,6 @@
 #endif
 
 static VM vm;
-
-static void reset_stack(void)
-{
-	vm.stack_top = vm.stack;
-}
 
 void push(Value value)
 {
@@ -28,15 +24,39 @@ Value pop(void)
 	return *vm.stack_top;
 }
 
+static void reset_stack(void)
+{
+	vm.stack_top = vm.stack;
+}
+
 void init_vm(void)
 {
-	LOG_INFO("VM was initialized");
+	LOG_INFO("VM initialized");
 	reset_stack();
 }
 
 void free_vm(void)
 {
-	LOG_INFO("VM was freed");
+	LOG_INFO("VM freed");
+}
+
+static void trace(bool disassemble)
+{
+	// Prints the instruction that currently being executed (if enabled) &
+	// content of the stack
+
+	if (disassemble) {
+		size_t offset = (size_t)(vm.ip - vm.chunk->code);
+		disassemble_instruction(vm.chunk, offset);
+	}
+
+	LOG_TRACE("== Stack ==");
+	uint16_t i = 0;
+	for (Value *slot = vm.stack; slot < vm.stack_top; i++, slot++) {
+		LOG_TRACE("[%d] %g", i, *slot);
+	}
+	LOG_TRACE("== Stack END ==");
+	printf("\n");
 }
 
 static InterpretResult run(void)
@@ -50,23 +70,16 @@ static InterpretResult run(void)
 		push(a op b);     \
 	} while (false);
 
-	Value constant;
+	Value constant, top_value;
+	uint8_t instruction;
 
-	for (;;) {
+	printf("\n");
+
+	while (true) {
 #ifdef DEBUG_TRACE_EXECUTION
-		disassemble_instruction(vm.chunk,
-					(size_t)(vm.ip - vm.chunk->code));
-		LOG_TRACE("== Stack ==");
-		uint16_t i = 0;
-		for (Value *slot = vm.stack; slot < vm.stack_top; i++, slot++) {
-			LOG_TRACE("[%d] %g", i, *slot);
-		}
-		printf("\n\n");
-
+		trace(true);
 #endif
 
-		uint8_t instruction;
-		Value top_value;
 		switch (instruction = READ_BYTE()) {
 		case OP_CONSTANT:
 			constant = READ_CONSTANT();
@@ -94,6 +107,7 @@ static InterpretResult run(void)
 			return INTERPRET_OK;
 		}
 	}
+
 #undef READ_BYTE
 #undef READ_CONSTANT
 #undef BINARY_OP
@@ -101,7 +115,8 @@ static InterpretResult run(void)
 
 InterpretResult interpret(const char *source)
 {
-	LOG_DEBUG("Compiling ...");
+	LOG_DEBUG("Compiling START");
+
 	Chunk chunk;
 	init_chunk(&chunk);
 
@@ -116,6 +131,8 @@ InterpretResult interpret(const char *source)
 	run();
 
 	free_chunk(&chunk);
+
+	LOG_DEBUG("Compiling END");
 
 	return INTERPRET_OK;
 }
