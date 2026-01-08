@@ -1,3 +1,4 @@
+#include <stddef.h>
 #include <stdlib.h>
 
 #include "chunk.h"
@@ -15,7 +16,7 @@ void init_chunk(Chunk *chunk)
 	LOG_DEBUG("Chunk was initialized");
 }
 
-void write_chunk(Chunk *chunk, uint8_t byte, int line)
+void write_chunk(Chunk *chunk, uint8_t byte, size_t line)
 {
 	if (chunk->capacity < chunk->count + 1) {
 		size_t old_capacity = chunk->capacity;
@@ -26,7 +27,7 @@ void write_chunk(Chunk *chunk, uint8_t byte, int line)
 					  chunk->capacity);
 	}
 	chunk->code[chunk->count] = byte;
-	chunk->lines[chunk->count] = line;
+	chunk->lines[chunk->count] = (int)line;
 	chunk->count++;
 }
 

@@ -1,6 +1,7 @@
 #include "debug.h"
 #include "log.h"
 #include "value.h"
+#include <stdio.h>
 
 static size_t simple_instruction(const char *name, size_t offset);
 static size_t constant_instruction(const char *name, Chunk *chunk,
@@ -8,11 +9,12 @@ static size_t constant_instruction(const char *name, Chunk *chunk,
 
 void disassemble_chunk(Chunk *chunk, const char *name)
 {
+	fprintf(stdout, "\n");
 	LOG_DEBUG("== %s ==", name);
-
 	for (size_t offset = 0; offset < chunk->count;) {
 		offset = disassemble_instruction(chunk, offset);
 	}
+	LOG_DEBUG("== end ==\n", name);
 }
 
 size_t disassemble_instruction(Chunk *chunk, size_t offset)

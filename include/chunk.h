@@ -25,9 +25,9 @@ typedef struct {
 
 void init_chunk(Chunk *chunk);
 void free_chunk(Chunk *chunk);
-void write_chunk(Chunk *chunk, uint8_t byte, int line);
+void write_chunk(Chunk *chunk, uint8_t byte, size_t line);
 size_t add_constant(Chunk *chunk, Value value);
-void write_constant(Chunk *chunk, Value value, int line);
+void write_constant(Chunk *chunk, Value value, size_t line);
 
 #define LOG_CHUNK(chunk) \
 	LOG_DEBUG("Chunk(capacity=%d count=%d)", chunk.capacity, chunk.count);
