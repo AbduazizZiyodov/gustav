@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 
 #include "memory.h"
 #include "value.h"
@@ -58,4 +59,8 @@ bool values_equal(Value a, Value b)
 	default:
 		return false;
 	}
+}
+bool values_identical(Value a, Value b)
+{
+	return memcmp(&a, &b, sizeof(Value)) == 0;
 }

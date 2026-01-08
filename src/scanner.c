@@ -217,6 +217,7 @@ static TokenType check_keyword(size_t start, size_t length, const char *rest,
 
 	if (length_matches && rest_matches)
 		return match_type;
+
 	return TOKEN_IDENTIFIER;
 }
 
@@ -242,7 +243,15 @@ static TokenType get_identifier_type(void)
 		}
 		break;
 	case 'i':
-		return check_keyword(1, 1, "f", TOKEN_IF);
+		if (scanner_state.current - scanner_state.start > 1) {
+			switch (scanner_state.start[1]) {
+			case 's':
+				return check_keyword(1, 1, "s", TOKEN_IS);
+			case 'f':
+				return check_keyword(1, 1, "f", TOKEN_IF);
+			}
+		}
+		break;
 	case 'n':
 		return check_keyword(1, 2, "il", TOKEN_NIL);
 	case 'o':

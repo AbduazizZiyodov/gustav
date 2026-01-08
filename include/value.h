@@ -33,6 +33,7 @@ typedef struct {
 #define IS_NUMBER(value) IS(NUMBER, value)
 
 bool values_equal(Value a, Value b);
+bool values_identical(Value a, Value b);
 void init_value_array(ValueArray *value_array);
 void free_value_array(ValueArray *value_array);
 void write_value_array(ValueArray *value_array, Value value);

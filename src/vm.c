@@ -133,10 +133,15 @@ static InterpretResult run(void)
 		case OP_FALSE:
 			push(BOOL_VAL(false));
 			break;
-		case OP_EQUAL: {
+
+		case OP_EQUAL:
+		case OP_IS: {
 			Value b = pop();
 			Value a = pop();
-			push(BOOL_VAL(values_equal(a, b)));
+			result_value = BOOL_VAL(instruction == OP_EQUAL ?
+							values_equal(a, b) :
+							values_identical(a, b));
+			push(result_value);
 			break;
 		}
 		case OP_GREATER:
