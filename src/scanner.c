@@ -8,23 +8,24 @@ typedef struct {
 	const char *start;
 	const char *current;
 	size_t line;
-} Scanner;
+} ScannerState;
 
-static Scanner scanner;
+static ScannerState scanner_state;
 
 void init_scanner(const char *source)
 {
-	scanner.start = source;
-	scanner.current = source;
-	scanner.line = 1;
+	scanner_state.start = source;
+	scanner_state.current = source;
+	scanner_state.line = 1;
 }
 
 static Token make_token(TokenType type)
 {
 	return (Token){ .type = type,
-			.start = scanner.start,
-			.length = (size_t)(scanner.current - scanner.start),
-			.line = scanner.line };
+			.start = scanner_state.start,
+			.length = (size_t)(scanner_state.current -
+					   scanner_state.start),
+			.line = scanner_state.line };
 }
 
 static Token make_error_token(const char *message)
@@ -32,39 +33,39 @@ static Token make_error_token(const char *message)
 	return (Token){ .type = TOKEN_ERROR,
 			.start = message,
 			.length = (size_t)strlen(message),
-			.line = scanner.line };
+			.line = scanner_state.line };
 }
 
 static bool is_at_end(void)
 {
-	return *scanner.current == '\0';
+	return *scanner_state.current == '\0';
 }
 
 static char advance(void)
 {
-	scanner.current++;
-	return scanner.current[-1];
+	scanner_state.current++;
+	return scanner_state.current[-1];
 }
 
 static char peek(void)
 {
-	return *scanner.current;
+	return *scanner_state.current;
 }
 
 static char peek_next(void)
 {
 	if (is_at_end())
 		return '\0';
-	return scanner.current[1];
+	return scanner_state.current[1];
 }
 
 static bool match(char expected)
 {
 	if (is_at_end())
 		return false;
-	if (*scanner.current != expected)
+	if (*scanner_state.current != expected)
 		return false;
-	scanner.current++;
+	scanner_state.current++;
 	return true;
 }
 
@@ -80,7 +81,7 @@ static void skip_whitespace(void)
 			advance();
 			break;
 		case '\n':
-			scanner.line++;
+			scanner_state.line++;
 			advance();
 			break;
 		case '/':
@@ -100,7 +101,7 @@ static Token make_string_token(void)
 {
 	while (peek() != '"' && !is_at_end()) {
 		if (peek() == '\n')
-			scanner.line++;
+			scanner_state.line++;
 		advance();
 	}
 
@@ -137,9 +138,10 @@ static bool is_alpha(char c)
 static TokenType check_keyword(size_t start, size_t length, const char *rest,
 			       TokenType match_type)
 {
-	bool length_matches = (size_t)(scanner.current - scanner.start) ==
-			      start + length;
-	bool rest_matches = memcmp(scanner.start + start, rest, length) == 0;
+	bool length_matches = (size_t)(scanner_state.current -
+				       scanner_state.start) == start + length;
+	bool rest_matches = memcmp(scanner_state.start + start, rest, length) ==
+			    0;
 
 	if (length_matches && rest_matches)
 		return match_type;
@@ -148,7 +150,7 @@ static TokenType check_keyword(size_t start, size_t length, const char *rest,
 
 static TokenType get_identifier_type(void)
 {
-	switch (scanner.start[0]) {
+	switch (scanner_state.start[0]) {
 	case 'a':
 		return check_keyword(1, 2, "nd", TOKEN_AND);
 	case 'c':
@@ -156,8 +158,8 @@ static TokenType get_identifier_type(void)
 	case 'e':
 		return check_keyword(1, 3, "lse", TOKEN_ELSE);
 	case 'f':
-		if (scanner.current - scanner.start > 1) {
-			switch (scanner.start[1]) {
+		if (scanner_state.current - scanner_state.start > 1) {
+			switch (scanner_state.start[1]) {
 			case 'a':
 				return check_keyword(2, 3, "lse", TOKEN_FALSE);
 			case 'o':
@@ -180,8 +182,8 @@ static TokenType get_identifier_type(void)
 	case 's':
 		return check_keyword(1, 4, "uper", TOKEN_SUPER);
 	case 't':
-		if (scanner.current - scanner.start > 1) {
-			switch (scanner.start[1]) {
+		if (scanner_state.current - scanner_state.start > 1) {
+			switch (scanner_state.start[1]) {
 			case 'h':
 				return check_keyword(2, 2, "is", TOKEN_THIS);
 			case 'r':
@@ -210,7 +212,7 @@ Token scan_token(void)
 {
 	skip_whitespace();
 
-	scanner.start = scanner.current;
+	scanner_state.start = scanner_state.current;
 
 	if (is_at_end())
 		return make_token(TOKEN_EOF);
