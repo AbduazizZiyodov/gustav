@@ -6,13 +6,19 @@
 
 typedef enum {
 	OP_CONSTANT,
-	OP_CONSTANT_LONG,
+	OP_NIL,
+	OP_TRUE,
+	OP_FALSE,
+	OP_EQUAL,
+	OP_GREATER,
+	OP_LESS,
 	OP_RETURN,
-	OP_NEGATE,
 	OP_ADD,
 	OP_SUBTRACT,
 	OP_MULTIPLY,
-	OP_DIVIDE
+	OP_DIVIDE,
+	OP_NOT,
+	OP_NEGATE,
 } OpCode;
 
 typedef struct {
@@ -27,7 +33,6 @@ void init_chunk(Chunk *chunk);
 void free_chunk(Chunk *chunk);
 void write_chunk(Chunk *chunk, uint8_t byte, size_t line);
 size_t add_constant(Chunk *chunk, Value value);
-void write_constant(Chunk *chunk, Value value, size_t line);
 
 #define LOG_CHUNK(chunk) \
 	LOG_DEBUG("Chunk(capacity=%d count=%d)", chunk.capacity, chunk.count);
