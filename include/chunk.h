@@ -1,8 +1,9 @@
 #ifndef GUSTAV_CHUNK_H
 #define GUSTAV_CHUNK_H
 
-#include "value.h"
 #include <stdint.h>
+
+#include "value.h"
 
 typedef enum {
 	OP_CONSTANT,
@@ -18,6 +19,8 @@ typedef enum {
 	OP_MULTIPLY,
 	OP_DIVIDE,
 	OP_IS,
+	OP_POW,
+	OP_CONCAT,
 	OP_NOT,
 	OP_NEGATE,
 } OpCode;
@@ -34,8 +37,5 @@ void init_chunk(Chunk *chunk);
 void free_chunk(Chunk *chunk);
 void write_chunk(Chunk *chunk, uint8_t byte, size_t line);
 size_t add_constant(Chunk *chunk, Value value);
-
-#define LOG_CHUNK(chunk) \
-	LOG_DEBUG("Chunk(capacity=%d count=%d)", chunk.capacity, chunk.count);
 
 #endif

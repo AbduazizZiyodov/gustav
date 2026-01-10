@@ -69,7 +69,7 @@ static void stdout_callback(log_Event *ev)
 	fprintf(ev->udata, "%s %-5s: ", buf, level_strings[ev->level]);
 #endif
 	vfprintf(ev->udata, ev->fmt, ev->ap);
-	fprintf(ev->udata, "\n");
+	// fprintf(ev->udata, "\n");
 	fflush(ev->udata);
 }
 

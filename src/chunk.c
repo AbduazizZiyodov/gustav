@@ -13,7 +13,7 @@ void init_chunk(Chunk *chunk)
 	chunk->code = NULL;
 	chunk->lines = NULL;
 	init_value_array(&chunk->constants);
-	LOG_DEBUG("Chunk was initialized");
+	LOG_DEBUG("Chunk was initialized\n");
 }
 
 void write_chunk(Chunk *chunk, uint8_t byte, size_t line)
@@ -38,7 +38,7 @@ void free_chunk(Chunk *chunk)
 
 	free_value_array(&chunk->constants);
 	init_chunk(chunk);
-	LOG_DEBUG("Chunk was freed");
+	LOG_DEBUG("Chunk was freed\n");
 }
 
 size_t add_constant(Chunk *chunk, Value value)

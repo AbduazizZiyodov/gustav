@@ -13,11 +13,11 @@ void disassemble_chunk(Chunk *chunk, const char *name)
 {
 	printf("\n");
 
-	LOG_DEBUG("== %s ==", name);
+	LOG_DEBUG("== %s ==\n", name);
 	for (size_t offset = 0; offset < chunk->count;) {
 		offset = disassemble_instruction(chunk, offset);
 	}
-	LOG_DEBUG("== end ==\n", name);
+	LOG_DEBUG("== end ==\n\n", name);
 }
 
 size_t disassemble_instruction(Chunk *chunk, size_t offset)
@@ -49,6 +49,10 @@ size_t disassemble_instruction(Chunk *chunk, size_t offset)
 		return simple_instruction("OP_SUBTRACT", offset);
 	case OP_MULTIPLY:
 		return simple_instruction("OP_MULTIPLY", offset);
+	case OP_POW:
+		return simple_instruction("OP_POW", offset);
+	case OP_CONCAT:
+		return simple_instruction("OP_CONCAT", offset);
 	case OP_DIVIDE:
 		return simple_instruction("OP_DIVIDE", offset);
 	case OP_NOT:
@@ -56,14 +60,14 @@ size_t disassemble_instruction(Chunk *chunk, size_t offset)
 	case OP_NEGATE:
 		return simple_instruction("OP_NEGATE", offset);
 	default:
-		LOG_ERROR("Unknown opcode %d", instruction);
+		LOG_ERROR("Unknown opcode %d\n", instruction);
 		return offset + 1;
 	}
 }
 
 static size_t simple_instruction(const char *name, size_t offset)
 {
-	LOG_TRACE("%04d %s", offset, name);
+	LOG_TRACE("%04d %s\n", offset, name);
 	return offset + 1;
 }
 
@@ -72,7 +76,10 @@ static size_t constant_instruction(const char *name, Chunk *chunk,
 {
 	uint8_t constant = chunk->code[offset + 1];
 	Value value = chunk->constants.values[constant];
-	LOG_TRACE("%04d %s %04d value=%g", offset, name, constant,
-		  AS_NUMBER(value));
+
+	LOG_TRACE("%04d %s %04d value=", offset, name, constant);
+	print_value(value);
+	printf("\n");
+
 	return offset + 2;
 }

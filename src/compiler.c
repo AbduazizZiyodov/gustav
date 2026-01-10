@@ -147,12 +147,12 @@ static void finish_compiling(void)
 	if (!parser_state.had_error)
 		disassemble_chunk(current_chunk(), "code");
 #endif
-	LOG_DEBUG("Compiling finished");
+	LOG_DEBUG("Compiling finished\n");
 }
 
 static void expression(void);
-static void parse_precedence(Precedence precedence);
 static ParseRule *get_rule(TokenType type);
+static void parse_precedence(Precedence precedence);
 
 static void binary(void)
 {
@@ -184,11 +184,17 @@ static void binary(void)
 	case TOKEN_PLUS:
 		emit_byte(OP_ADD);
 		break;
+	case TOKEN_PLUS_PLUS:
+		emit_byte(OP_CONCAT);
+		break;
 	case TOKEN_MINUS:
 		emit_byte(OP_SUBTRACT);
 		break;
 	case TOKEN_STAR:
 		emit_byte(OP_MULTIPLY);
+		break;
+	case TOKEN_POW:
+		emit_byte(OP_POW);
 		break;
 	case TOKEN_SLASH:
 		emit_byte(OP_DIVIDE);
@@ -230,6 +236,12 @@ static void number(void)
 	emit_constant(NUMBER_VAL(value));
 }
 
+static void string(void)
+{
+	emit_constant(OBJ_VAL(copy_string(parser_state.previous.start + 1,
+					  parser_state.previous.length - 2)));
+}
+
 static void unary(void)
 {
 	TokenType operator_type = parser_state.previous.type;
@@ -257,6 +269,7 @@ ParseRule rules[] = {
 	[TOKEN_DOT] = { NULL, NULL, PREC_NONE },
 	[TOKEN_MINUS] = { unary, binary, PREC_TERM },
 	[TOKEN_PLUS] = { NULL, binary, PREC_TERM },
+	[TOKEN_PLUS_PLUS] = { NULL, binary, PREC_TERM },
 	[TOKEN_SEMICOLON] = { NULL, NULL, PREC_NONE },
 	[TOKEN_SLASH] = { NULL, binary, PREC_FACTOR },
 	[TOKEN_STAR] = { NULL, binary, PREC_FACTOR },
@@ -269,7 +282,7 @@ ParseRule rules[] = {
 	[TOKEN_LESS] = { NULL, binary, PREC_COMPARISON },
 	[TOKEN_LESS_EQUAL] = { NULL, binary, PREC_COMPARISON },
 	[TOKEN_IDENTIFIER] = { NULL, NULL, PREC_NONE },
-	[TOKEN_STRING] = { NULL, NULL, PREC_NONE },
+	[TOKEN_STRING] = { string, NULL, PREC_NONE },
 	[TOKEN_NUMBER] = { number, NULL, PREC_NONE },
 	[TOKEN_AND] = { NULL, NULL, PREC_NONE },
 	[TOKEN_CLASS] = { NULL, NULL, PREC_NONE },
@@ -289,6 +302,7 @@ ParseRule rules[] = {
 	[TOKEN_WHILE] = { NULL, NULL, PREC_NONE },
 	[TOKEN_ERROR] = { NULL, NULL, PREC_NONE },
 	[TOKEN_IS] = { NULL, binary, PREC_EQUALITY },
+	[TOKEN_POW] = { NULL, binary, PREC_FACTOR },
 	[TOKEN_EOF] = { NULL, NULL, PREC_NONE },
 };
 

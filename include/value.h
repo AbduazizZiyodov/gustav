@@ -4,13 +4,17 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-typedef enum { VAL_BOOL, VAL_NIL, VAL_NUMBER } ValueType;
+typedef enum { VAL_BOOL, VAL_NIL, VAL_NUMBER, VAL_OBJ } ValueType;
+
+typedef struct Obj Obj;
+typedef struct ObjString ObjString;
 
 typedef struct {
 	ValueType type;
 	union {
 		bool boolean;
 		double number;
+		Obj *obj;
 	} as;
 } Value;
 
@@ -22,15 +26,18 @@ typedef struct {
 
 #define AS_BOOL(value) (((value)).as.boolean)
 #define AS_NUMBER(value) (((value)).as.number)
+#define AS_OBJ(value) (((value)).as.obj)
 
 #define BOOL_VAL(value) ((Value){ VAL_BOOL, { .boolean = value } })
 #define NIL_VAL ((Value){ VAL_NIL, { .number = 0 } })
 #define NUMBER_VAL(value) ((Value){ VAL_NUMBER, { .number = value } })
+#define OBJ_VAL(value) ((Value){ VAL_OBJ, { .obj = value } })
 
 #define IS(TYPE, value) ((value).type == VAL_##TYPE)
 #define IS_BOOL(value) IS(BOOL, value)
 #define IS_NIL(value) IS(NIL, value)
 #define IS_NUMBER(value) IS(NUMBER, value)
+#define IS_OBJ(value) IS(OBJ, value)
 
 bool values_equal(Value a, Value b);
 bool values_identical(Value a, Value b);

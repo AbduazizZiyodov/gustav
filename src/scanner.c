@@ -66,11 +66,11 @@ Token scan_token(void)
 	case '-':
 		return make_token(TOKEN_MINUS);
 	case '+':
-		return make_token(TOKEN_PLUS);
+		return make_token(match('+') ? TOKEN_PLUS_PLUS : TOKEN_PLUS);
 	case '/':
 		return make_token(TOKEN_SLASH);
 	case '*':
-		return make_token(TOKEN_STAR);
+		return make_token(match('*') ? TOKEN_POW : TOKEN_STAR);
 	case '!':
 		return make_token(match('=') ? TOKEN_BANG_EQUAL : TOKEN_BANG);
 	case '=':
