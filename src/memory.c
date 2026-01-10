@@ -1,6 +1,6 @@
-#include "log.h"
 #include <stdlib.h>
 
+#include "log.h"
 #include "memory.h"
 #include "object.h"
 #include "value.h"

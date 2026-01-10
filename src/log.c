@@ -23,8 +23,9 @@ Thanks to author.
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
-
 #include "log.h"
+
+#ifdef DEBUG
 
 #define MAX_CALLBACKS 32
 
@@ -173,3 +174,13 @@ void log_log(int level, const char *file, int line, const char *fmt, ...)
 
 	unlock();
 }
+
+#else
+
+void log_log(int level __attribute__((unused)),
+	     const char *file __attribute__((unused)),
+	     int line __attribute__((unused)),
+	     const char *fmt __attribute__((unused)), ...)
+{
+}
+#endif

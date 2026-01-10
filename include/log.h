@@ -5,6 +5,8 @@
  * under the terms of the MIT license. See `log.c` for details.
  */
 
+#ifdef DEBUG
+
 #ifndef LOG_H
 #define LOG_H
 
@@ -45,5 +47,20 @@ int log_add_callback(log_LogFn fn, void *udata, int level);
 int log_add_fp(FILE *fp, int level);
 
 void log_log(int level, const char *file, int line, const char *fmt, ...);
+#endif
+
+#else
+
+#define LOG_TRACE(...)
+#define LOG_DEBUG(...)
+#define LOG_INFO(...)
+#define LOG_WARN(...)
+#define LOG_ERROR(...)
+#define LOG_FATAL(...)
+
+void log_log(int level __attribute__((unused)),
+	     const char *file __attribute__((unused)),
+	     int line __attribute__((unused)),
+	     const char *fmt __attribute__((unused)), ...);
 
 #endif
