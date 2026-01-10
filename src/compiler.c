@@ -1,3 +1,4 @@
+#include <errno.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -227,7 +228,14 @@ static void grouping(void)
 
 static void number(void)
 {
+	errno = 0;
 	double value = strtod(parser_state.previous.start, NULL);
+
+	if (errno == ERANGE) {
+		error_at(&parser_state.previous, "Number literal out of range");
+		return;
+	}
+
 	emit_constant(NUMBER_VAL(value));
 }
 
