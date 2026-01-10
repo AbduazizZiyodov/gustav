@@ -13,11 +13,11 @@ static void run_file(const char *path);
 
 static void gustav_shutdown(int sig_num)
 {
-	printf("\n");
-	LOG_WARN("Caught SIGINT(%d), exiting ...\n", sig_num);
+	printf("\nCaught SIGINT(%d), exiting ...\n", sig_num);
 	free_vm();
 	exit(EXIT_SUCCESS);
 }
+
 int main(int argc, char **argv)
 {
 	if (signal(SIGINT, gustav_shutdown) == SIG_ERR) {
@@ -48,6 +48,7 @@ static void repl(void)
 
 	while (true) {
 		printf("[%lld] => ", command_num++);
+		fflush(stdout);
 
 		if (!fgets(line, sizeof(line), stdin)) {
 			printf("\n");

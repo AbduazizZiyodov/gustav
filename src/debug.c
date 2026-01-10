@@ -1,3 +1,5 @@
+#ifdef DEBUG
+
 #include <stdio.h>
 
 #include "chunk.h"
@@ -5,7 +7,8 @@
 #include "log.h"
 #include "value.h"
 
-static size_t simple_instruction(const char *name, size_t offset);
+static uint8_t current_instruction;
+
 static size_t constant_instruction(const char *name, Chunk *chunk,
 				   size_t offset);
 
@@ -13,7 +16,7 @@ void disassemble_chunk(Chunk *chunk, const char *name)
 {
 	printf("\n");
 
-	LOG_DEBUG("== %s ==\n", name);
+	LOG_DEBUG("== [%s] ==\n", name);
 	for (size_t offset = 0; offset < chunk->count;) {
 		offset = disassemble_instruction(chunk, offset);
 	}
@@ -22,53 +25,34 @@ void disassemble_chunk(Chunk *chunk, const char *name)
 
 size_t disassemble_instruction(Chunk *chunk, size_t offset)
 {
-	uint8_t instruction = chunk->code[offset];
+	current_instruction = chunk->code[offset];
 
-	switch (instruction) {
+	switch (current_instruction) {
 	case OP_RETURN:
-		return simple_instruction("OP_RETURN", offset);
+	case OP_NIL:
+	case OP_FALSE:
+	case OP_EQUAL:
+	case OP_IS:
+	case OP_GREATER:
+	case OP_LESS:
+	case OP_TRUE:
+	case OP_ADD:
+	case OP_SUBTRACT:
+	case OP_MULTIPLY:
+	case OP_POW:
+	case OP_CONCAT:
+	case OP_DIVIDE:
+	case OP_NOT:
+	case OP_NEGATE:
+		LOG_TRACE("%04d %s\n", offset,
+			  OP_CODE_STRING[current_instruction]);
+		return offset + 1;
 	case OP_CONSTANT:
 		return constant_instruction("OP_CONSTANT", chunk, offset);
-	case OP_NIL:
-		return simple_instruction("OP_NIL", offset);
-	case OP_FALSE:
-		return simple_instruction("OP_FALSE", offset);
-	case OP_EQUAL:
-		return simple_instruction("OP_EQUAL", offset);
-	case OP_IS:
-		return simple_instruction("OP_IS", offset);
-	case OP_GREATER:
-		return simple_instruction("OP_GREATER", offset);
-	case OP_LESS:
-		return simple_instruction("OP_LESS", offset);
-	case OP_TRUE:
-		return simple_instruction("OP_TRUE", offset);
-	case OP_ADD:
-		return simple_instruction("OP_ADD", offset);
-	case OP_SUBTRACT:
-		return simple_instruction("OP_SUBTRACT", offset);
-	case OP_MULTIPLY:
-		return simple_instruction("OP_MULTIPLY", offset);
-	case OP_POW:
-		return simple_instruction("OP_POW", offset);
-	case OP_CONCAT:
-		return simple_instruction("OP_CONCAT", offset);
-	case OP_DIVIDE:
-		return simple_instruction("OP_DIVIDE", offset);
-	case OP_NOT:
-		return simple_instruction("OP_NEGATE", offset);
-	case OP_NEGATE:
-		return simple_instruction("OP_NEGATE", offset);
 	default:
-		LOG_ERROR("Unknown opcode %d\n", instruction);
+		LOG_ERROR("Unknown opcode %d\n", current_instruction);
 		return offset + 1;
 	}
-}
-
-static size_t simple_instruction(const char *name, size_t offset)
-{
-	LOG_TRACE("%04d %s\n", offset, name);
-	return offset + 1;
 }
 
 static size_t constant_instruction(const char *name, Chunk *chunk,
@@ -83,3 +67,14 @@ static size_t constant_instruction(const char *name, Chunk *chunk,
 
 	return offset + 2;
 }
+
+#else
+
+#include "chunk.h"
+#include "debug.h"
+
+void disassemble_chunk(Chunk *chunk __attribute__((unused)),
+		       const char *name __attribute__((unused)))
+{
+}
+#endif

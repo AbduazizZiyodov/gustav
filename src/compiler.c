@@ -9,12 +9,9 @@
 #include "compiler.h"
 #include "debug.h"
 #include "log.h"
+#include "object.h"
 #include "scanner.h"
 #include "value.h"
-
-#ifdef DEBUG_PRINT_CODE
-#include "debug.h"
-#endif
 
 #define EMIT_BYTES(first_byte, second_byte) \
 	emit_byte(first_byte);              \
@@ -143,11 +140,9 @@ static void emit_constant(Value value)
 static void finish_compiling(void)
 {
 	emit_return();
-#ifdef DEBUG_PRINT_CODE
+
 	if (!parser_state.had_error)
 		disassemble_chunk(current_chunk(), "code");
-#endif
-	LOG_DEBUG("Compiling finished\n");
 }
 
 static void expression(void);
@@ -203,7 +198,7 @@ static void binary(void)
 		emit_byte(OP_IS);
 		break;
 	default:
-		return;
+		UNREACHABLE();
 	}
 }
 
@@ -220,7 +215,7 @@ static void literal(void)
 		emit_byte(OP_NIL);
 		break;
 	default:
-		return;
+		UNREACHABLE();
 	}
 }
 
@@ -256,7 +251,7 @@ static void unary(void)
 		emit_byte(OP_NOT);
 		break;
 	default:
-		return;
+		UNREACHABLE();
 	}
 }
 

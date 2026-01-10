@@ -3,17 +3,18 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "chunk.h"
 #include "common.h"
 #include "compiler.h"
 #include "log.h"
 #include "memory.h"
+#include "object.h"
 #include "value.h"
 #include "vm.h"
-#include <string.h>
 
-#ifdef DEBUG_TRACE_EXECUTION
+#if DEBUG
 #include "debug.h"
 #endif
 
@@ -82,6 +83,7 @@ void free_vm(void)
 	LOG_INFO("VM freed\n");
 }
 
+#ifdef DEBUG
 static void trace(void)
 {
 	// Prints the instruction that currently being executed (if enabled) &
@@ -100,6 +102,11 @@ static void trace(void)
 	LOG_TRACE("== Stack END ==\n");
 	printf("\n");
 }
+#else
+static void trace(void)
+{
+}
+#endif
 
 static Value peek(int distance)
 {
@@ -136,12 +143,8 @@ static InterpretResult run(void)
 	uint8_t instruction;
 	double a, b;
 
-	printf("\n");
-
 	while (true) {
-#ifdef DEBUG_TRACE_EXECUTION
 		trace();
-#endif
 
 		switch (instruction = READ_BYTE()) {
 		case OP_CONSTANT:
@@ -228,11 +231,12 @@ static InterpretResult run(void)
 			break;
 		}
 		case OP_RETURN:
-			LOG_TRACE("RETURN\n");
-			printf("\t->\t");
+			LOG_TRACE("RETURN => ");
 			print_value(pop());
 			putchar('\n');
 			return INTERPRET_OK;
+		default:
+			UNREACHABLE();
 		}
 	}
 }

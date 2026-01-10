@@ -20,18 +20,19 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 set(LINE_LENGTH 1024 CACHE STRING "Maximum line length for REPL")
+set(STACK_MAX 512 CACHE STRING "Stack size in VM")
 
 add_executable(gustav 
     src/main.c 
     src/chunk.c 
     src/memory.c
-    src/log.c
     src/debug.c
     src/value.c
     src/vm.c
     src/scanner.c
     src/compiler.c
     src/object.c
+    src/log.c
 )
 
 target_include_directories(gustav 
@@ -42,10 +43,9 @@ target_include_directories(gustav
 target_compile_definitions(gustav PRIVATE 
     LOG_USE_COLOR
     LINE_LENGTH=${LINE_LENGTH}
-    $<$<CONFIG:Debug>:DEBUG_BUILD>
-    $<$<CONFIG:Release>:RELEASE_BUILD>
+    STACK_MAX=${STACK_MAX}
+    $<$<CONFIG:Debug>:DEBUG>
 )
-
 target_compile_options(gustav PRIVATE
     -Wall
     -Wextra
@@ -61,6 +61,12 @@ target_compile_options(gustav PRIVATE
     $<$<CONFIG:Debug>:-g -O0 -fsanitize=address -fsanitize=undefined>
     $<$<CONFIG:Release>:-O3 -DNDEBUG>
 )
+
+find_library(MATH_LIBRARY m)
+if(NOT MATH_LIBRARY)
+    message(FATAL_ERROR "Math library not found")
+endif()
+target_link_libraries(gustav PRIVATE ${MATH_LIBRARY})
 
 target_link_options(gustav PRIVATE
     $<$<CONFIG:Debug>:-fsanitize=address -fsanitize=undefined>
