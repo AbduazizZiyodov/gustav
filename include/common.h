@@ -6,6 +6,8 @@
 #include <stdint.h>
 
 #ifdef DEBUG
+#include <stdlib.h>
+
 #define UNREACHABLE()                                                        \
 	do {                                                                 \
 		fprintf(stderr,                                              \
