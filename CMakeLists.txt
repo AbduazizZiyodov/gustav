@@ -31,6 +31,7 @@ add_executable(gustav
     src/vm.c
     src/scanner.c
     src/compiler.c
+    src/object.c
 )
 
 target_include_directories(gustav 

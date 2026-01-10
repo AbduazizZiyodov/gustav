@@ -1,9 +1,45 @@
+#include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "log.h"
 #include "vm.h"
+
+static void repl(void);
+static char *read_file(const char *path);
+static void run_file(const char *path);
+
+static void gustav_shutdown(int sig_num)
+{
+	printf("\n");
+	LOG_WARN("Caught SIGINT(%d), exiting ...\n", sig_num);
+	free_vm();
+	exit(EXIT_SUCCESS);
+}
+int main(int argc, char **argv)
+{
+	if (signal(SIGINT, gustav_shutdown) == SIG_ERR) {
+		fprintf(stderr,
+			"An error occurred while setting a signal handler.\n");
+		return EXIT_FAILURE;
+	}
+
+	init_vm();
+
+	if (argc == 1) {
+		repl();
+	} else if (argc == 2) {
+		run_file(argv[1]);
+	} else {
+		fprintf(stderr, "Usage: gustav [path]\n");
+		exit(64);
+	}
+
+	free_vm();
+	return EXIT_SUCCESS;
+}
 
 static void repl(void)
 {
@@ -71,21 +107,4 @@ static void run_file(const char *path)
 	default:
 		break;
 	}
-}
-
-int main(int argc, char **argv)
-{
-	init_vm();
-
-	if (argc == 1) {
-		repl();
-	} else if (argc == 2) {
-		run_file(argv[1]);
-	} else {
-		fprintf(stderr, "Usage: gustav [path]\n");
-		exit(64);
-	}
-
-	free_vm();
-	return EXIT_SUCCESS;
 }
