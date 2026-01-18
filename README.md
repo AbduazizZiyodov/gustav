@@ -12,3 +12,4 @@
 
 - [ ] Generic array implementation
 - [ ] `OP_CONSTANT_LONG` implementation
+- [ ] Think about hash set on string interning

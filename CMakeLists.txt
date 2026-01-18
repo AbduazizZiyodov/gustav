@@ -41,6 +41,12 @@ set(
     CACHE STRING "Stack size in VM"
 )
 
+set(
+    HASH_TABLE_MAX_LOAD_FACTOR
+    0.75
+)
+
+
 add_executable(
     gustav
     src/main.c
@@ -54,6 +60,7 @@ add_executable(
     src/object.c
     src/log.c
     src/cli.c
+    src/hash_table.c
 )
 
 target_include_directories(
@@ -67,6 +74,7 @@ target_compile_definitions(
   LOG_USE_COLOR 
   LINE_LENGTH=${LINE_LENGTH}
   STACK_MAX=${STACK_MAX}
+  HASH_TABLE_MAX_LOAD_FACTOR=${HASH_TABLE_MAX_LOAD_FACTOR}
   $<$<CONFIG:Debug>:DEBUG>
 )
 
