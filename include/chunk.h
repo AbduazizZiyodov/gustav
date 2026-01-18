@@ -22,7 +22,6 @@
 	DO(OP_SUBTRACT)     \
 	DO(OP_MULTIPLY)     \
 	DO(OP_DIVIDE)       \
-	DO(OP_IS)           \
 	DO(OP_POW)          \
 	DO(OP_CONCAT)       \
 	DO(OP_NOT)          \

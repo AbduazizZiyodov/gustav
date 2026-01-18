@@ -199,9 +199,6 @@ static void binary(void)
 	case TOKEN_SLASH:
 		emit_byte(OP_DIVIDE);
 		break;
-	case TOKEN_IS:
-		emit_byte(OP_IS);
-		break;
 	default:
 		UNREACHABLE();
 	}
@@ -308,7 +305,6 @@ ParseRule rules[] = {
 	[TOKEN_VAR] = { NULL, NULL, PREC_NONE },
 	[TOKEN_WHILE] = { NULL, NULL, PREC_NONE },
 	[TOKEN_ERROR] = { NULL, NULL, PREC_NONE },
-	[TOKEN_IS] = { NULL, binary, PREC_EQUALITY },
 	[TOKEN_POW] = { NULL, binary, PREC_FACTOR },
 	[TOKEN_EOF] = { NULL, NULL, PREC_NONE },
 };

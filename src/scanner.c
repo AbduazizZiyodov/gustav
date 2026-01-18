@@ -261,17 +261,7 @@ static TokenType get_identifier_type(void)
 		}
 		break;
 	case 'i':
-		if (scanner_state.current - scanner_state.start > 1) {
-			switch (scanner_state.start[1]) {
-			case 's':
-				return check_keyword(1, 1, "s", TOKEN_IS);
-			case 'f':
-				return check_keyword(1, 1, "f", TOKEN_IF);
-			default:
-				UNREACHABLE();
-			}
-		}
-		break;
+		return check_keyword(1, 1, "f", TOKEN_IF);
 	case 'n':
 		return check_keyword(1, 2, "il", TOKEN_NIL);
 	case 'o':
