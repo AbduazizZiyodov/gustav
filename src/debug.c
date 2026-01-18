@@ -33,7 +33,6 @@ size_t disassemble_instruction(chunk_t *chunk, size_t offset)
 	case OP_NIL:
 	case OP_FALSE:
 	case OP_EQUAL:
-	case OP_IS:
 	case OP_GREATER:
 	case OP_LESS:
 	case OP_TRUE:
