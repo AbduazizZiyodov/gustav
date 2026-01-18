@@ -1,4 +1,5 @@
 #include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -6,8 +7,9 @@
 #include "log.h"
 #include "memory.h"
 #include "value.h"
+#include "common.h"
 
-void init_chunk(Chunk *chunk)
+void init_chunk(chunk_t *chunk)
 {
 	chunk->count = 0;
 	chunk->capacity = 0;
@@ -17,7 +19,7 @@ void init_chunk(Chunk *chunk)
 	LOG_DEBUG("Chunk was initialized\n");
 }
 
-void write_chunk(Chunk *chunk, uint8_t byte, size_t line)
+void write_chunk(chunk_t *chunk, uint8_t byte, size_t line)
 {
 	if (chunk->capacity < chunk->count + 1) {
 		size_t old_capacity = chunk->capacity;
@@ -32,7 +34,7 @@ void write_chunk(Chunk *chunk, uint8_t byte, size_t line)
 	chunk->count++;
 }
 
-void free_chunk(Chunk *chunk)
+void free_chunk(chunk_t *chunk)
 {
 	FREE_ARRAY(uint8_t, chunk->code, chunk->capacity);
 	FREE_ARRAY(int, chunk->lines, chunk->capacity);
@@ -42,13 +44,12 @@ void free_chunk(Chunk *chunk)
 	LOG_DEBUG("Chunk was freed\n");
 }
 
-size_t add_constant(Chunk *chunk, Value value)
+size_t add_constant(chunk_t *chunk, value_t value)
 {
 	write_value_array(&chunk->constants, value);
 
 	if (chunk->constants.count > UINT8_MAX) {
-		fprintf(stderr, "Error: Too many constants in one chunk.\n");
-		exit(EXIT_FAILURE);
+		gustav_error(EXIT_FAILURE, "Too many constants in one chunk");
 	}
 
 	return chunk->constants.count - 1;
