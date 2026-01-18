@@ -121,14 +121,14 @@ static void concatenate(void)
 	obj_string_t *b = AS_STRING(pop());
 	obj_string_t *a = AS_STRING(pop());
 
-	size_t total_length = a->length + b->length + 1; // 1 for \0
+	size_t total_length = a->length + b->length; // 1 for \0
 
-	char *chars = ALLOCATE(char, total_length);
+	char *chars = ALLOCATE(char, total_length + 1);
 
 	memcpy(chars, a->chars, a->length);
 	memcpy(chars + a->length, b->chars, b->length);
 
-	chars[total_length - 1] = '\0';
+	chars[total_length] = '\0';
 
 	obj_string_t *concatenated = take_string(chars, total_length);
 
