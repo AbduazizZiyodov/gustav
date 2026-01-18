@@ -5,26 +5,26 @@
 #include "value.h"
 
 typedef struct {
-	Chunk *chunk;
+	chunk_t *chunk;
 	uint8_t *ip;
-	Value stack[STACK_MAX];
-	Value *stack_top;
-	Obj *objects;
+	value_t stack[STACK_MAX];
+	value_t *stack_top;
+	obj_t *objects;
 } VM;
 
 typedef enum {
 	INTERPRET_OK,
 	INTERPRET_COMPILE_ERROR,
 	INTERPRET_RUNTIME_ERROR
-} InterpretResult;
+} interpreter_result_t;
 
 extern VM vm;
 
 void init_vm(void);
 void free_vm(void);
-InterpretResult interpret(const char *source);
+interpreter_result_t interpret(const char *source);
 
-void push(Value value);
-Value pop(void);
+void push(value_t value);
+value_t pop(void);
 
 #endif

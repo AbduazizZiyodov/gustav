@@ -4,8 +4,8 @@
 #include <stddef.h>
 
 // Source - https://stackoverflow.com/a/10966395
-// Posted by Terrence M, modified by community. See post 'Timeline' for change history
-// Retrieved 2026-01-08, License - CC BY-SA 3.0
+// Posted by Terrence M, modified by community. See post 'Timeline' for change
+// history Retrieved 2026-01-08, License - CC BY-SA 3.0
 #define str(x) #x
 #define xstr(x) str(x)
 #define FOREACH_TOKEN_TYPE(DO)  \
@@ -66,9 +66,9 @@ typedef struct {
 	const char *start;
 	size_t length;
 	size_t line;
-} Token;
+} token_t;
 
 void init_scanner(const char *source);
-Token scan_token(void);
+token_t scan_token(void);
 
 #endif

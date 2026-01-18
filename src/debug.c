@@ -1,5 +1,6 @@
 #ifdef DEBUG
 
+#include <stdint.h>
 #include <stdio.h>
 
 #include "chunk.h"
@@ -9,10 +10,10 @@
 
 static uint8_t current_instruction;
 
-static size_t constant_instruction(const char *name, Chunk *chunk,
+static size_t constant_instruction(const char *name, chunk_t *chunk,
 				   size_t offset);
 
-void disassemble_chunk(Chunk *chunk, const char *name)
+void disassemble_chunk(chunk_t *chunk, const char *name)
 {
 	printf("\n");
 
@@ -23,7 +24,7 @@ void disassemble_chunk(Chunk *chunk, const char *name)
 	LOG_DEBUG("== end ==\n\n", name);
 }
 
-size_t disassemble_instruction(Chunk *chunk, size_t offset)
+size_t disassemble_instruction(chunk_t *chunk, size_t offset)
 {
 	current_instruction = chunk->code[offset];
 
@@ -55,11 +56,11 @@ size_t disassemble_instruction(Chunk *chunk, size_t offset)
 	}
 }
 
-static size_t constant_instruction(const char *name, Chunk *chunk,
+static size_t constant_instruction(const char *name, chunk_t *chunk,
 				   size_t offset)
 {
 	uint8_t constant = chunk->code[offset + 1];
-	Value value = chunk->constants.values[constant];
+	value_t value = chunk->constants.values[constant];
 
 	LOG_TRACE("%04d %s %04d value=", offset, name, constant);
 	print_value(value);
@@ -73,7 +74,7 @@ static size_t constant_instruction(const char *name, Chunk *chunk,
 #include "chunk.h"
 #include "debug.h"
 
-void disassemble_chunk(Chunk *chunk __attribute__((unused)),
+void disassemble_chunk(chunk_t *chunk __attribute__((unused)),
 		       const char *name __attribute__((unused)))
 {
 }
