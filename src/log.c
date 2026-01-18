@@ -23,10 +23,10 @@ Thanks to author.
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
+
 #include "log.h"
 
 #ifdef DEBUG
-
 #define MAX_CALLBACKS 32
 
 typedef struct {
@@ -64,24 +64,24 @@ static void stdout_callback(log_Event *ev)
 	char buf[16];
 	buf[strftime(buf, sizeof(buf), "%H:%M:%S", ev->time)] = '\0';
 #ifdef LOG_USE_COLOR
-	fprintf(ev->udata, "%s %s%-5s\x1b[0m \x1b[90m:\x1b[0m ", buf,
-		level_colors[ev->level], level_strings[ev->level]);
+	(void)fprintf(ev->udata, "%s %s%-5s\x1b[0m \x1b[90m:\x1b[0m ", buf,
+		      level_colors[ev->level], level_strings[ev->level]);
 #else
 	fprintf(ev->udata, "%s %-5s: ", buf, level_strings[ev->level]);
 #endif
-	vfprintf(ev->udata, ev->fmt, ev->ap);
+	(void)vfprintf(ev->udata, ev->fmt, ev->ap);
 	// fprintf(ev->udata, "\n");
-	fflush(ev->udata);
+	(void)fflush(ev->udata);
 }
 
 static void file_callback(log_Event *ev)
 {
 	char buf[64];
 	buf[strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", ev->time)] = '\0';
-	fprintf(ev->udata, "%s %-5s: ", buf, level_strings[ev->level]);
-	vfprintf(ev->udata, ev->fmt, ev->ap);
-	fprintf(ev->udata, "\n");
-	fflush(ev->udata);
+	(void)fprintf(ev->udata, "%s %-5s: ", buf, level_strings[ev->level]);
+	(void)vfprintf(ev->udata, ev->fmt, ev->ap);
+	(void)fprintf(ev->udata, "\n");
+	(void)fflush(ev->udata);
 }
 
 static void lock(void)
@@ -174,7 +174,6 @@ void log_log(int level, const char *file, int line, const char *fmt, ...)
 
 	unlock();
 }
-
 #else
 
 void log_log(int level __attribute__((unused)),
@@ -183,4 +182,5 @@ void log_log(int level __attribute__((unused)),
 	     const char *fmt __attribute__((unused)), ...)
 {
 }
+
 #endif
