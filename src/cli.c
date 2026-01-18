@@ -1,0 +1,115 @@
+#include <signal.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "cli.h"
+#include "common.h"
+#include "log.h"
+#include "version.h"
+#include "vm.h"
+
+#ifdef DEBUG
+#define BUILD_TYPE "DEBUG"
+#else
+#define BUILD_TYPE "RELEASE"
+#endif
+
+static char *read_file(const char *path);
+
+volatile sig_atomic_t shutdown_requested = 0;
+
+void repl(void)
+{
+	char line[LINE_LENGTH];
+	for (;;) {
+		if (shutdown_requested) {
+			break; // = exit
+		}
+
+		printf("> ");
+		(void)fflush(stdout);
+
+		if (!fgets(line, sizeof(line), stdin)) {
+			printf("\n");
+			break; // = exit
+		}
+
+		interpret(line);
+	}
+}
+
+void run_file(const char *path)
+{
+	char *source = read_file(path);
+	interpreter_result_t result = interpret(source);
+	free(source);
+
+	switch (result) {
+	case INTERPRET_COMPILE_ERROR:
+		_Exit(65);
+	case INTERPRET_RUNTIME_ERROR:
+		_Exit(64);
+	default:
+		break;
+	}
+}
+
+// Bob hates me
+static char *read_file(const char *path)
+{
+	FILE *file = fopen(path, "rb");
+
+	if (file == NULL) {
+		gustav_error(74, "Could not open file: %s\n", path);
+	}
+
+	if (fseek(file, 0L, SEEK_END) != 0) {
+		gustav_error(74, "Failed to seek to end: %s\n", path);
+	}
+
+	long file_size = ftell(file);
+
+	if (file_size == -1L) {
+		gustav_error(74, "Failed to get file size: %s\n", path);
+	}
+
+	if (fseek(file, 0L, SEEK_SET) != 0) {
+		gustav_error(74, "Failed to rewind file: %s\n", path);
+	}
+
+	char *buffer = (char *)malloc((sizeof(char) * (size_t)file_size) + 1);
+	if (buffer == NULL) {
+		gustav_error(74,
+			     "Not enough memory to allocate buffer for %s\n",
+			     path);
+	}
+
+	size_t bytes_read =
+		fread(buffer, sizeof(char), (size_t)file_size, file);
+
+	if (bytes_read < (size_t)file_size) {
+		if (ferror(file)) {
+			(void)fclose(file);
+			free(buffer);
+			gustav_error(74, "Could not read the file %s\n", path);
+		}
+	}
+
+	buffer[bytes_read] = '\0';
+
+	if (fclose(file) != 0) {
+		free(buffer);
+		gustav_error(74, "Failed to close file: %s\n", path);
+	}
+
+	return buffer;
+}
+
+void show_compile_time_info(void)
+{
+	printf("Gustav v%s [build=%s | compiler=%s | version=%s | opt=%s | arch=%s | os=%s | compiled=\"%s %s\"]\n\n",
+	       PROJECT_VERSION_STRING, BUILD_TYPE, COMPILER_NAME,
+	       COMPILER_VERSION, OPT_LEVEL, ARCH, OS, __DATE__, __TIME__);
+}
