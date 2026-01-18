@@ -53,6 +53,7 @@ add_executable(
     src/compiler.c
     src/object.c
     src/log.c
+    src/cli.c
 )
 
 target_include_directories(
@@ -65,9 +66,17 @@ target_compile_definitions(
   gustav PRIVATE 
   LOG_USE_COLOR 
   LINE_LENGTH=${LINE_LENGTH}
-  STACK_MAX=${STACK_MAX} 
+  STACK_MAX=${STACK_MAX}
   $<$<CONFIG:Debug>:DEBUG>
 )
+
+configure_file(
+    "${CMAKE_SOURCE_DIR}/include/version.h.in"
+    "${CMAKE_SOURCE_DIR}/include/version.h"
+    @ONLY
+)
+
+target_include_directories(gustav PRIVATE ${CMAKE_SOURCE_DIR}/include)
 
 target_compile_options(
     gustav
