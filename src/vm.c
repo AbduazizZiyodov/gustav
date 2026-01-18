@@ -9,6 +9,7 @@
 #include "chunk.h"
 #include "common.h"
 #include "compiler.h"
+#include "hash_table.h"
 #include "log.h"
 #include "memory.h"
 #include "object.h"
@@ -75,12 +76,14 @@ void init_vm(void)
 	LOG_INFO("VM initialized\n");
 	reset_stack();
 	vm.objects = NULL;
+	init_hash_table(&vm.strings);
 }
 
 void free_vm(void)
 {
 	LOG_TRACE("Running cleanup ...\n");
 	free_objects();
+	free_hash_table(&vm.strings);
 	LOG_INFO("VM freed\n");
 }
 
@@ -118,8 +121,8 @@ static bool is_falsey(value_t value)
 
 static void concatenate(void)
 {
-	obj_string_t *b = AS_STRING(pop());
-	obj_string_t *a = AS_STRING(pop());
+	string_t *b = AS_STRING(pop());
+	string_t *a = AS_STRING(pop());
 
 	size_t total_length = a->length + b->length;
 
@@ -130,11 +133,12 @@ static void concatenate(void)
 
 	chars[total_length] = '\0';
 
-	obj_string_t *concatenated = take_string(chars, total_length);
+	string_t *concatenated = take_string(chars, total_length);
 
 	push(OBJ_VAL(concatenated));
 }
 
+/* NOLINTNEXTLINE(readability-function-size) */
 static interpreter_result_t run(void)
 {
 	value_t result_value;

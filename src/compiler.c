@@ -314,7 +314,7 @@ static void parse_precedence(Precedence precedence)
 	advance();
 	ParseFn prefix_rule = get_rule(parser_state.previous.type)->prefix;
 
-	if (prefix_rule == NULL) {
+	if (prefix_rule is NULL) {
 		compiler_error("Expect expression.");
 		return;
 	}
