@@ -9,6 +9,7 @@
 #include "vm.h"
 
 static void repl(void);
+void show_compile_time_info(void);
 static char *read_file(const char *path);
 static void run_file(const char *path);
 
@@ -41,7 +42,7 @@ int main(int argc, char **argv)
 	return EXIT_SUCCESS;
 }
 
-void repl(void)
+void show_compile_time_info(void)
 {
 #ifdef DEBUG
 	char build_type[] = "debug";
@@ -49,8 +50,13 @@ void repl(void)
 	char build_type[] = "release";
 #endif
 
-	printf("[compiled version at %s, build_type=%s]\n", __TIME__,
-	       build_type);
+	printf("[build_type=%s | compiled at \"%s %s\"]\n", build_type,
+	       __DATE__, __TIME__);
+}
+
+void repl(void)
+{
+	show_compile_time_info();
 
 	char line[LINE_LENGTH];
 	for (;;) {
@@ -67,6 +73,24 @@ void repl(void)
 		}
 
 		interpret(line);
+	}
+}
+
+static void run_file(const char *path)
+{
+	show_compile_time_info();
+
+	char *source = read_file(path);
+	interpreter_result_t result = interpret(source);
+	free(source);
+
+	switch (result) {
+	case INTERPRET_COMPILE_ERROR:
+		_Exit(65);
+	case INTERPRET_RUNTIME_ERROR:
+		_Exit(64);
+	default:
+		break;
 	}
 }
 
@@ -119,20 +143,4 @@ static char *read_file(const char *path)
 	}
 
 	return buffer;
-}
-
-static void run_file(const char *path)
-{
-	char *source = read_file(path);
-	interpreter_result_t result = interpret(source);
-	free(source);
-
-	switch (result) {
-	case INTERPRET_COMPILE_ERROR:
-		_Exit(65);
-	case INTERPRET_RUNTIME_ERROR:
-		_Exit(64);
-	default:
-		break;
-	}
 }
