@@ -19,8 +19,8 @@
 	emit_byte(second_byte);
 
 typedef struct {
-	Token current;
-	Token previous;
+	token_t current;
+	token_t previous;
 	bool had_error;
 	bool panic_mode;
 } ParserState;
@@ -49,36 +49,38 @@ typedef struct {
 
 ParserState parser_state;
 
-Chunk *compiling_chunk;
+chunk_t *compiling_chunk;
 
-static Chunk *current_chunk(void)
+static chunk_t *current_chunk(void)
 {
 	return compiling_chunk;
 }
 
-static void error_at(Token *token, const char *message)
+static void error_at(token_t *token, const char *message)
 {
-	if (parser_state.panic_mode)
+	if (parser_state.panic_mode) {
 		return;
+	}
 
 	parser_state.panic_mode = true;
 
-	fprintf(stderr, "[line %lu] Error", token->line);
+	(void)fprintf(stderr, "[line %lu] Error", token->line);
 
 	if (token->type == TOKEN_EOF) {
-		fprintf(stderr, " at end");
+		(void)fprintf(stderr, " at end");
 	} else if (token->type == TOKEN_ERROR) {
 		//
 	} else {
-		fprintf(stderr, " at '%.*s'", (int)token->length, token->start);
+		(void)fprintf(stderr, " at '%.*s'", (int)token->length,
+			      token->start);
 	}
 
-	fprintf(stderr, ": %s\n", message);
+	(void)fprintf(stderr, ": %s\n", message);
 
 	parser_state.had_error = true;
 }
 
-static void error(const char *message)
+static void compiler_error(const char *message)
 {
 	error_at(&parser_state.previous, message);
 }
@@ -95,8 +97,9 @@ static void advance(void)
 	while (true) {
 		parser_state.current = scan_token();
 
-		if (parser_state.current.type != TOKEN_ERROR)
+		if (parser_state.current.type != TOKEN_ERROR) {
 			break;
+		}
 
 		error_at_current(parser_state.current.start);
 	}
@@ -121,19 +124,19 @@ static void emit_return(void)
 	emit_byte(OP_RETURN);
 }
 
-static uint8_t make_constant(Value value)
+static uint8_t make_constant(value_t value)
 {
 	size_t constant = add_constant(current_chunk(), value);
 
 	if (constant > UINT8_MAX) {
-		error("Too many constants in one chunk");
+		compiler_error("Too many constants in one chunk");
 		return 0;
 	}
 
 	return (uint8_t)constant;
 }
 
-static void emit_constant(Value value)
+static void emit_constant(value_t value)
 {
 	EMIT_BYTES(OP_CONSTANT, make_constant(value));
 }
@@ -142,8 +145,9 @@ static void finish_compiling(void)
 {
 	emit_return();
 
-	if (!parser_state.had_error)
+	if (!parser_state.had_error) {
 		disassemble_chunk(current_chunk(), "code");
+	}
 }
 
 static void expression(void);
@@ -315,7 +319,7 @@ static void parse_precedence(Precedence precedence)
 	ParseFn prefix_rule = get_rule(parser_state.previous.type)->prefix;
 
 	if (prefix_rule == NULL) {
-		error("Expect expression.");
+		compiler_error("Expect expression.");
 		return;
 	}
 
@@ -339,7 +343,7 @@ static ParseRule *get_rule(TokenType type)
 	return &rules[type];
 }
 
-bool compile(const char *source, Chunk *chunk)
+bool compile(const char *source, chunk_t *chunk)
 {
 	init_scanner(source);
 	compiling_chunk = chunk;

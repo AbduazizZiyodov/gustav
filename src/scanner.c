@@ -1,20 +1,22 @@
+#include "common.h"
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "scanner.h"
 
 static bool is_at_end(void);
 static void skip_whitespace(void);
-static Token make_token(TokenType type);
+static token_t make_token(TokenType type);
 static char advance(void);
 static bool is_alpha(char c);
-static Token make_identifier_token(void);
+static token_t make_identifier_token(void);
 static bool is_digit(char c);
-static Token make_number_token(void);
+static token_t make_number_token(void);
 static bool match(char expected);
-static Token make_string_token(void);
-static Token make_error_token(const char *message);
+static token_t make_string_token(void);
+static token_t make_error_token(const char *message);
 
 typedef struct {
 	const char *start;
@@ -31,22 +33,25 @@ void init_scanner(const char *source)
 	scanner_state.line = 1;
 }
 
-Token scan_token(void)
+token_t scan_token(void)
 {
 	skip_whitespace();
 
 	scanner_state.start = scanner_state.current;
 
-	if (is_at_end())
+	if (is_at_end()) {
 		return make_token(TOKEN_EOF);
+	}
 
 	char c = advance();
 
-	if (is_alpha(c))
+	if (is_alpha(c)) {
 		return make_identifier_token();
+	}
 
-	if (is_digit(c))
+	if (is_digit(c)) {
 		return make_number_token();
+	}
 
 	switch (c) {
 	case '(':
@@ -82,27 +87,29 @@ Token scan_token(void)
 					       TOKEN_GREATER);
 	case '"':
 		return make_string_token();
+	default:
+		UNREACHABLE();
 	}
 
 	return make_error_token("Unexpected character.");
 }
 
-static Token make_token(TokenType type)
+static token_t make_token(TokenType type)
 {
 	size_t length = (size_t)(scanner_state.current - scanner_state.start);
 
-	return (Token){ .type = type,
-			.start = scanner_state.start,
-			.length = length,
-			.line = scanner_state.line };
+	return (token_t){ .type = type,
+			  .start = scanner_state.start,
+			  .length = length,
+			  .line = scanner_state.line };
 }
 
-static Token make_error_token(const char *message)
+static token_t make_error_token(const char *message)
 {
-	return (Token){ .type = TOKEN_ERROR,
-			.start = message,
-			.length = (size_t)strlen(message),
-			.line = scanner_state.line };
+	return (token_t){ .type = TOKEN_ERROR,
+			  .start = message,
+			  .length = (size_t)strlen(message),
+			  .line = scanner_state.line };
 }
 
 static bool is_at_end(void)
@@ -123,18 +130,21 @@ static char peek(void)
 
 static char peek_next(void)
 {
-	if (is_at_end())
+	if (is_at_end()) {
 		return '\0';
+	}
 	return scanner_state.current[1];
 }
 
 static bool match(char expected)
 {
-	if (is_at_end())
+	if (is_at_end()) {
 		return false;
+	}
 
-	if (*scanner_state.current != expected)
+	if (*scanner_state.current != expected) {
 		return false;
+	}
 
 	scanner_state.current++;
 
@@ -158,8 +168,9 @@ static void skip_whitespace(void)
 			break;
 		case '/':
 			if (peek_next() == '/') {
-				while (peek() != '\n' && !is_at_end())
+				while (peek() != '\n' && !is_at_end()) {
 					advance();
+				}
 			} else {
 				return;
 			}
@@ -169,16 +180,18 @@ static void skip_whitespace(void)
 	}
 }
 
-static Token make_string_token(void)
+static token_t make_string_token(void)
 {
 	while (peek() != '"' && !is_at_end()) {
-		if (peek() == '\n')
+		if (peek() == '\n') {
 			scanner_state.line++;
+		}
 		advance();
 	}
 
-	if (is_at_end())
+	if (is_at_end()) {
 		return make_error_token("Unterminated string.");
+	}
 	advance();
 	return make_token(TOKEN_STRING);
 }
@@ -188,15 +201,17 @@ static bool is_digit(char c)
 	return c >= '0' && c <= '9';
 }
 
-static Token make_number_token(void)
+static token_t make_number_token(void)
 {
-	while (is_digit(peek()))
+	while (is_digit(peek())) {
 		advance();
+	}
 
 	if (peek() == '.' && is_digit(peek_next())) {
 		advance();
-		while (is_digit(peek()))
+		while (is_digit(peek())) {
 			advance();
+		}
 	}
 
 	return make_token(TOKEN_NUMBER);
@@ -215,8 +230,9 @@ static TokenType check_keyword(size_t start, size_t length, const char *rest,
 	bool rest_matches = memcmp(scanner_state.start + start, rest, length) ==
 			    0;
 
-	if (length_matches && rest_matches)
+	if (length_matches && rest_matches) {
 		return match_type;
+	}
 
 	return TOKEN_IDENTIFIER;
 }
@@ -239,6 +255,8 @@ static TokenType get_identifier_type(void)
 				return check_keyword(2, 1, "r", TOKEN_FOR);
 			case 'u':
 				return check_keyword(2, 1, "n", TOKEN_FUN);
+			default:
+				UNREACHABLE();
 			}
 		}
 		break;
@@ -249,6 +267,8 @@ static TokenType get_identifier_type(void)
 				return check_keyword(1, 1, "s", TOKEN_IS);
 			case 'f':
 				return check_keyword(1, 1, "f", TOKEN_IF);
+			default:
+				UNREACHABLE();
 			}
 		}
 		break;
@@ -269,6 +289,8 @@ static TokenType get_identifier_type(void)
 				return check_keyword(2, 2, "is", TOKEN_THIS);
 			case 'r':
 				return check_keyword(2, 2, "ue", TOKEN_TRUE);
+			default:
+				UNREACHABLE();
 			}
 		}
 		break;
@@ -276,15 +298,18 @@ static TokenType get_identifier_type(void)
 		return check_keyword(1, 2, "ar", TOKEN_VAR);
 	case 'w':
 		return check_keyword(1, 4, "hile", TOKEN_WHILE);
+	default:
+		UNREACHABLE();
 	}
 
 	return TOKEN_IDENTIFIER;
 }
 
-static Token make_identifier_token(void)
+static token_t make_identifier_token(void)
 {
-	while (is_alpha(peek()) || is_digit(peek()))
+	while (is_alpha(peek()) || is_digit(peek())) {
 		advance();
+	}
 
 	return make_token(get_identifier_type());
 }
