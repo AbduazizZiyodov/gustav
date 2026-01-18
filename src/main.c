@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "common.h"
 #include "log.h"
 #include "vm.h"
 
@@ -11,19 +12,18 @@ static void repl(void);
 static char *read_file(const char *path);
 static void run_file(const char *path);
 
-static void gustav_shutdown(int sig_num)
+static volatile sig_atomic_t shutdown_requested = 0;
+
+static void gustav_shutdown(int signum)
 {
-	printf("\nCaught SIGINT(%d), exiting ...\n", sig_num);
-	free_vm();
-	exit(EXIT_SUCCESS);
+	(void)signum;
+	shutdown_requested = 1;
 }
 
 int main(int argc, char **argv)
 {
 	if (signal(SIGINT, gustav_shutdown) == SIG_ERR) {
-		fprintf(stderr,
-			"An error occurred while setting a signal handler.\n");
-		return EXIT_FAILURE;
+		gustav_error(EXIT_FAILURE, "Can't set signal handler");
 	}
 
 	init_vm();
@@ -33,63 +33,90 @@ int main(int argc, char **argv)
 	} else if (argc == 2) {
 		run_file(argv[1]);
 	} else {
-		fprintf(stderr, "Usage: gustav [path]\n");
-		exit(64);
+		gustav_error(64, "Usage: gustav [path]\n");
 	}
 
 	free_vm();
+
 	return EXIT_SUCCESS;
 }
 
-static void repl(void)
+void repl(void)
 {
-	char line[LINE_LENGTH];
-	unsigned long long command_num = 0;
+#ifdef DEBUG
+	char build_type[] = "debug";
+#else
+	char build_type[] = "release";
+#endif
 
-	while (true) {
-		printf("[%lld] => ", command_num++);
-		fflush(stdout);
+	printf("[compiled version at %s, build_type=%s]\n", __TIME__,
+	       build_type);
+
+	char line[LINE_LENGTH];
+	for (;;) {
+		if (shutdown_requested) {
+			break; // = exit
+		}
+
+		printf("> ");
+		(void)fflush(stdout);
 
 		if (!fgets(line, sizeof(line), stdin)) {
 			printf("\n");
-			break;
+			break; // = exit
 		}
 
 		interpret(line);
 	}
 }
 
+// Bob hates me
 static char *read_file(const char *path)
 {
 	FILE *file = fopen(path, "rb");
 
 	if (file == NULL) {
-		fprintf(stderr, "Could not open file: %s\n", path);
-		exit(74);
+		gustav_error(74, "Could not open file: %s\n", path);
 	}
 
-	fseek(file, 0L, SEEK_END);
+	if (fseek(file, 0L, SEEK_END) != 0) {
+		gustav_error(74, "Failed to seek to end: %s\n", path);
+	}
 
-	size_t file_size = (size_t)ftell(file);
-	rewind(file);
+	long file_size = ftell(file);
 
-	char *buffer = (char *)malloc(sizeof(char) * file_size + 1);
+	if (file_size == -1L) {
+		gustav_error(74, "Failed to get file size: %s\n", path);
+	}
 
+	if (fseek(file, 0L, SEEK_SET) != 0) {
+		gustav_error(74, "Failed to rewind file: %s\n", path);
+	}
+
+	char *buffer = (char *)malloc((sizeof(char) * (size_t)file_size) + 1);
 	if (buffer == NULL) {
-		fprintf(stderr, "Not enough memory to allocate buffer for %s\n",
-			path);
-		exit(74);
+		gustav_error(74,
+			     "Not enough memory to allocate buffer for %s\n",
+			     path);
 	}
 
-	size_t bytes_read = fread(buffer, sizeof(char), file_size, file);
+	size_t bytes_read =
+		fread(buffer, sizeof(char), (size_t)file_size, file);
 
-	if (bytes_read < file_size) {
-		fprintf(stderr, "Could not read the file %s\n", path);
-		exit(74);
+	if (bytes_read < (size_t)file_size) {
+		if (ferror(file)) {
+			(void)fclose(file);
+			free(buffer);
+			gustav_error(74, "Could not read the file %s\n", path);
+		}
 	}
+
 	buffer[bytes_read] = '\0';
 
-	fclose(file);
+	if (fclose(file) != 0) {
+		free(buffer);
+		gustav_error(74, "Failed to close file: %s\n", path);
+	}
 
 	return buffer;
 }
@@ -97,14 +124,14 @@ static char *read_file(const char *path)
 static void run_file(const char *path)
 {
 	char *source = read_file(path);
-	InterpretResult result = interpret(source);
+	interpreter_result_t result = interpret(source);
 	free(source);
 
 	switch (result) {
 	case INTERPRET_COMPILE_ERROR:
-		exit(65);
+		_Exit(65);
 	case INTERPRET_RUNTIME_ERROR:
-		exit(64);
+		_Exit(64);
 	default:
 		break;
 	}
