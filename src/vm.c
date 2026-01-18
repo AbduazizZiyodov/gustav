@@ -121,7 +121,7 @@ static void concatenate(void)
 	obj_string_t *b = AS_STRING(pop());
 	obj_string_t *a = AS_STRING(pop());
 
-	size_t total_length = a->length + b->length; // 1 for \0
+	size_t total_length = a->length + b->length;
 
 	char *chars = ALLOCATE(char, total_length + 1);
 
@@ -187,7 +187,6 @@ static interpreter_result_t run(void)
 			}
 			break;
 		}
-
 		case OP_SUBTRACT:
 			BINARY_OP(NUMBER_VAL, -);
 			break;
