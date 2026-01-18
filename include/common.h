@@ -1,16 +1,21 @@
 #ifndef GUSTAV_COMMON_H
 #define GUSTAV_COMMON_H
 
+#include <errno.h>
+#include <error.h>
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #ifdef DEBUG
-#include <stdlib.h>
-
 #define UNREACHABLE()                                                        \
 	do {                                                                 \
-		fprintf(stderr,                                              \
+		(void)fprintf(                                               \
+			stderr,                                              \
 			"[%s:%d] This code should not be reached in %s()\n", \
 			__FILE__, __LINE__, __func__);                       \
 		abort();                                                     \
@@ -18,5 +23,24 @@
 #else
 #define UNREACHABLE()
 #endif
+
+__attribute__((format(printf, 2, 3), noreturn)) static inline void
+gustav_error(short code, const char *format, ...)
+{
+	va_list args;
+	va_start(args, format);
+
+	(void)vfprintf(stderr, format, args);
+
+	if (errno != 0) {
+		/* NOLINTNEXTLINE(concurrency-mt-unsafe) */
+		(void)fprintf(stderr, ": %s", strerror(errno));
+	}
+
+	(void)fprintf(stderr, "\n");
+
+	va_end(args);
+	_Exit(code);
+}
 
 #endif
