@@ -1,0 +1,13 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb-dap",
+            "request": "launch",
+            "name": "Debug via LLDB",
+            "program": "./target/gustav",
+            "console": "integratedTerminal",
+            "args": [ "test.gus"],
+        }
+    ]
+}
