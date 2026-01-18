@@ -1,15 +1,14 @@
 #ifndef GUSTAV_CHUNK_H
 #define GUSTAV_CHUNK_H
 
+#include <stddef.h>
 #include <stdint.h>
 
 #include "value.h"
 
 // Source - https://stackoverflow.com/a/10966395
-// Posted by Terrence M, modified by community. See post 'Timeline' for change history
-// Retrieved 2026-01-08, License - CC BY-SA 3.0
-#define str(x) #x
-#define xstr(x) str(x)
+// Posted by Terrence M, modified by community. See post 'Timeline' for change
+// history Retrieved 2026-01-08, License - CC BY-SA 3.0
 #define FOREACH_OP_CODE(DO) \
 	DO(OP_CONSTANT)     \
 	DO(OP_NIL)          \
@@ -32,7 +31,7 @@
 #define GENERATE_ENUM(ENUM) ENUM,
 #define GENERATE_STRING(STRING) #STRING,
 
-typedef enum { FOREACH_OP_CODE(GENERATE_ENUM) } OpCode;
+typedef enum { FOREACH_OP_CODE(GENERATE_ENUM) } op_code_t;
 
 static const char *OP_CODE_STRING[] = { FOREACH_OP_CODE(GENERATE_STRING) };
 
@@ -40,15 +39,15 @@ typedef struct {
 	size_t count;
 	size_t capacity;
 	uint8_t *code;
-	ValueArray constants;
+	value_array_t constants;
 	int *lines;
-} Chunk;
+} chunk_t;
 
-void init_chunk(Chunk *chunk);
-void free_chunk(Chunk *chunk);
+void init_chunk(chunk_t *chunk);
+void free_chunk(chunk_t *chunk);
 
-void write_chunk(Chunk *chunk, uint8_t byte, size_t line);
+void write_chunk(chunk_t *chunk, uint8_t byte, size_t line);
 
-size_t add_constant(Chunk *chunk, Value value);
+size_t add_constant(chunk_t *chunk, value_t value);
 
 #endif

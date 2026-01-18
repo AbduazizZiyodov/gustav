@@ -5,6 +5,6 @@
 
 #include "chunk.h"
 
-bool compile(const char *source, Chunk *chunk);
+bool compile(const char *source, chunk_t *chunk);
 
 #endif

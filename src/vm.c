@@ -2,6 +2,7 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -33,13 +34,13 @@ VM vm;
 		push(TYPE(a op b));                                 \
 	} while (false);
 
-void push(Value value)
+void push(value_t value)
 {
 	*vm.stack_top = value;
 	vm.stack_top++;
 }
 
-Value pop(void)
+value_t pop(void)
 {
 	vm.stack_top--;
 	return *vm.stack_top;
@@ -56,16 +57,16 @@ runtime_error(const char *format, ...)
 	va_list args;
 
 	va_start(args, format);
-	vfprintf(stderr, format, args);
+	(void)vfprintf(stderr, format, args);
 	va_end(args);
 
-	fputs("\n", stderr);
+	(void)fputs("\n", stderr);
 
 	size_t instruction = (size_t)(vm.ip - vm.chunk->code - 1);
 
 	size_t line = (size_t)vm.chunk->lines[instruction];
 
-	fprintf(stderr, "[line %lu] in script\n", line);
+	(void)fprintf(stderr, "[line %lu] in script\n", line);
 	reset_stack();
 }
 
@@ -83,47 +84,44 @@ void free_vm(void)
 	LOG_INFO("VM freed\n");
 }
 
-#ifdef DEBUG
 static void trace(void)
 {
 	// Prints the instruction that currently being executed (if enabled) &
 	// content of the stack
-
+#ifdef DEBUG
 	size_t offset = (size_t)(vm.ip - vm.chunk->code);
 	disassemble_instruction(vm.chunk, offset);
 
 	LOG_TRACE("== Stack ==\n");
 	uint16_t i = 0;
-	for (Value *slot = vm.stack; slot < vm.stack_top; i++, slot++) {
+
+	for (value_t *slot = vm.stack; slot < vm.stack_top; i++, slot++) {
 		printf("[%d] ", i);
 		print_value(*slot);
-		putchar('\n');
+		(void)putchar('\n');
 	}
+
 	LOG_TRACE("== Stack END ==\n");
 	printf("\n");
-}
-#else
-static void trace(void)
-{
-}
 #endif
+}
 
-static Value peek(int distance)
+static value_t peek(int distance)
 {
 	return vm.stack_top[-1 - distance];
 }
 
-static bool is_falsey(Value value)
+static bool is_falsey(value_t value)
 {
 	return IS_NIL(value) || (IS_BOOL(value) && !AS_BOOL(value));
 }
 
 static void concatenate(void)
 {
-	ObjString *b = AS_STRING(pop());
-	ObjString *a = AS_STRING(pop());
+	obj_string_t *b = AS_STRING(pop());
+	obj_string_t *a = AS_STRING(pop());
 
-	size_t total_length = a->length + b->length + 1; //1 for \0
+	size_t total_length = a->length + b->length + 1; // 1 for \0
 
 	char *chars = ALLOCATE(char, total_length);
 
@@ -132,16 +130,20 @@ static void concatenate(void)
 
 	chars[total_length - 1] = '\0';
 
-	ObjString *concatenated = take_string(chars, total_length);
+	obj_string_t *concatenated = take_string(chars, total_length);
 
 	push(OBJ_VAL(concatenated));
 }
 
-static InterpretResult run(void)
+static interpreter_result_t run(void)
 {
-	Value result_value, top_value, x, y;
+	value_t result_value;
+	value_t top_value;
+	value_t x;
+	value_t y;
 	uint8_t instruction;
-	double a, b;
+	double a;
+	double b;
 
 	while (true) {
 		trace();
@@ -160,14 +162,10 @@ static InterpretResult run(void)
 		case OP_FALSE:
 			push(BOOL_VAL(false));
 			break;
-
-		case OP_EQUAL:
-		case OP_IS: {
+		case OP_EQUAL: {
 			y = pop();
 			x = pop();
-			result_value = BOOL_VAL(instruction == OP_EQUAL ?
-							values_equal(x, y) :
-							values_identical(x, y));
+			result_value = BOOL_VAL(values_equal(x, y));
 			push(result_value);
 			break;
 		}
@@ -233,7 +231,7 @@ static InterpretResult run(void)
 		case OP_RETURN:
 			LOG_TRACE("RETURN => ");
 			print_value(pop());
-			putchar('\n');
+			(void)putchar('\n');
 			return INTERPRET_OK;
 		default:
 			UNREACHABLE();
@@ -241,11 +239,11 @@ static InterpretResult run(void)
 	}
 }
 
-InterpretResult interpret(const char *source)
+interpreter_result_t interpret(const char *source)
 {
 	LOG_DEBUG("Compiling START\n");
 
-	Chunk chunk;
+	chunk_t chunk;
 	init_chunk(&chunk);
 
 	if (!compile(source, &chunk)) {

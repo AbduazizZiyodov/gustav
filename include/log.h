@@ -30,14 +30,14 @@ typedef struct {
 typedef void (*log_LogFn)(log_Event *ev);
 typedef void (*log_LockFn)(bool lock, void *udata);
 
-enum { _LOG_TRACE, _LOG_DEBUG, _LOG_INFO, _LOG_WARN, _LOG_ERROR, _LOG_FATAL };
+enum { LOG_TRACE_, LOG_DEBUG_, LOG_INFO_, LOG_WARN_, LOG_ERROR_, LOG_FATAL_ };
 
-#define LOG_TRACE(...) log_log(_LOG_TRACE, __FILE__, __LINE__, __VA_ARGS__)
-#define LOG_DEBUG(...) log_log(_LOG_DEBUG, __FILE__, __LINE__, __VA_ARGS__)
-#define LOG_INFO(...) log_log(_LOG_INFO, __FILE__, __LINE__, __VA_ARGS__)
-#define LOG_WARN(...) log_log(_LOG_WARN, __FILE__, __LINE__, __VA_ARGS__)
-#define LOG_ERROR(...) log_log(_LOG_ERROR, __FILE__, __LINE__, __VA_ARGS__)
-#define LOG_FATAL(...) log_log(_LOG_FATAL, __FILE__, __LINE__, __VA_ARGS__)
+#define LOG_TRACE(...) log_log(LOG_TRACE_, __FILE__, __LINE__, __VA_ARGS__)
+#define LOG_DEBUG(...) log_log(LOG_DEBUG_, __FILE__, __LINE__, __VA_ARGS__)
+#define LOG_INFO(...) log_log(LOG_INFO_, __FILE__, __LINE__, __VA_ARGS__)
+#define LOG_WARN(...) log_log(LOG_WARN_, __FILE__, __LINE__, __VA_ARGS__)
+#define LOG_ERROR(...) log_log(LOG_ERROR_, __FILE__, __LINE__, __VA_ARGS__)
+#define LOG_FATAL(...) log_log(LOG_FATAL_, __FILE__, __LINE__, __VA_ARGS__)
 
 const char *log_level_string(int level);
 void log_set_lock(log_LockFn fn, void *udata);
@@ -58,9 +58,6 @@ void log_log(int level, const char *file, int line, const char *fmt, ...);
 #define LOG_ERROR(...)
 #define LOG_FATAL(...)
 
-void log_log(int level __attribute__((unused)),
-	     const char *file __attribute__((unused)),
-	     int line __attribute__((unused)),
-	     const char *fmt __attribute__((unused)), ...);
+void log_log(int level, const char *file, int line, const char *fmt, ...);
 
 #endif
