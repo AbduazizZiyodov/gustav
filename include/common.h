@@ -11,6 +11,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define is == // Yes, I use CPython
+
 #ifdef DEBUG
 #define UNREACHABLE()                                                        \
 	do {                                                                 \

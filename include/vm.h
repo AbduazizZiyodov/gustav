@@ -2,6 +2,7 @@
 #define GUSTAV_VM_H
 
 #include "chunk.h"
+#include "hash_table.h"
 #include "value.h"
 
 typedef struct {
@@ -10,6 +11,7 @@ typedef struct {
 	value_t stack[STACK_MAX];
 	value_t *stack_top;
 	obj_t *objects;
+	hash_table_t strings;
 } VM;
 
 typedef enum {

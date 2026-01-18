@@ -61,7 +61,7 @@ static char *read_file(const char *path)
 {
 	FILE *file = fopen(path, "rb");
 
-	if (file == NULL) {
+	if (file is NULL) {
 		gustav_error(74, "Could not open file: %s\n", path);
 	}
 
@@ -80,7 +80,7 @@ static char *read_file(const char *path)
 	}
 
 	char *buffer = (char *)malloc((sizeof(char) * (size_t)file_size) + 1);
-	if (buffer == NULL) {
+	if (buffer is NULL) {
 		gustav_error(74,
 			     "Not enough memory to allocate buffer for %s\n",
 			     path);

@@ -1,6 +1,9 @@
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
+#include "hash_table.h"
+#include "log.h"
 #include "memory.h"
 #include "object.h"
 #include "value.h"
@@ -20,24 +23,35 @@ static obj_t *allocate_object(size_t size, ObjType type)
 	return object;
 }
 
-static obj_string_t *allocate_string(char *chars, size_t length)
+static string_t *allocate_string(char *chars, size_t length, uint32_t hash)
 {
-	obj_string_t *string = ALLOCATE_OBJ(obj_string_t, OBJ_STRING);
+	string_t *string = ALLOCATE_OBJ(string_t, OBJ_STRING);
 
 	string->length = length;
 	string->chars = chars;
+	string->hash = hash;
+
+	ht_insert(&vm.strings, string, NIL_VAL);
 
 	return string;
 }
 
-obj_string_t *copy_string(const char *chars, size_t length)
+string_t *copy_string(const char *chars, size_t length)
 {
+	uint32_t hash = hash_string(chars, length);
+
+	string_t *interned = ht_find_string(&vm.strings, chars, length, hash);
+
+	if (interned != NULL) {
+		return interned;
+	}
+
 	char *heap_chars = ALLOCATE(char, length + 1);
 	memcpy(heap_chars, chars, length);
 
 	heap_chars[length] = '\0';
 
-	return allocate_string(heap_chars, length);
+	return allocate_string(heap_chars, length, hash);
 }
 
 void print_object(value_t value)
@@ -49,7 +63,28 @@ void print_object(value_t value)
 	}
 }
 
-obj_string_t *take_string(char *chars, size_t length)
+string_t *take_string(char *chars, size_t length)
 {
-	return allocate_string(chars, length);
+	uint32_t hash = hash_string(chars, length);
+
+	string_t *interned = ht_find_string(&vm.strings, chars, length, hash);
+
+	if (interned != NULL) {
+		FREE_ARRAY(char, chars, length + 1);
+		return interned;
+	}
+
+	return allocate_string(chars, length, hash);
+}
+
+uint32_t hash_string(const char *key, size_t length)
+{
+	uint32_t hash = 2166136261U; // axuyet
+
+	for (size_t i = 0; i < length; i++) {
+		hash ^= (uint8_t)key[i];
+		hash *= 16777619; // axuyet
+	}
+
+	return hash;
 }

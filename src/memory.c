@@ -17,7 +17,7 @@ void *reallocate(void *pointer, size_t old_size __attribute__((unused)),
 
 	void *result = realloc(pointer, new_size);
 
-	if (result == NULL) {
+	if (result is NULL) {
 		gustav_error(EXIT_FAILURE, "Can't perform reallocate");
 	}
 
@@ -28,11 +28,11 @@ static void free_object(obj_t *object)
 {
 	switch (object->type) {
 	case OBJ_STRING: {
-		obj_string_t *string = (obj_string_t *)object;
+		string_t *string = (string_t *)object;
 		LOG_TRACE("Freeing string object: object=%p string=%s\n",
 			  object, string->chars);
 		FREE_ARRAY(char, string->chars, string->length + 1);
-		FREE(obj_string_t, object);
+		FREE(string_t, object);
 	}
 	}
 }
