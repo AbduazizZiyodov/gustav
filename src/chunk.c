@@ -4,10 +4,10 @@
 #include <stdlib.h>
 
 #include "chunk.h"
+#include "common.h"
 #include "log.h"
 #include "memory.h"
 #include "value.h"
-#include "common.h"
 
 void init_chunk(chunk_t *chunk)
 {
