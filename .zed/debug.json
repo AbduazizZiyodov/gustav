@@ -1,0 +1,9 @@
+[
+  {
+    "adapter": "CodeLLDB",
+    "label": "Debug via LLDB",
+    "program": "./target/gustav",
+    // "args": ["test.gus"],
+    "request": "launch",
+  },
+]
