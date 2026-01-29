@@ -9,23 +9,28 @@
 // Source - https://stackoverflow.com/a/10966395
 // Posted by Terrence M, modified by community. See post 'Timeline' for change
 // history Retrieved 2026-01-08, License - CC BY-SA 3.0
-#define FOREACH_OP_CODE(DO) \
-	DO(OP_CONSTANT)     \
-	DO(OP_NIL)          \
-	DO(OP_TRUE)         \
-	DO(OP_FALSE)        \
-	DO(OP_EQUAL)        \
-	DO(OP_GREATER)      \
-	DO(OP_LESS)         \
-	DO(OP_RETURN)       \
-	DO(OP_ADD)          \
-	DO(OP_SUBTRACT)     \
-	DO(OP_MULTIPLY)     \
-	DO(OP_DIVIDE)       \
-	DO(OP_POW)          \
-	DO(OP_CONCAT)       \
-	DO(OP_NOT)          \
-	DO(OP_NEGATE)
+#define FOREACH_OP_CODE(DO)  \
+	DO(OP_CONSTANT)      \
+	DO(OP_NIL)           \
+	DO(OP_TRUE)          \
+	DO(OP_FALSE)         \
+	DO(OP_EQUAL)         \
+	DO(OP_GREATER)       \
+	DO(OP_LESS)          \
+	DO(OP_RETURN)        \
+	DO(OP_ADD)           \
+	DO(OP_SUBTRACT)      \
+	DO(OP_MULTIPLY)      \
+	DO(OP_DIVIDE)        \
+	DO(OP_POW)           \
+	DO(OP_CONCAT)        \
+	DO(OP_NOT)           \
+	DO(OP_NEGATE)        \
+	DO(OP_PRINT)         \
+	DO(OP_POP)           \
+	DO(OP_DEFINE_GLOBAL) \
+	DO(OP_GET_GLOBAL)    \
+	DO(OP_SET_GLOBAL)
 
 #define GENERATE_ENUM(ENUM) ENUM,
 #define GENERATE_STRING(STRING) #STRING,

@@ -225,12 +225,9 @@ static bool is_alpha(char c)
 static TokenType check_keyword(size_t start, size_t length, const char *rest,
 			       TokenType match_type)
 {
-	bool length_matches = (size_t)(scanner_state.current -
-				       scanner_state.start) == start + length;
-	bool rest_matches = memcmp(scanner_state.start + start, rest, length) ==
-			    0;
-
-	if (length_matches && rest_matches) {
+	if (((size_t)(scanner_state.current - scanner_state.start)) ==
+		    start + length &&
+	    memcmp(scanner_state.start + start, rest, length) == 0) {
 		return match_type;
 	}
 
@@ -256,7 +253,7 @@ static TokenType get_identifier_type(void)
 			case 'u':
 				return check_keyword(2, 1, "n", TOKEN_FUN);
 			default:
-				UNREACHABLE();
+				break;
 			}
 		}
 		break;
@@ -280,7 +277,7 @@ static TokenType get_identifier_type(void)
 			case 'r':
 				return check_keyword(2, 2, "ue", TOKEN_TRUE);
 			default:
-				UNREACHABLE();
+				break;
 			}
 		}
 		break;

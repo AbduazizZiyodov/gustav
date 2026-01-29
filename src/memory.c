@@ -29,7 +29,7 @@ static void free_object(obj_t *object)
 	switch (object->type) {
 	case OBJ_STRING: {
 		string_t *string = (string_t *)object;
-		LOG_TRACE("Freeing string object: object=%p string=%s\n",
+		LOG_TRACE("Freeing string object: object=%p string_repr=%s\n",
 			  object, string->chars);
 		FREE_ARRAY(char, string->chars, string->length + 1);
 		FREE(string_t, object);

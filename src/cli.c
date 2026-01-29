@@ -6,7 +6,6 @@
 
 #include "cli.h"
 #include "common.h"
-#include "log.h"
 #include "version.h"
 #include "vm.h"
 
