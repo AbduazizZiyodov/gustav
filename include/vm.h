@@ -12,6 +12,7 @@ typedef struct {
 	value_t *stack_top;
 	obj_t *objects;
 	hash_table_t strings;
+	hash_table_t globals;
 } VM;
 
 typedef enum {

@@ -44,11 +44,17 @@ size_t disassemble_instruction(chunk_t *chunk, size_t offset)
 	case OP_DIVIDE:
 	case OP_NOT:
 	case OP_NEGATE:
+	case OP_PRINT:
+	case OP_POP:
 		LOG_TRACE("%04d %s\n", offset,
 			  OP_CODE_STRING[current_instruction]);
 		return offset + 1;
 	case OP_CONSTANT:
-		return constant_instruction("OP_CONSTANT", chunk, offset);
+	case OP_GET_GLOBAL:
+	case OP_DEFINE_GLOBAL:
+	case OP_SET_GLOBAL:
+		return constant_instruction(OP_CODE_STRING[current_instruction],
+					    chunk, offset);
 	default:
 		LOG_ERROR("Unknown opcode %d\n", current_instruction);
 		return offset + 1;

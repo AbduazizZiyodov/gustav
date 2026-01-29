@@ -37,11 +37,11 @@ static ht_entry_t *find_entry(ht_entry_t *entries, size_t capacity,
 		if (entry->key == NULL) {
 			if (IS_NIL(entry->value)) {
 				return tombstone != NULL ? tombstone : entry;
-			} else {
-				if (tombstone == NULL) {
-					tombstone = entry;
-				}
 			}
+			if (tombstone == NULL) {
+				tombstone = entry;
+			}
+
 		} else if (entry->key == key) {
 			return entry;
 		}

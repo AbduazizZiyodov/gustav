@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "chunk.h"
@@ -24,6 +25,7 @@ VM vm;
 
 #define READ_BYTE() (*vm.ip++)
 #define READ_CONSTANT() (vm.chunk->constants.values[READ_BYTE()])
+#define READ_STRING() AS_STRING(READ_CONSTANT())
 #define BINARY_OP(TYPE, op)                                         \
 	do {                                                        \
 		if (!IS_NUMBER(peek(0)) || !IS_NUMBER(peek(1))) {   \
@@ -77,6 +79,7 @@ void init_vm(void)
 	reset_stack();
 	vm.objects = NULL;
 	init_hash_table(&vm.strings);
+	init_hash_table(&vm.globals);
 }
 
 void free_vm(void)
@@ -84,6 +87,7 @@ void free_vm(void)
 	LOG_TRACE("Running cleanup ...\n");
 	free_objects();
 	free_hash_table(&vm.strings);
+	free_hash_table(&vm.globals);
 	LOG_INFO("VM freed\n");
 }
 
@@ -166,6 +170,36 @@ static interpreter_result_t run(void)
 		case OP_FALSE:
 			push(BOOL_VAL(false));
 			break;
+		case OP_POP:
+			pop();
+			break;
+		case OP_DEFINE_GLOBAL: {
+			string_t *name = READ_STRING();
+			ht_insert(&vm.globals, name, peek(0));
+			pop();
+			break;
+		}
+		case OP_GET_GLOBAL: {
+			string_t *name = READ_STRING();
+			value_t value;
+
+			if (!ht_get(&vm.globals, name, &value)) {
+				runtime_error("Undefined variable '%s'.",
+					      name->chars);
+				return INTERPRET_RUNTIME_ERROR;
+			}
+			push(value);
+			break;
+		}
+		case OP_SET_GLOBAL: {
+			string_t *name = READ_STRING();
+			if (ht_insert(&vm.globals, name, peek(0))) {
+				ht_delete(&vm.globals, name);
+				runtime_error("Undefined variable '%s'",
+					      name->chars);
+				return INTERPRET_RUNTIME_ERROR;
+			}
+		}
 		case OP_EQUAL: {
 			y = pop();
 			x = pop();
@@ -231,10 +265,13 @@ static interpreter_result_t run(void)
 			*(vm.stack_top - 1) = result_value;
 			break;
 		}
-		case OP_RETURN:
-			LOG_TRACE("RETURN => ");
+		case OP_PRINT: {
 			print_value(pop());
 			(void)putchar('\n');
+			break;
+		}
+		case OP_RETURN:
+			// NOTE(abduaziz): temporary
 			return INTERPRET_OK;
 		default:
 			UNREACHABLE();

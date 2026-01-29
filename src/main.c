@@ -4,7 +4,6 @@
 
 #include "cli.h"
 #include "common.h"
-#include "log.h"
 #include "vm.h"
 
 static void gustav_shutdown(int signum)
