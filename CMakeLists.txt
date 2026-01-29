@@ -16,17 +16,17 @@ set(CMAKE_C_EXTENSIONS OFF)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/target)
 
 if(NOT CMAKE_C_COMPILER_ID MATCHES "Clang")
-  message(FATAL_ERROR "clang is required")
+    message(FATAL_ERROR "clang is required")
 endif()
 
-set(CMAKE_C_CLANG_TIDY 
+set(CMAKE_C_CLANG_TIDY
     clang-tidy;
     --config-file=${CMAKE_SOURCE_DIR}/.clang-tidy;
-    # --use-color;
+    --use-color;
 )
 
 if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Debug)
+    set(CMAKE_BUILD_TYPE Debug)
 endif()
 
 set(
@@ -47,21 +47,13 @@ set(
 )
 
 
-add_executable(
-    gustav
-    src/main.c
-    src/chunk.c
-    src/memory.c
-    src/debug.c
-    src/value.c
-    src/vm.c
-    src/scanner.c
-    src/compiler.c
-    src/object.c
-    src/log.c
-    src/cli.c
-    src/hash_table.c
+file(
+  GLOB SOURCES CONFIGURE_DEPENDS
+  "include/*.h"
+  "./src/*.c"
 )
+
+add_executable(gustav ${SOURCES})
 
 target_include_directories(
   gustav
@@ -70,8 +62,8 @@ target_include_directories(
 )
 
 target_compile_definitions(
-  gustav PRIVATE 
-  LOG_USE_COLOR 
+  gustav PRIVATE
+  LOG_USE_COLOR
   LINE_LENGTH=${LINE_LENGTH}
   STACK_MAX=${STACK_MAX}
   HASH_TABLE_MAX_LOAD_FACTOR=${HASH_TABLE_MAX_LOAD_FACTOR}
@@ -88,7 +80,7 @@ target_include_directories(gustav PRIVATE ${CMAKE_SOURCE_DIR}/include)
 
 target_compile_options(
     gustav
-    PRIVATE 
+    PRIVATE
     -Wall
     -Wextra
     -pedantic
@@ -106,12 +98,12 @@ target_compile_options(
 
 find_library(MATH_LIBRARY m)
 if(NOT MATH_LIBRARY)
-  message(FATAL_ERROR "Math library not found")
+    message(FATAL_ERROR "Math library not found")
 endif()
 target_link_libraries(gustav PRIVATE ${MATH_LIBRARY})
 
 target_link_options(
-    gustav PRIVATE 
+    gustav PRIVATE
     $<$<CONFIG:Debug>:-fsanitize=address -fsanitize=undefined>
 )
 
