@@ -27,6 +27,12 @@ Thanks to author.
 #include "log.h"
 
 #ifdef DEBUG
+
+#include <stdarg.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <time.h>
+
 #define MAX_CALLBACKS 32
 
 typedef struct {
@@ -139,6 +145,7 @@ static void init_event(log_Event *ev, void *udata)
 {
 	if (!ev->time) {
 		time_t t = time(NULL);
+		/* NOLINTNEXTLINE(concurrency-mt-unsafe) */
 		ev->time = localtime(&t);
 	}
 	ev->udata = udata;
