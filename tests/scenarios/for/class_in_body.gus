@@ -1,2 +1,2 @@
-// expect: [at line 2] Error at 'class': Expect expression.
+// expect: Expect expression.
 for (;;) class Foo {}

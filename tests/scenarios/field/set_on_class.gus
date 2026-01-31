@@ -1,2 +1,2 @@
 class Foo {}
-Foo.bar = "value"; // expect: [at line 2] Only instances have fields.
+Foo.bar = "value"; // expect: Only instances have fields.
