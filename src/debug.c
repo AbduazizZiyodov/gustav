@@ -12,6 +12,7 @@ static uint8_t current_instruction;
 
 static size_t constant_instruction(const char *name, chunk_t *chunk,
 				   size_t offset);
+static size_t byte_instruction(const char *name, chunk_t *chunk, size_t offset);
 
 void disassemble_chunk(chunk_t *chunk, const char *name)
 {
@@ -21,7 +22,7 @@ void disassemble_chunk(chunk_t *chunk, const char *name)
 	for (size_t offset = 0; offset < chunk->count;) {
 		offset = disassemble_instruction(chunk, offset);
 	}
-	LOG_DEBUG("== end ==\n\n", name);
+	LOG_DEBUG("== [/%s] ==\n\n", name);
 }
 
 size_t disassemble_instruction(chunk_t *chunk, size_t offset)
@@ -46,7 +47,7 @@ size_t disassemble_instruction(chunk_t *chunk, size_t offset)
 	case OP_NEGATE:
 	case OP_PRINT:
 	case OP_POP:
-		LOG_TRACE("%04d %s\n", offset,
+		LOG_DEBUG("%04d %s\n", offset,
 			  OP_CODE_STRING[current_instruction]);
 		return offset + 1;
 	case OP_CONSTANT:
@@ -55,6 +56,10 @@ size_t disassemble_instruction(chunk_t *chunk, size_t offset)
 	case OP_SET_GLOBAL:
 		return constant_instruction(OP_CODE_STRING[current_instruction],
 					    chunk, offset);
+	case OP_GET_LOCAL:
+	case OP_SET_LOCAL:
+		return byte_instruction(OP_CODE_STRING[current_instruction],
+					chunk, offset);
 	default:
 		LOG_ERROR("Unknown opcode %d\n", current_instruction);
 		return offset + 1;
@@ -67,10 +72,17 @@ static size_t constant_instruction(const char *name, chunk_t *chunk,
 	uint8_t constant = chunk->code[offset + 1];
 	value_t value = chunk->constants.values[constant];
 
-	LOG_TRACE("%04d %s %04d value=", offset, name, constant);
+	LOG_DEBUG("%04d %s %04d value=", offset, name, constant);
 	print_value(value);
 	printf("\n");
 
+	return offset + 2;
+}
+
+static size_t byte_instruction(const char *name, chunk_t *chunk, size_t offset)
+{
+	uint8_t slot = chunk->code[offset + 1];
+	LOG_DEBUG("%04d %s slot=%04d\n", offset, name, slot);
 	return offset + 2;
 }
 

@@ -4,6 +4,7 @@
 
 #include "cli.h"
 #include "common.h"
+#include "log.h"
 #include "vm.h"
 
 static void gustav_shutdown(int signum)
@@ -23,8 +24,10 @@ int main(int argc, char **argv)
 	init_vm();
 
 	if (argc == 1) {
+		LOG_TRACE("Running from repl()\n");
 		repl();
 	} else if (argc == 2) {
+		LOG_TRACE("Running from run_file()\n");
 		run_file(argv[1]);
 	} else {
 		gustav_error(64, "Usage: gustav [path]\n");
