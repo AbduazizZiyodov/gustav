@@ -84,7 +84,7 @@ void init_vm(void)
 
 void free_vm(void)
 {
-	LOG_TRACE("Running cleanup ...\n");
+	LOG_DEBUG("Running cleanup ...\n");
 	free_objects();
 	free_hash_table(&vm.strings);
 	free_hash_table(&vm.globals);
@@ -93,13 +93,13 @@ void free_vm(void)
 
 static void trace(void)
 {
-	// Prints the instruction that currently being executed (if enabled) &
-	// content of the stack
+// Prints the instruction that currently being executed (if enabled) &
+// content of the stack
 #ifdef DEBUG
 	size_t offset = (size_t)(vm.ip - vm.chunk->code);
 	disassemble_instruction(vm.chunk, offset);
 
-	LOG_TRACE("== Stack ==\n");
+	LOG_DEBUG("== [stack] ==\n");
 	uint16_t i = 0;
 
 	for (value_t *slot = vm.stack; slot < vm.stack_top; i++, slot++) {
@@ -108,7 +108,7 @@ static void trace(void)
 		(void)putchar('\n');
 	}
 
-	LOG_TRACE("== Stack END ==\n");
+	LOG_DEBUG("== [/stack] ==\n");
 	printf("\n");
 #endif
 }
@@ -173,6 +173,16 @@ static interpreter_result_t run(void)
 		case OP_POP:
 			pop();
 			break;
+		case OP_SET_LOCAL: {
+			uint8_t slot = READ_BYTE();
+			vm.stack[slot] = peek(0);
+			break;
+		}
+		case OP_GET_LOCAL: {
+			uint8_t slot = READ_BYTE();
+			push(vm.stack[slot]);
+			break;
+		}
 		case OP_DEFINE_GLOBAL: {
 			string_t *name = READ_STRING();
 			ht_insert(&vm.globals, name, peek(0));
@@ -199,6 +209,7 @@ static interpreter_result_t run(void)
 					      name->chars);
 				return INTERPRET_RUNTIME_ERROR;
 			}
+			break;
 		}
 		case OP_EQUAL: {
 			y = pop();
@@ -266,8 +277,10 @@ static interpreter_result_t run(void)
 			break;
 		}
 		case OP_PRINT: {
+			LOG_TRACE("== [stdout] ==\n");
 			print_value(pop());
 			(void)putchar('\n');
+			LOG_TRACE("== [/stdout] ==\n\n");
 			break;
 		}
 		case OP_RETURN:
@@ -281,10 +294,12 @@ static interpreter_result_t run(void)
 
 interpreter_result_t interpret(const char *source)
 {
-	LOG_DEBUG("Compiling START\n");
-
 	chunk_t chunk;
 	init_chunk(&chunk);
+
+	LOG_DEBUG("\n== [source] ==\n%s\n== [/source] ==\n\n", source);
+
+	LOG_INFO("Begin compiling\n");
 
 	if (!compile(source, &chunk)) {
 		free_chunk(&chunk);
@@ -294,11 +309,10 @@ interpreter_result_t interpret(const char *source)
 	vm.chunk = &chunk;
 	vm.ip = vm.chunk->code;
 
+	LOG_INFO("Fire VM\n");
 	run();
 
 	free_chunk(&chunk);
-
-	LOG_DEBUG("Compiling END\n");
 
 	return INTERPRET_OK;
 }
