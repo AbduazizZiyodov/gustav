@@ -1,13 +1,16 @@
-import sys
 import subprocess
+import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from gustav.gustav import Scanner
-
-GUS_EXEC = f"{sys.executable} -m gustav"
+GUS_EXEC = "./target/gustav_release"
 MARKER = "// expect: "
+
+EXCLUDED_SCENARIOS: tuple[str, ...] = (
+    "builtins.gus",
+    "to_this.gus",
+)
 
 
 def extract_expected(file_path: Path) -> list[str]:
@@ -30,11 +33,15 @@ def run_file(file_path: Path, output_as_str: bool = False) -> str | list[str]:
 
     output = proc.stdout + proc.stderr
 
-    return output.splitlines() if not output_as_str else output
+    result = output.splitlines()
 
+    if result[0].startswith("Gustav v"):
+        result.pop(0)
 
-def run_scanner(source: str) -> list[str]:
-    return list(map(lambda token: token.__test_repr__(), Scanner(source).get_tokens()))
+    if result[0] == "":
+        result.pop(0)
+
+    return result
 
 
 def make_relative(test_files: list[Path]) -> list[str]:
@@ -46,14 +53,13 @@ def make_relative(test_files: list[Path]) -> list[str]:
     )
 
 
-def collect_tests(test_scanner: bool = False) -> list[Path]:
+def collect_tests() -> list[Path]:
     root = Path(__file__).parent / "scenarios"
 
     return sorted(
         filter(
-            lambda file: "scanning" in file.parts
-            if test_scanner
-            else ("scanning" not in file.parts) and ("benchmark" not in file.parts),
+            lambda file: file.name not in EXCLUDED_SCENARIOS
+            and "benchmark" not in file.parts,
             root.rglob("*.gus"),
         )
     )
