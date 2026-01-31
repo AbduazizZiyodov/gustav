@@ -1,0 +1,12 @@
+space    tabs				newlines
+
+
+
+
+end
+
+// expect: IDENTIFIER space None
+// expect: IDENTIFIER tabs None
+// expect: IDENTIFIER newlines None
+// expect: IDENTIFIER end None
+// expect: EOF  None

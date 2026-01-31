@@ -1,0 +1,3 @@
+class Foo {}
+
+Foo().unknown(); // expect: [at line 3] Undefined property 'unknown'.
