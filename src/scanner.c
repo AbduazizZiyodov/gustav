@@ -174,6 +174,7 @@ static void skip_whitespace(void)
 			} else {
 				return;
 			}
+			break;
 		default:
 			return;
 		}

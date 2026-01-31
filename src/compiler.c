@@ -562,7 +562,7 @@ static void synchronize(void)
 	parser_state.panic_mode = false;
 
 	while (parser_state.current.type != TOKEN_EOF) {
-		if (parser_state.previous.type != TOKEN_SEMICOLON) {
+		if (parser_state.previous.type == TOKEN_SEMICOLON) {
 			return;
 		}
 
@@ -576,11 +576,10 @@ static void synchronize(void)
 		case TOKEN_PRINT:
 		case TOKEN_RETURN:
 			return;
-		default:
-			UNREACHABLE();
+		default:;
 		}
+		advance();
 	}
-	advance();
 }
 
 static void statement(void)
