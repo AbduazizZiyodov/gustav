@@ -108,7 +108,7 @@ static char *read_file(const char *path)
 
 void show_compile_time_info(void)
 {
-	printf("Gustav v%s [build=%s | compiler=%s | version=%s | opt=%s | arch=%s | os=%s | compiled=\"%s %s\"]\n\n",
-	       PROJECT_VERSION_STRING, BUILD_TYPE, COMPILER_NAME,
-	       COMPILER_VERSION, OPT_LEVEL, ARCH, OS, __DATE__, __TIME__);
+	printf("Gustav v%s [build=%s | compiler_version=%s | opt=%s | os=%s %s | compiled=\"%s %s\"]\n\n",
+	       PROJECT_VERSION_STRING, BUILD_TYPE, COMPILER_VERSION, OPT_LEVEL,
+	       OS, ARCH, __DATE__, __TIME__);
 }

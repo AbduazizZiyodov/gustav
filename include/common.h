@@ -12,6 +12,7 @@
 #include <string.h>
 
 #define is == // Yes, I use CPython
+#define UINT8_COUNT (UINT8_MAX + 1)
 
 #ifdef DEBUG
 #define UNREACHABLE()                                                        \

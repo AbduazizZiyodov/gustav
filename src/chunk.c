@@ -5,7 +5,6 @@
 
 #include "chunk.h"
 #include "common.h"
-#include "log.h"
 #include "memory.h"
 #include "value.h"
 
@@ -16,7 +15,6 @@ void init_chunk(chunk_t *chunk)
 	chunk->code = NULL;
 	chunk->lines = NULL;
 	init_value_array(&chunk->constants);
-	LOG_DEBUG("Chunk was initialized\n");
 }
 
 void write_chunk(chunk_t *chunk, uint8_t byte, size_t line)
@@ -41,7 +39,6 @@ void free_chunk(chunk_t *chunk)
 
 	free_value_array(&chunk->constants);
 	init_chunk(chunk);
-	LOG_DEBUG("Chunk was freed\n");
 }
 
 size_t add_constant(chunk_t *chunk, value_t value)

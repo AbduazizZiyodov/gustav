@@ -286,7 +286,7 @@ static TokenType get_identifier_type(void)
 	case 'w':
 		return check_keyword(1, 4, "hile", TOKEN_WHILE);
 	default:
-		UNREACHABLE();
+		break;
 	}
 
 	return TOKEN_IDENTIFIER;
