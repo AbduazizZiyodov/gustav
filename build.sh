@@ -1,20 +1,25 @@
 #!/bin/bash
+set -euo pipefail
 
-BUILD_TYPE="${BUILD_TYPE:-Debug}"
-BUILD_DIR="${BUILD_DIR:-build}"
+readonly PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$PROJECT_ROOT"
 
-echo "Formatting code ..."
-clang-format --verbose -i src/* include/*
+echo "Formatting code..."
+clang-format --verbose -i src/*.c include/*.h
 
-mkdir -p "$BUILD_DIR"
-cd "$BUILD_DIR"
+mkdir -p target
 
-echo "Configuring $BUILD_TYPE build in $BUILD_DIR..."
-cmake -DCMAKE_BUILD_TYPE="$BUILD_TYPE" ..
+for build_type in Debug Release; do
+    build_dir="build-${build_type,,}"
+    echo -e "\n== [build $build_type in $build_dir] =="
 
-ln -sf "$BUILD_DIR/compile_commands.json" ../compile_commands.json
+    CC=clang cmake -B "$build_dir" --fresh \
+          -DCMAKE_BUILD_TYPE="$build_type" \
+          -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
-echo "Building..."
-make
+    cmake --build "$build_dir" --parallel "$(nproc)"
+    cp "$build_dir/gustav" "target/gustav_${build_type,,}"
+    echo -e "== [/build $build_type in $build_dir] ==\n"
+done
 
-echo "Build complete: $BUILD_DIR/gustav"
+ln -sf "build-debug/compile_commands.json" compile_commands.json
