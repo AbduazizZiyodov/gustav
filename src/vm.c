@@ -63,13 +63,10 @@ runtime_error(const char *format, ...)
 	(void)vfprintf(stderr, format, args);
 	va_end(args);
 
-	(void)fputs("\n", stderr);
-
-	size_t instruction = (size_t)(vm.ip - vm.chunk->code - 1);
-
-	size_t line = (size_t)vm.chunk->lines[instruction];
-
-	(void)fprintf(stderr, "[line %lu] in script\n", line);
+	// NOTE(abduaziz): add line info on error
+	// size_t instruction = (size_t)(vm.ip - vm.chunk->code - 1);
+	// size_t line = (size_t)vm.chunk->lines[instruction];
+	// (void)fprintf(stderr, "[line %lu] in script\n", line);
 	reset_stack();
 }
 
@@ -205,7 +202,7 @@ static interpreter_result_t run(void)
 			string_t *name = READ_STRING();
 			if (ht_insert(&vm.globals, name, peek(0))) {
 				ht_delete(&vm.globals, name);
-				runtime_error("Undefined variable '%s'",
+				runtime_error("Undefined variable '%s'.",
 					      name->chars);
 				return INTERPRET_RUNTIME_ERROR;
 			}
