@@ -1,0 +1,105 @@
+for (var i = 0; i < 5; i = i + 1) {
+  if (i == 2) continue;
+  if (i == 4) break;
+  print i;
+}
+
+// expect: 0
+// expect: 1
+// expect: 3
+
+for (var j = 0; j < 5; j = j + 1)
+  if (j == 3) break;
+  else if (j == 1) continue;
+  else print j;
+
+// expect: 0
+// expect: 2
+
+for (var i = 0; i < 2; i = i + 1) {
+  for (var j = 0; j < 3; j = j + 1) {
+    print i;
+    print j;
+    break;
+  }
+}
+// expect: 0
+// expect: 0
+// expect: 1
+// expect: 0
+
+for (var i = 0; i < 2; i = i + 1) {
+  for (var j = 0; j < 2; j = j + 1) {
+    if (j == 0) continue;
+    print i * 10 + j;
+  }
+}
+// expect: 1
+// expect: 11
+
+
+for (var i = 0; i < 3; i = i + 1) {
+  if (i == 1) continue;
+  for (var j = 0; j < 2; j = j + 1) {
+    print i * 10 + j;
+  }
+}
+// expect: 0
+// expect: 1
+// expect: 20
+// expect: 21
+
+
+for (var i = 0; i < 2; i = i + 1) {
+  for (var j = 0; j < 3; j = j + 1) {
+    if (j == 1) break;
+    print i * 10 + j;
+  }
+}
+// expect: 0
+// expect: 10
+
+
+for (var i = 0; i < 3; i = i + 1) {
+  for (var j = 0; j < 3; j = j + 1) {
+    if (j == 0) continue;
+    if (j == 2) break;
+    print i * 10 + j;
+  }
+  if (i == 1) break;
+}
+// expect: 1
+// expect: 11
+
+
+for (var i = 0; i < 3; i = i + 1) {
+  if (i == 2) continue;
+  for (var j = 0; j < 3; j = j + 1) {
+    if (j == 1) continue;
+    if (i == 1 and j == 2) break;
+    print i * 10 + j;
+  }
+}
+// expect: 0
+// expect: 2
+// expect: 10
+
+for (var i = 0; i < 2; i = i + 1) {
+  for (var j = 0; j < 3; j = j + 1) {
+    if (j == 1) continue;
+    print i * 10 + j;
+  }
+}
+// expect: 0
+// expect: 2
+// expect: 10
+// expect: 12
+
+var i = 100;
+for (var i = 0; i < 2; i = i + 1) {
+  print i;
+}
+print i;
+// expect: 0
+// expect: 1
+// expect: 100

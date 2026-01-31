@@ -1,0 +1,18 @@
+and class else false for fun if nil or return super this true var while
+
+// expect: AND and None
+// expect: CLASS class None
+// expect: ELSE else None
+// expect: FALSE false None
+// expect: FOR for None
+// expect: FUN fun None
+// expect: IF if None
+// expect: NIL nil None
+// expect: OR or None
+// expect: RETURN return None
+// expect: SUPER super None
+// expect: THIS this None
+// expect: TRUE true None
+// expect: VAR var None
+// expect: WHILE while None
+// expect: EOF  None

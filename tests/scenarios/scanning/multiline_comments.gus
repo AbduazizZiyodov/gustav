@@ -1,0 +1,25 @@
+/*
+fun caller(g) {
+  g();
+  // g should be a function, not nil.
+  print g == nil;
+}
+
+fun callCaller() {
+  var capturedVar = "before";
+  var a = "a";
+
+  fun f() {
+    capturedVar = "after";
+    //return nil;
+  }
+
+  caller(f);
+}
+
+callCaller();
+
+// HELICOPTER
+*/
+
+// expect: EOF  None

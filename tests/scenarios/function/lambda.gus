@@ -1,0 +1,65 @@
+var f = λ(x) { return x + 1; };
+print f(2); // expect: 3
+
+
+print λ(x) { return x * x; }(4); // expect: 16
+
+var a = 10;
+var add_a = λ(x) { return x + a; };
+print add_a(5); // expect: 15
+
+var x = 1;
+var f = λ(x) { return x + 100; };
+print f(5); // expect: 105
+print x; // expect: 1
+
+
+var make_adder = λ(x) {
+  return λ(y) { return x + y; };
+};
+
+var add_two = make_adder(2);
+print add_two(3); // expect: 5
+print make_adder(10)(1); // expect: 11
+
+
+fun outer() {
+  var z = 5;
+  return λ(x) { return x + z; };
+}
+var closure = outer();
+print closure(3); // expect: 8
+
+
+var double = λ(x) {
+  return x + x;
+};
+print double(7); // expect: 14
+
+
+var give = λ() { return 42; };
+print give(); // expect: 42
+
+
+var test = λ(x) {
+  if (x > 0) return "positive";
+  return "non-positive";
+};
+
+print test(1); // expect: positive
+print test(0); // expect: non-positive
+
+
+fun Test() {
+  var f = λ() {
+    return "from lambda";
+  };
+
+  print f(); // expect: from lambda
+  return "from function";
+}
+
+print Test(); // expect: from function
+
+print λ() {}(); // expect: nil
+print λ() {}; // expect: <λ fn>

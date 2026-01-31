@@ -1,0 +1,15 @@
+{
+  fun isEven(n) {
+    if (n == 0) return true;
+    return isOdd(n - 1);
+  }
+
+  fun isOdd(n) {
+    if (n == 0) return false;
+    return isEven(n - 1);
+  }
+
+  isEven(4);
+}
+// expect: [WARNING] at line 7: Variable 'isOdd' is not used.
+// expect: [at line 4] Undefined variable 'isOdd'.

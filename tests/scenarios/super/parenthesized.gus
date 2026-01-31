@@ -1,0 +1,11 @@
+class A {
+  method() {}
+}
+
+class B < A {
+  method() {
+    (super).method();
+  }
+}
+
+// expect: [at line 7] Error at ')': Expect '.' after 'super'.

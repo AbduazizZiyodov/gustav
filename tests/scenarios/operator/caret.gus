@@ -1,0 +1,5 @@
+print 2^2 == 4;
+print 2^(2^2 + 2);
+
+// expect: true
+// expect: 64

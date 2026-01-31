@@ -1,0 +1,5 @@
+fun foo(a) {
+  var a; 
+}
+// expect: [at line 2] Error at 'a': Already a variable with this name in this scope.
+// expect: [WARNING] at line 2: Variable 'a' is not used.
