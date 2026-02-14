@@ -9,11 +9,14 @@
 #include "chunk.h"
 #include "common.h"
 #include "compiler.h"
-#include "debug.h"
 #include "log.h"
 #include "object.h"
 #include "scanner.h"
 #include "value.h"
+
+#ifdef DEBUG
+#include "debug.h"
+#endif
 
 #define EMIT_BYTES(first_byte, second_byte) \
 	emit_byte(first_byte);              \

@@ -41,7 +41,8 @@ void print_value(value_t value)
 		printf("nil");
 		break;
 	case VAL_NUMBER:
-		printf("%g", AS_NUMBER(value));
+		// TODO(abduaziz): needs better handling
+		printf("%f", AS_NUMBER(value));
 		break;
 	case VAL_OBJ:
 		print_object(value);

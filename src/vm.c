@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "chunk.h"
 #include "common.h"
@@ -22,6 +23,12 @@
 #endif
 
 VM vm;
+
+static value_t clock_native(size_t arg_count __attribute__((unused)),
+			    value_t *args __attribute__((unused)))
+{
+	return NUMBER_VAL((double)clock() / CLOCKS_PER_SEC);
+}
 
 #define READ_BYTE() (*frame->ip++)
 #define READ_SHORT() \
@@ -88,6 +95,15 @@ runtime_error(const char *format, ...) // TODO(abduaziz): better stack trace
 	reset_stack();
 }
 
+static void define_native(const char *name, native_fn function)
+{
+	push(OBJ_VAL(copy_string(name, strlen(name))));
+	push(OBJ_VAL(new_native(function)));
+	ht_insert(&vm.globals, AS_STRING(vm.stack[0]), vm.stack[1]);
+	pop();
+	pop();
+}
+
 void init_vm(void)
 {
 	LOG_INFO("VM initialized\n");
@@ -95,6 +111,7 @@ void init_vm(void)
 	vm.objects = NULL;
 	init_hash_table(&vm.strings);
 	init_hash_table(&vm.globals);
+	define_native("clock", clock_native);
 }
 
 void free_vm(void)
@@ -106,7 +123,11 @@ void free_vm(void)
 	LOG_INFO("VM freed\n");
 }
 
+#ifdef DEBUG // DEBUG
 static void trace(call_frame_t *frame)
+#else
+static void trace(call_frame_t *frame __attribute__((unused)))
+#endif // DEBUG - mark arg as unused on release
 {
 // Prints the instruction that currently being executed (if enabled) &
 // content of the stack
@@ -133,10 +154,10 @@ static value_t peek(int distance)
 	return vm.stack_top[-1 - distance];
 }
 
-static bool call(function_t *function, int arg_count)
+static bool call(function_t *function, size_t arg_count)
 {
-	if (arg_count != (int)function->arity) {
-		runtime_error("Expected %d arguments but got %d",
+	if (arg_count != function->arity) {
+		runtime_error("Expected %d arguments but got %zu",
 			      (int)function->arity, arg_count);
 		return false;
 	}
@@ -155,12 +176,21 @@ static bool call(function_t *function, int arg_count)
 	return true;
 }
 
-static bool call_value(value_t callee, int arg_count)
+static bool call_value(value_t callee, size_t arg_count)
 {
 	if (IS_OBJ(callee)) {
 		switch (OBJ_TYPE(callee)) {
 		case OBJ_FUNCTION:
 			return call(AS_FUNCTION(callee), arg_count);
+		case OBJ_NATIVE: {
+			// TODO(abduaziz): arity check, runtime errors ...
+			native_fn native = AS_NATIVE(callee);
+			value_t result =
+				native(arg_count, vm.stack_top - arg_count);
+			vm.stack_top -= arg_count + 1;
+			push(result);
+			return true;
+		}
 		default:
 			break;
 		}
@@ -356,7 +386,7 @@ static interpreter_result_t run(void)
 		}
 		case OP_CALL: {
 			int arg_count = READ_BYTE();
-			if (!call_value(peek(arg_count), arg_count)) {
+			if (!call_value(peek(arg_count), (size_t)arg_count)) {
 				return INTERPRET_RUNTIME_ERROR;
 			}
 			frame = &vm.frames[vm.frame_count - 1];

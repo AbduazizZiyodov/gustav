@@ -34,6 +34,13 @@ function_t *new_function(void)
 	return function;
 }
 
+ObjNative *new_native(native_fn function)
+{
+	ObjNative *native = ALLOCATE_OBJ(ObjNative, OBJ_NATIVE);
+	native->function = function;
+	return native;
+}
+
 static string_t *allocate_string(char *chars, size_t length, uint32_t hash)
 {
 	string_t *string = ALLOCATE_OBJ(string_t, OBJ_STRING);
@@ -83,6 +90,10 @@ void print_object(value_t value)
 		break;
 	case OBJ_FUNCTION:
 		print_function(AS_FUNCTION(value));
+		break;
+	case OBJ_NATIVE:
+		printf("<native_fn>");
+		break;
 	}
 }
 
