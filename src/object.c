@@ -1,3 +1,4 @@
+#include "chunk.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -20,6 +21,17 @@ static obj_t *allocate_object(size_t size, ObjType type)
 	vm.objects = object;
 
 	return object;
+}
+
+function_t *new_function(void)
+{
+	function_t *function = ALLOCATE_OBJ(function_t, OBJ_FUNCTION);
+
+	function->arity = 0;
+	function->name = NULL;
+	init_chunk(&function->chunk);
+
+	return function;
 }
 
 static string_t *allocate_string(char *chars, size_t length, uint32_t hash)
@@ -53,12 +65,24 @@ string_t *copy_string(const char *chars, size_t length)
 	return allocate_string(heap_chars, length, hash);
 }
 
+static void print_function(function_t *function)
+{
+	if (function->name == NULL) {
+		printf("<script>");
+		return;
+	}
+
+	printf("<fn %s/%zu>", function->name->chars, function->arity);
+}
+
 void print_object(value_t value)
 {
 	switch (OBJ_TYPE(value)) {
 	case OBJ_STRING:
 		printf("%s", AS_CSTRING(value));
 		break;
+	case OBJ_FUNCTION:
+		print_function(AS_FUNCTION(value));
 	}
 }
 

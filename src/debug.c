@@ -61,6 +61,7 @@ size_t disassemble_instruction(chunk_t *chunk, size_t offset)
 		return constant_instruction(op_string, chunk, offset);
 	case OP_GET_LOCAL:
 	case OP_SET_LOCAL:
+	case OP_CALL:
 		return byte_instruction(op_string, chunk, offset);
 	case OP_JUMP:
 	case OP_JUMP_IF_FALSE:
@@ -114,4 +115,4 @@ void disassemble_chunk(chunk_t *chunk __attribute__((unused)),
 		       const char *name __attribute__((unused)))
 {
 }
-#endif
+#endif // DEBUG
