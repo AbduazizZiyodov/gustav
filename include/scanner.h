@@ -70,4 +70,4 @@ typedef struct {
 void init_scanner(const char *source);
 token_t scan_token(void);
 
-#endif
+#endif // GUSTAV_SCANNER_H

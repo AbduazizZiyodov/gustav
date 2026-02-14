@@ -3,4 +3,4 @@
 
 #define PROJECT_VERSION_STRING "@PROJECT_VERSION@"
 
-#endif
+#endif // GUSTAV_VERSION_H

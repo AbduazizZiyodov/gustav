@@ -25,7 +25,7 @@
 	} while (false)
 #else
 #define UNREACHABLE()
-#endif
+#endif // DEBUG
 
 __attribute__((format(printf, 2, 3), noreturn)) static inline void
 gustav_error(short code, const char *format, ...)
@@ -46,4 +46,4 @@ gustav_error(short code, const char *format, ...)
 	_Exit(code);
 }
 
-#endif
+#endif // GUSTAV_COMMON_H

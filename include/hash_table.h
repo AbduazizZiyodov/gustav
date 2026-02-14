@@ -1,7 +1,8 @@
 #ifndef GUSTAV_HASHTABLE_H
 #define GUSTAV_HASHTABLE_H
 
-#include "common.h"
+#include <stdint.h>
+
 #include "value.h"
 
 typedef struct {
@@ -26,4 +27,4 @@ void ht_add_all(hash_table_t *from, hash_table_t *to);
 string_t *ht_find_string(hash_table_t *hash_table, const char *chars,
 			 size_t length, uint32_t hash);
 
-#endif
+#endif // GUSTAV_HASHTABLE_H

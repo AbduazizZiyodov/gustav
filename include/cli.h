@@ -39,4 +39,4 @@ void run_file(const char *path);
 
 extern volatile sig_atomic_t shutdown_requested;
 
-#endif
+#endif // GUSTAV_CLI_H

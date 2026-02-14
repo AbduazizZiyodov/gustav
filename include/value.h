@@ -47,4 +47,4 @@ void write_value_array(value_array_t *value_array, value_t value);
 
 void print_value(value_t value);
 
-#endif
+#endif // GUSTAV_VALUE_H
