@@ -29,7 +29,6 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 set(LINE_LENGTH 1024 CACHE STRING "Maximum line length for REPL")
-set(STACK_MAX 512 CACHE STRING "Stack size in VM")
 set(HASH_TABLE_MAX_LOAD_FACTOR 0.75)
 
 set(SOURCES
@@ -80,7 +79,6 @@ target_compile_definitions(
   gustav PRIVATE
   LOG_USE_COLOR
   LINE_LENGTH=${LINE_LENGTH}
-  STACK_MAX=${STACK_MAX}
   HASH_TABLE_MAX_LOAD_FACTOR=${HASH_TABLE_MAX_LOAD_FACTOR}
   $<$<CONFIG:Debug>:DEBUG>
 )

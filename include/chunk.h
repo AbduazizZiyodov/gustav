@@ -35,7 +35,8 @@
 	DO(OP_SET_LOCAL)     \
 	DO(OP_JUMP_IF_FALSE) \
 	DO(OP_JUMP)          \
-	DO(OP_LOOP)
+	DO(OP_LOOP)          \
+	DO(OP_CALL)
 
 #define GENERATE_ENUM(ENUM) ENUM,
 #define GENERATE_STRING(STRING) #STRING,
@@ -59,4 +60,4 @@ void write_chunk(chunk_t *chunk, uint8_t byte, size_t line);
 
 size_t add_constant(chunk_t *chunk, value_t value);
 
-#endif
+#endif // GUSTAV_CHUNK_H

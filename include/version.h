@@ -3,4 +3,4 @@
 
 #define PROJECT_VERSION_STRING "2.0"
 
-#endif
+#endif // GUSTAV_VERSION_H
