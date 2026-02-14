@@ -9,14 +9,17 @@
 #define OBJ_TYPE(value) (AS_OBJ(value)->type)
 
 #define IS_FUNCTION(value) is_obj_type(value, OBJ_FUNCTION)
+#define IS_NATIVE(value) is_obj_type(value, OBJ_NATIVE);
 #define IS_STRING(value) is_obj_type(value, OBJ_STRING)
 
 #define AS_FUNCTION(value) ((function_t *)AS_OBJ(value))
+#define AS_NATIVE(value) (((ObjNative *)AS_OBJ(value))->function)
 #define AS_STRING(value) ((string_t *)AS_OBJ(value))
 #define AS_CSTRING(value) (((string_t *)AS_OBJ(value))->chars)
 
 typedef enum {
 	OBJ_FUNCTION,
+	OBJ_NATIVE,
 	OBJ_STRING,
 } ObjType;
 
@@ -32,6 +35,13 @@ typedef struct {
 	string_t *name;
 } function_t;
 
+typedef value_t (*native_fn)(size_t arg_count, value_t *args);
+
+typedef struct {
+	struct Obj obj;
+	native_fn function;
+} ObjNative;
+
 struct string_t {
 	obj_t obj;
 	size_t length;
@@ -40,6 +50,7 @@ struct string_t {
 };
 
 function_t *new_function(void);
+ObjNative *new_native(native_fn function);
 
 string_t *take_string(char *chars, size_t length);
 string_t *copy_string(const char *chars, size_t length);
