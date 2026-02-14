@@ -45,6 +45,7 @@ set(SOURCES
     src/scanner.c
     src/value.c
     src/vm.c
+    src/native_functions.c
 )
 
 set(HEADERS
@@ -61,6 +62,7 @@ set(HEADERS
     include/scanner.h
     include/value.h
     include/vm.h
+    src/native_functions.h
 )
 
 add_executable(gustav ${SOURCES})

@@ -13,6 +13,7 @@
 
 #define is == // Yes, I use CPython
 #define UINT8_COUNT (UINT8_MAX + 1)
+#define ARRAY_LENGTH(arr) (sizeof(arr) / sizeof((arr)[0]))
 
 #ifdef DEBUG
 #define UNREACHABLE()                                                        \

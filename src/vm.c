@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 
 #include "chunk.h"
 #include "common.h"
@@ -14,6 +13,7 @@
 #include "hash_table.h"
 #include "log.h"
 #include "memory.h"
+#include "native_functions.h"
 #include "object.h"
 #include "value.h"
 #include "vm.h"
@@ -23,12 +23,6 @@
 #endif
 
 VM vm;
-
-static value_t clock_native(size_t arg_count __attribute__((unused)),
-			    value_t *args __attribute__((unused)))
-{
-	return NUMBER_VAL((double)clock() / CLOCKS_PER_SEC);
-}
 
 #define READ_BYTE() (*frame->ip++)
 #define READ_SHORT() \
@@ -111,7 +105,11 @@ void init_vm(void)
 	vm.objects = NULL;
 	init_hash_table(&vm.strings);
 	init_hash_table(&vm.globals);
-	define_native("clock", clock_native);
+
+	for (size_t i = 0; i < ARRAY_LENGTH(NATIVE_FUNCTIONS); i++) {
+		NativeFunctionPair pair = NATIVE_FUNCTIONS[i];
+		define_native(pair.name, pair.function);
+	}
 }
 
 void free_vm(void)
