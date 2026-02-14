@@ -1,3 +1,4 @@
+#include "chunk.h"
 #include <stdlib.h>
 
 #include "common.h"
@@ -33,6 +34,13 @@ static void free_object(obj_t *object)
 			  object, string->chars);
 		FREE_ARRAY(char, string->chars, string->length + 1);
 		FREE(string_t, object);
+		break;
+	}
+	case OBJ_FUNCTION: {
+		function_t *function = (function_t *)object;
+		free_chunk(&function->chunk);
+		FREE(function_t, object);
+		break;
 	}
 	}
 }

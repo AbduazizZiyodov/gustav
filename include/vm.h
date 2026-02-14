@@ -2,8 +2,20 @@
 #define GUSTAV_VM_H
 
 #include "chunk.h"
+#include "common.h"
 #include "hash_table.h"
+#include "object.h"
 #include "value.h"
+#include <stdint.h>
+
+#define FRAMES_MAX 65
+#define STACK_MAX (FRAMES_MAX * UINT8_COUNT)
+
+typedef struct {
+	function_t *function;
+	uint8_t *ip;
+	value_t *slots;
+} call_frame_t;
 
 typedef struct {
 	chunk_t *chunk;
@@ -13,6 +25,9 @@ typedef struct {
 	obj_t *objects;
 	hash_table_t strings;
 	hash_table_t globals;
+
+	size_t frame_count;
+	call_frame_t frames[FRAMES_MAX];
 } VM;
 
 typedef enum {
@@ -30,4 +45,4 @@ interpreter_result_t interpret(const char *source);
 void push(value_t value);
 value_t pop(void);
 
-#endif
+#endif // GUSTAV_VM_H

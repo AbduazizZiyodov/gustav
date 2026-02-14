@@ -23,9 +23,10 @@
 
 VM vm;
 
-#define READ_BYTE() (*vm.ip++)
-#define READ_SHORT() (vm.ip += 2, (uint16_t)((vm.ip[-2] << 8) | vm.ip[-1]))
-#define READ_CONSTANT() (vm.chunk->constants.values[READ_BYTE()])
+#define READ_BYTE() (*frame->ip++)
+#define READ_SHORT() \
+	(frame->ip += 2, (uint16_t)((frame->ip[-2] << 8) | frame->ip[-1]))
+#define READ_CONSTANT() (frame->function->chunk.constants.values[READ_BYTE()])
 #define READ_STRING() AS_STRING(READ_CONSTANT())
 #define BINARY_OP(TYPE, op)                                         \
 	do {                                                        \
@@ -53,21 +54,37 @@ value_t pop(void)
 static void reset_stack(void)
 {
 	vm.stack_top = vm.stack;
+	vm.frame_count = 0;
 }
 
 __attribute__((format(printf, 1, 2))) static void
-runtime_error(const char *format, ...)
+runtime_error(const char *format, ...) // TODO(abduaziz): better stack trace
 {
 	va_list args;
 
 	va_start(args, format);
 	(void)vfprintf(stderr, format, args);
 	va_end(args);
+	fputs("\n", stderr);
 
-	// NOTE(abduaziz): add line info on error
-	// size_t instruction = (size_t)(vm.ip - vm.chunk->code - 1);
-	// size_t line = (size_t)vm.chunk->lines[instruction];
-	// (void)fprintf(stderr, "[line %lu] in script\n", line);
+	for (int i = (int)vm.frame_count - 1; i >= 0; i--) {
+		call_frame_t *frame = &vm.frames[i];
+		function_t *function = frame->function;
+
+		size_t instruction =
+			(size_t)(frame->ip - function->chunk.code - 1);
+
+		int line = frame->function->chunk.lines[instruction];
+
+		(void)fprintf(stderr, "[line %d] in ", line);
+
+		if (function->name == NULL) {
+			(void)fprintf(stderr, "script\n");
+		} else {
+			(void)fprintf(stderr, "%s()\n", function->name->chars);
+		}
+	}
+
 	reset_stack();
 }
 
@@ -89,13 +106,13 @@ void free_vm(void)
 	LOG_INFO("VM freed\n");
 }
 
-static void trace(void)
+static void trace(call_frame_t *frame)
 {
 // Prints the instruction that currently being executed (if enabled) &
 // content of the stack
 #ifdef DEBUG
-	size_t offset = (size_t)(vm.ip - vm.chunk->code);
-	disassemble_instruction(vm.chunk, offset);
+	size_t offset = (size_t)(frame->ip - frame->function->chunk.code);
+	disassemble_instruction(&frame->function->chunk, offset);
 
 	LOG_DEBUG("== [stack] ==\n");
 	uint16_t i = 0;
@@ -108,12 +125,49 @@ static void trace(void)
 
 	LOG_DEBUG("== [/stack] ==\n");
 	printf("\n");
-#endif
+#endif // DEBUG
 }
 
 static value_t peek(int distance)
 {
 	return vm.stack_top[-1 - distance];
+}
+
+static bool call(function_t *function, int arg_count)
+{
+	if (arg_count != (int)function->arity) {
+		runtime_error("Expected %d arguments but got %d",
+			      (int)function->arity, arg_count);
+		return false;
+	}
+
+	if (vm.frame_count == FRAMES_MAX) {
+		runtime_error("Stack overflow."); // yes
+		return false;
+	}
+
+	call_frame_t *frame = &vm.frames[vm.frame_count++];
+
+	frame->function = function;
+	frame->ip = function->chunk.code;
+	frame->slots = vm.stack_top - arg_count - 1;
+
+	return true;
+}
+
+static bool call_value(value_t callee, int arg_count)
+{
+	if (IS_OBJ(callee)) {
+		switch (OBJ_TYPE(callee)) {
+		case OBJ_FUNCTION:
+			return call(AS_FUNCTION(callee), arg_count);
+		default:
+			break;
+		}
+	}
+
+	runtime_error("Can only call functions and classes.");
+	return false;
 }
 
 static bool is_falsey(value_t value)
@@ -151,8 +205,10 @@ static interpreter_result_t run(void)
 	double a;
 	double b;
 
+	call_frame_t *frame = &vm.frames[vm.frame_count - 1];
+
 	while (true) {
-		trace();
+		trace(frame);
 
 		switch (instruction = READ_BYTE()) {
 		case OP_CONSTANT:
@@ -173,12 +229,12 @@ static interpreter_result_t run(void)
 			break;
 		case OP_SET_LOCAL: {
 			uint8_t slot = READ_BYTE();
-			vm.stack[slot] = peek(0);
+			frame->slots[slot] = peek(0);
 			break;
 		}
 		case OP_GET_LOCAL: {
 			uint8_t slot = READ_BYTE();
-			push(vm.stack[slot]);
+			push(frame->slots[slot]);
 			break;
 		}
 		case OP_DEFINE_GLOBAL: {
@@ -283,24 +339,42 @@ static interpreter_result_t run(void)
 		}
 		case OP_JUMP: {
 			uint16_t offset = READ_SHORT();
-			vm.ip += offset;
+			frame->ip += offset;
 			break;
 		}
 		case OP_JUMP_IF_FALSE: {
 			uint16_t offset = READ_SHORT();
 			if (is_falsey(peek(0))) {
-				vm.ip += offset;
+				frame->ip += offset;
 			}
 			break;
 		}
 		case OP_LOOP: {
 			uint16_t offset = READ_SHORT();
-			vm.ip -= offset;
+			frame->ip -= offset;
+			break;
+		}
+		case OP_CALL: {
+			int arg_count = READ_BYTE();
+			if (!call_value(peek(arg_count), arg_count)) {
+				return INTERPRET_RUNTIME_ERROR;
+			}
+			frame = &vm.frames[vm.frame_count - 1];
 			break;
 		}
 		case OP_RETURN:
-			// NOTE(abduaziz): temporary
-			return INTERPRET_OK;
+			result_value = pop();
+			vm.frame_count--;
+
+			if (vm.frame_count == 0) {
+				pop();
+				return INTERPRET_OK;
+			}
+
+			vm.stack_top = frame->slots;
+			push(result_value);
+			frame = &vm.frames[vm.frame_count - 1];
+			break;
 		default:
 			UNREACHABLE();
 		}
@@ -309,25 +383,16 @@ static interpreter_result_t run(void)
 
 interpreter_result_t interpret(const char *source)
 {
-	chunk_t chunk;
-	init_chunk(&chunk);
-
 	LOG_DEBUG("\n== [source] ==\n%s\n== [/source] ==\n\n", source);
-
 	LOG_INFO("Begin compiling\n");
 
-	if (!compile(source, &chunk)) {
-		free_chunk(&chunk);
+	function_t *function = compile(source);
+	if (function == NULL) {
 		return INTERPRET_COMPILE_ERROR;
 	}
 
-	vm.chunk = &chunk;
-	vm.ip = vm.chunk->code;
+	push(OBJ_VAL(function));
+	call(function, 0);
 
-	LOG_INFO("Fire VM\n");
-	run();
-
-	free_chunk(&chunk);
-
-	return INTERPRET_OK;
+	return run();
 }
