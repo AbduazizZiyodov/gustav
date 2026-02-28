@@ -1,3 +1,4 @@
+#include "object.h"
 #include <stddef.h>
 #ifdef DEBUG
 
@@ -11,24 +12,23 @@
 
 static uint8_t current_instruction;
 
-static size_t constant_instruction(const char *name, chunk_t *chunk,
-				   size_t offset);
-static size_t byte_instruction(const char *name, chunk_t *chunk, size_t offset);
-static size_t jump_instruction(const char *name, int sign, chunk_t *chunk,
-			       size_t offset);
+static int constant_instruction(const char *name, chunk_t *chunk, int offset);
+static int byte_instruction(const char *name, chunk_t *chunk, int offset);
+static int jump_instruction(const char *name, int sign, chunk_t *chunk,
+			    int offset);
 
 void disassemble_chunk(chunk_t *chunk, const char *name)
 {
 	printf("\n");
 
 	LOG_DEBUG("== [%s] ==\n", name);
-	for (size_t offset = 0; offset < chunk->count;) {
+	for (int offset = 0; offset < (int)chunk->count;) {
 		offset = disassemble_instruction(chunk, offset);
 	}
 	LOG_DEBUG("== [/%s] ==\n\n", name);
 }
 
-size_t disassemble_instruction(chunk_t *chunk, size_t offset)
+int disassemble_instruction(chunk_t *chunk, int offset)
 {
 	current_instruction = chunk->code[offset];
 
@@ -52,6 +52,7 @@ size_t disassemble_instruction(chunk_t *chunk, size_t offset)
 	case OP_NEGATE:
 	case OP_PRINT:
 	case OP_POP:
+	case OP_CLOSE_UPVALUE:
 		LOG_DEBUG("%04d %s\n", offset, op_string);
 		return offset + 1;
 	case OP_CONSTANT:
@@ -61,6 +62,8 @@ size_t disassemble_instruction(chunk_t *chunk, size_t offset)
 		return constant_instruction(op_string, chunk, offset);
 	case OP_GET_LOCAL:
 	case OP_SET_LOCAL:
+	case OP_GET_UPVALUE:
+	case OP_SET_UPVALUE:
 	case OP_CALL:
 		return byte_instruction(op_string, chunk, offset);
 	case OP_JUMP:
@@ -68,14 +71,33 @@ size_t disassemble_instruction(chunk_t *chunk, size_t offset)
 		return jump_instruction(op_string, 1, chunk, offset);
 	case OP_LOOP:
 		return jump_instruction(op_string, -1, chunk, offset);
+	case OP_CLOSURE: {
+		offset++;
+		uint8_t constant = chunk->code[offset++];
+		LOG_DEBUG("%-16s %4d ", "OP_CLOSURE", constant);
+		print_value(chunk->constants.values[constant]);
+		printf("\n");
+
+		function_t *function =
+			AS_FUNCTION(chunk->constants.values[constant]);
+
+		for (int i = 0; i < function->upvalue_count; i++) {
+			int is_local = chunk->code[offset++];
+			int index = chunk->code[offset++];
+
+			LOG_DEBUG("%04d\t\t|\t%s %d\n", (int)offset - 2,
+				  is_local ? "local" : "upvalue", index);
+		}
+
+		return offset;
+	}
 	default:
 		LOG_ERROR("Unknown opcode %d\n", current_instruction);
 		return offset + 1;
 	}
 }
 
-static size_t constant_instruction(const char *name, chunk_t *chunk,
-				   size_t offset)
+static int constant_instruction(const char *name, chunk_t *chunk, int offset)
 {
 	uint8_t constant = chunk->code[offset + 1];
 	value_t value = chunk->constants.values[constant];
@@ -87,20 +109,20 @@ static size_t constant_instruction(const char *name, chunk_t *chunk,
 	return offset + 2;
 }
 
-static size_t byte_instruction(const char *name, chunk_t *chunk, size_t offset)
+static int byte_instruction(const char *name, chunk_t *chunk, int offset)
 {
 	uint8_t slot = chunk->code[offset + 1];
 	LOG_DEBUG("%04d %s slot=%04d\n", offset, name, slot);
 	return offset + 2;
 }
 
-static size_t jump_instruction(const char *name, int sign, chunk_t *chunk,
-			       size_t offset)
+static int jump_instruction(const char *name, int sign, chunk_t *chunk,
+			    int offset)
 {
 	uint16_t jump = (uint16_t)(chunk->code[offset + 1] << 8);
 	jump |= chunk->code[offset + 2];
 
-	size_t target = offset + 3 + (size_t)(sign * (int)jump);
+	int target = offset + 3 + (sign * (int)jump);
 
 	printf("%-16s %4ld -> %ld\n", name, (long)offset, (long)target);
 	return offset + 3;
