@@ -49,6 +49,7 @@ set(SOURCES
     src/vm.c
     src/native_functions.c
     src/lib/gustav_time.c
+    src/lib/gustav_math.c
 )
 
 set(HEADERS
@@ -65,7 +66,7 @@ set(HEADERS
     include/scanner.h
     include/value.h
     include/vm.h
-    src/native_functions.h
+    include/native_functions.h
 )
 
 add_executable(gustav ${SOURCES})
@@ -85,7 +86,7 @@ target_compile_definitions(
   LOG_USE_COLOR
   LINE_LENGTH=${LINE_LENGTH}
   HASH_TABLE_MAX_LOAD_FACTOR=${HASH_TABLE_MAX_LOAD_FACTOR}
-  $<$<CONFIG:Debug>:DEBUG>
+  $<$<CONFIG:Debug>:DEBUG DEBUG_STRESS_GC DEBUG_LOG_GC>
 )
 
 target_compile_options(

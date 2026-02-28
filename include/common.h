@@ -15,9 +15,6 @@
 #define UINT8_COUNT (UINT8_MAX + 1)
 #define ARRAY_LENGTH(arr) (sizeof(arr) / sizeof((arr)[0]))
 
-#define DEBUG_STRESS_GC
-#define DEBUG_LOG_GC
-
 #ifdef DEBUG
 #define UNREACHABLE()                                                        \
 	do {                                                                 \
