@@ -10,6 +10,7 @@
 #include "common.h"
 #include "compiler.h"
 #include "log.h"
+#include "memory.h"
 #include "object.h"
 #include "scanner.h"
 #include "value.h"
@@ -971,4 +972,14 @@ function_t *compile(const char *source)
 	function_t *function = finish_compiling();
 
 	return parser_state.had_error ? NULL : function;
+}
+
+void mark_compiler_roots(void)
+{
+	Compiler *compiler = current;
+
+	while (compiler != NULL) {
+		mark_object((obj_t *)compiler->function);
+		compiler = compiler->enclosing;
+	}
 }

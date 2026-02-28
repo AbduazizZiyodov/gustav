@@ -2,6 +2,8 @@
 #define GUSTAV_MEMORY_H
 #include <stddef.h>
 
+#include "value.h"
+
 #define GROW_CAPACITY(capacity) ((capacity) < 8 ? 8 : (size_t)((capacity) * 2))
 
 #define ALLOCATE(type, count) \
@@ -25,6 +27,9 @@
 	} while (false)
 
 void *reallocate(void *pointer, size_t old_size, size_t new_size);
+void mark_object(obj_t *object);
+void mark_value(value_t value);
+void collect_garbage(void);
 void free_objects(void);
 
 #endif // GUSTAV_MEMORY_H
