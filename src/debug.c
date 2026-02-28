@@ -1,13 +1,13 @@
-#include "object.h"
-#include <stddef.h>
 #ifdef DEBUG
 
+#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 
 #include "chunk.h"
 #include "debug.h"
 #include "log.h"
+#include "object.h"
 #include "value.h"
 
 static uint8_t current_instruction;

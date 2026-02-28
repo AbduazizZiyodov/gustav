@@ -13,7 +13,6 @@
 #include "object.h"
 #include "scanner.h"
 #include "value.h"
-#include <unistd.h>
 
 #ifdef DEBUG
 #include "debug.h"
@@ -518,6 +517,7 @@ static void named_variable(token_t name, bool can_assign)
 	if (arg != -1) {
 		get_op = OP_GET_LOCAL;
 		set_op = OP_SET_LOCAL;
+		/* NOLINTNEXTLINE(bugprone-assignment-in-if-condition) */
 	} else if ((arg = resolve_upvalue(current, &name)) != -1) {
 		get_op = OP_GET_UPVALUE;
 		set_op = OP_SET_UPVALUE;
