@@ -27,6 +27,8 @@ void *reallocate(void *pointer, size_t old_size __attribute__((unused)),
 
 static void free_object(obj_t *object)
 {
+	ObjClosure *closure;
+
 	switch (object->type) {
 	case OBJ_STRING: {
 		string_t *string = (string_t *)object;
@@ -46,7 +48,8 @@ static void free_object(obj_t *object)
 		FREE(ObjNative, object);
 		break;
 	case OBJ_CLOSURE:
-		ObjClosure *closure = (ObjClosure *)object;
+		closure = (ObjClosure *)object;
+		/*NOLINTNEXTLINE(bugprone-multi-level-implicit-pointer-conversion)*/
 		FREE_ARRAY(ObjUpvalue *, closure->upvalues,
 			   closure->upvalue_count);
 		FREE(ObjClosure, object);
