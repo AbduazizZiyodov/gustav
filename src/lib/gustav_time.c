@@ -3,17 +3,16 @@
 
 #include <errno.h>
 /* NOLINTNEXTLINE(misc-include-cleaner) */
-#include <time.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-
+#include <time.h>
 
 #include "native_functions.h"
 #include "value.h"
 
-value_t clock_native(size_t arg_count __attribute__((unused)),
-		     value_t *args __attribute__((unused)))
+value_t gustav_clock_native(size_t arg_count __attribute__((unused)),
+			    value_t *args __attribute__((unused)))
 {
 	struct timespec ts;
 	/* NOLINTNEXTLINE(misc-include-cleaner) */
@@ -25,8 +24,8 @@ value_t clock_native(size_t arg_count __attribute__((unused)),
 	return NUMBER_VAL(seconds);
 }
 
-value_t gustav_sleep(size_t arg_count __attribute__((unused)),
-		     value_t *args __attribute__((unused)))
+value_t gustav_sleep_native(size_t arg_count __attribute__((unused)),
+			    value_t *args __attribute__((unused)))
 {
 	// TODO(abduaziz): better error handling, <0, no arg ...
 	if (arg_count < 1) {
@@ -62,7 +61,7 @@ value_t gustav_sleep(size_t arg_count __attribute__((unused)),
 	}
 
 	while (1) {
-	/* NOLINTNEXTLINE(misc-include-cleaner) */
+		/* NOLINTNEXTLINE(misc-include-cleaner) */
 		int r = clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &target,
 					NULL);
 		if (r == 0) {
