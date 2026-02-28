@@ -5,5 +5,6 @@
 #include <stdbool.h>
 
 function_t *compile(const char *source);
+void mark_compiler_roots(void);
 
 #endif // GUSTAV_COMPILER_H

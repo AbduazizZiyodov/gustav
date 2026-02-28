@@ -173,3 +173,13 @@ string_t *ht_find_string(hash_table_t *hash_table, const char *chars,
 		index = (index + 1) % hash_table->capacity;
 	}
 }
+
+void mark_table(hash_table_t *table)
+{
+	for (size_t i = 0; i < table->capacity; i++) {
+		ht_entry_t *entry = &table->entries[i];
+
+		mark_object((obj_t *)entry->key);
+		mark_value(entry->value);
+	}
+}

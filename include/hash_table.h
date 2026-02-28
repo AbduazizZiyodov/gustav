@@ -27,4 +27,6 @@ void ht_add_all(hash_table_t *from, hash_table_t *to);
 string_t *ht_find_string(hash_table_t *hash_table, const char *chars,
 			 size_t length, uint32_t hash);
 
+void mark_table(hash_table_t *table);
+
 #endif // GUSTAV_HASHTABLE_H

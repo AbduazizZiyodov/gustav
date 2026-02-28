@@ -408,10 +408,10 @@ static interpreter_result_t run(void)
 			break;
 		}
 		case OP_PRINT: {
-			LOG_TRACE("== [stdout] ==\n");
+			LOG_DEBUG("== [stdout] ==\n");
 			print_value(pop());
 			(void)putchar('\n');
-			LOG_TRACE("== [/stdout] ==\n\n");
+			LOG_DEBUG("== [/stdout] ==\n\n");
 			break;
 		}
 		case OP_JUMP: {
