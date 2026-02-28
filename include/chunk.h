@@ -36,7 +36,11 @@
 	DO(OP_JUMP_IF_FALSE) \
 	DO(OP_JUMP)          \
 	DO(OP_LOOP)          \
-	DO(OP_CALL)
+	DO(OP_CALL)          \
+	DO(OP_CLOSURE)       \
+	DO(OP_GET_UPVALUE)   \
+	DO(OP_SET_UPVALUE)   \
+	DO(OP_CLOSE_UPVALUE)
 
 #define GENERATE_ENUM(ENUM) ENUM,
 #define GENERATE_STRING(STRING) #STRING,
