@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.24)
 
+set(CMAKE_C_COMPILER "clang-19")
+
 project(
   gustav
   VERSION 2.0
@@ -46,6 +48,7 @@ set(SOURCES
     src/value.c
     src/vm.c
     src/native_functions.c
+    src/lib/gustav_time.c
 )
 
 set(HEADERS
