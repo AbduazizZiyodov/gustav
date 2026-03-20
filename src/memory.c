@@ -1,6 +1,7 @@
-#include "chunk.h"
+#include <stdio.h>
 #include <stdlib.h>
 
+#include "chunk.h"
 #include "common.h"
 #include "compiler.h"
 #include "hash_table.h"
@@ -8,11 +9,6 @@
 #include "object.h"
 #include "value.h"
 #include "vm.h"
-
-#ifdef DEBUG_LOG_GC
-#include "log.h"
-#include <stdio.h>
-#endif
 
 void *reallocate(void *pointer, size_t old_size __attribute__((unused)),
 		 size_t new_size)
@@ -43,7 +39,7 @@ void mark_object(obj_t *object)
 		return;
 	}
 #ifdef DEBUG_LOG_GC
-	LOG_TRACE("%p mark ", (void *)object);
+	LOG_GC("%p mark ", (void *)object);
 	print_value(OBJ_VAL(object));
 	printf("\n");
 #endif
@@ -64,10 +60,8 @@ static void free_object(obj_t *object)
 	switch (object->type) {
 	case OBJ_STRING: {
 		string_t *string = (string_t *)object;
-#ifdef DEBUG_LOG_GC
-		LOG_TRACE("Freeing string object: object=%p string_repr=%s\n",
-			  object, string->chars);
-#endif
+		LOG_GC("Freeing string object: object=%p string_repr=%s\n",
+		       object, string->chars);
 		FREE_ARRAY(char, string->chars, string->length + 1);
 		FREE(string_t, object);
 		break;
@@ -115,15 +109,9 @@ static void mark_roots(void)
 
 void collect_garbage(void)
 {
-#ifdef DEBUG_LOG_GC
-	LOG_TRACE("== [GC BEGIN] ==\n");
-#endif
-
+	LOG_GC("== [GC BEGIN] ==\n");
 	mark_roots();
-
-#ifdef DEBUG_LOG_GC
-	LOG_TRACE("== [/GC BEGIN] ==\n");
-#endif
+	LOG_GC("== [/GC BEGIN] ==\n");
 }
 
 void free_objects(void)

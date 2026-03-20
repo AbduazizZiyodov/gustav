@@ -10,10 +10,6 @@
 #include "value.h"
 #include "vm.h"
 
-#ifdef DEBUG_LOG_GC
-#include "log.h"
-#endif
-
 #define ALLOCATE_OBJ(type, object_type) \
 	(type *)allocate_object(sizeof(type), object_type)
 
@@ -25,9 +21,7 @@ static obj_t *allocate_object(size_t size, ObjType type)
 	object->next = vm.objects;
 	vm.objects = object;
 
-#ifdef DEBUG_LOG_GC
-	LOG_TRACE("%p allocate %zu for %d\n", (void *)object, size, type);
-#endif
+	LOG_GC("%p allocate %zu for %d\n", (void *)object, size, type);
 
 	return object;
 }
