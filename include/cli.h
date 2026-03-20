@@ -34,7 +34,7 @@
 #endif
 
 void repl(void);
-void show_compile_time_info(void);
+void print_compile_info(void);
 void run_file(const char *path);
 
 extern volatile sig_atomic_t shutdown_requested;

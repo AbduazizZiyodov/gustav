@@ -4,6 +4,13 @@
 
 #include "value.h"
 
+#ifdef DEBUG_LOG_GC
+#include "log.h"
+#define LOG_GC(...) log_log(LOG_TRACE_, __FILE__, __LINE__, __VA_ARGS__)
+#else
+#define LOG_GC(...)
+#endif
+
 #define GROW_CAPACITY(capacity) ((capacity) < 8 ? 8 : (size_t)((capacity) * 2))
 
 #define ALLOCATE(type, count) \

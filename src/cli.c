@@ -106,9 +106,9 @@ static char *read_file(const char *path)
 	return buffer;
 }
 
-void show_compile_time_info(void)
+void print_compile_info(void)
 {
-	printf("Gustav v%s [build=%s | compiler_version=%s | opt=%s | os=%s %s | compiled=\"%s %s\"]\n\n",
-	       PROJECT_VERSION_STRING, BUILD_TYPE, COMPILER_VERSION, OPT_LEVEL,
-	       OS, ARCH, __DATE__, __TIME__);
+	printf("Gustav v%s (%s %s) [ %s ] | %s %s build for \"%s %s\"\n\n",
+	       PROJECT_VERSION_STRING, __DATE__, __TIME__, COMPILER_VERSION,
+	       OPT_LEVEL, BUILD_TYPE, OS, ARCH);
 }
