@@ -19,7 +19,7 @@ int main(int argc, char **argv)
 		gustav_error(EXIT_FAILURE, "Can't set signal handler");
 	}
 
-	print_compile_info();
+	show_gustav_info();
 
 	init_vm();
 

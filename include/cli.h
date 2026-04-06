@@ -34,7 +34,7 @@
 #endif
 
 void repl(void);
-void print_compile_info(void);
+void show_gustav_info(void);
 void run_file(const char *path);
 
 extern volatile sig_atomic_t shutdown_requested;
