@@ -106,7 +106,7 @@ static char *read_file(const char *path)
 	return buffer;
 }
 
-void print_compile_info(void)
+void show_gustav_info(void)
 {
 	printf("Gustav v%s (%s %s) [ %s ] | %s %s build for \"%s %s\"\n\n",
 	       PROJECT_VERSION_STRING, __DATE__, __TIME__, COMPILER_VERSION,
