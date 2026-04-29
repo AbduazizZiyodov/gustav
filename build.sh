@@ -7,7 +7,7 @@ readonly PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$PROJECT_ROOT"
 
 echo "Formatting code..."
-clang-format --verbose -i src/*.c include/*.h
+find src include -name '*.[ch]' | xargs clang-format --verbose -i
 
 mkdir -p target
 
@@ -15,7 +15,7 @@ for build_type in Debug Release; do
     build_dir="build-${build_type,,}"
     echo -e "\n== [build $build_type in $build_dir] =="
 
-    CC=clang cmake -B "$build_dir" --fresh \
+    cmake -B "$build_dir" --fresh \
           -DCMAKE_BUILD_TYPE="$build_type" \
           -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
