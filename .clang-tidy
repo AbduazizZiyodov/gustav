@@ -18,13 +18,13 @@ Checks: >
   -misc-no-recursion,
   -misc-non-private-member-variables-in-classes,
   readability-*,
-  readability-function-size,
   -readability-function-cognitive-complexity,
   -readability-identifier-length,
   -readability-magic-numbers,
-  -readability-avoid-const-params-in-decls
+  -readability-avoid-const-params-in-decls,
+  -readability-implicit-bool-conversion
 
-WarningsAsErrors:
+WarningsAsErrors: >
   clang-analyzer-security.*,
   bugprone-undefined-memory-manipulation,
   bugprone-narrowing-conversions,
@@ -32,7 +32,6 @@ WarningsAsErrors:
   bugprone-offsetof-offsetof
 
 HeaderFilterRegex: "^(src|include)/.*"
-
 FormatStyle: "file"
 
 HeaderFileExtensions:
