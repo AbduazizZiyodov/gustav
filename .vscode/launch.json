@@ -5,7 +5,7 @@
             "type": "lldb-dap",
             "request": "launch",
             "name": "Debug via LLDB",
-            "program": "./target/gustav",
+            "program": "./target/gustav_debug",
             "console": "integratedTerminal",
             "args": [ "test.gus"],
         }

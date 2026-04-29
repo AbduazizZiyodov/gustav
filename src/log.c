@@ -183,10 +183,8 @@ void log_log(int level, const char *file, int line, const char *fmt, ...)
 }
 #else
 
-void log_log(int level __attribute__((unused)),
-	     const char *file __attribute__((unused)),
-	     int line __attribute__((unused)),
-	     const char *fmt __attribute__((unused)), ...)
+void log_log(int level [[maybe_unused]], const char *file [[maybe_unused]],
+	     int line [[maybe_unused]], const char *fmt [[maybe_unused]], ...)
 {
 }
 

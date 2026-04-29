@@ -9,12 +9,11 @@ project(
 )
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 if(NOT CMAKE_C_COMPILER_ID MATCHES "Clang")
     message(FATAL_ERROR "clang is required")
@@ -106,16 +105,12 @@ target_compile_options(
     -Wnull-dereference
     -Wdouble-promotion
     -Wformat-security
+    -Werror
     $<$<CONFIG:Debug>:-g -O0 -fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer -fno-optimize-sibling-calls>
     $<$<CONFIG:Release>:-O3 -flto>
 )
 
-find_library(MATH_LIBRARY m)
-if(NOT MATH_LIBRARY)
-    message(FATAL_ERROR "Math library not found")
-endif()
-
-target_link_libraries(gustav PRIVATE ${MATH_LIBRARY})
+target_link_libraries(gustav PRIVATE m)
 
 target_link_options(
     gustav PRIVATE
