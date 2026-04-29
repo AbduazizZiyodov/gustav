@@ -6,6 +6,7 @@
 
 #include "cli.h"
 #include "common.h"
+#include "log.h"
 #include "version.h"
 #include "vm.h"
 
@@ -111,4 +112,10 @@ void show_gustav_info(void)
 	printf("Gustav v%s (%s %s) [ %s ] | %s %s build for \"%s %s\"\n\n",
 	       PROJECT_VERSION_STRING, __DATE__, __TIME__, COMPILER_VERSION,
 	       OPT_LEVEL, BUILD_TYPE, OS, ARCH);
+
+#ifdef DEBUG_STRESS_GC
+	LOG_INFO("!!! DEBUG_STRESS_GC is enabled !!!\n\n");
+#else
+	LOG_INFO("!!! DEBUG_STRESS_GC is disabled !!!\n\n");
+#endif
 }

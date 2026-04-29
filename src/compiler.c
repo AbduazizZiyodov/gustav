@@ -14,6 +14,7 @@
 #include "object.h"
 #include "scanner.h"
 #include "value.h"
+#include "vm.h"
 
 #ifdef DEBUG
 #include "debug.h"
@@ -298,7 +299,7 @@ static void expression(void);
 static ParseRule *get_rule(TokenType type);
 static void parse_precedence(Precedence precedence);
 
-static void binary(bool can_assign __attribute__((unused)))
+static void binary(bool can_assign [[maybe_unused]])
 {
 	TokenType operator_type = parser_state.previous.type;
 
@@ -348,13 +349,13 @@ static void binary(bool can_assign __attribute__((unused)))
 	}
 }
 
-static void call(bool can_assign __attribute__((unused)))
+static void call(bool can_assign [[maybe_unused]])
 {
 	uint8_t arg_count = argument_list();
 	EMIT_BYTES(OP_CALL, arg_count);
 }
 
-static void literal(bool can_assign __attribute__((unused)))
+static void literal(bool can_assign [[maybe_unused]])
 {
 	switch (parser_state.previous.type) {
 	case TOKEN_FALSE:
@@ -371,13 +372,13 @@ static void literal(bool can_assign __attribute__((unused)))
 	}
 }
 
-static void grouping(bool can_assign __attribute__((unused)))
+static void grouping(bool can_assign [[maybe_unused]])
 {
 	expression();
 	consume(TOKEN_RIGHT_PAREN, "Expect '}' after expression.");
 }
 
-static void number(bool can_assign __attribute__((unused)))
+static void number(bool can_assign [[maybe_unused]])
 {
 	errno = 0;
 	double value = strtod(parser_state.previous.start, NULL);
@@ -390,15 +391,24 @@ static void number(bool can_assign __attribute__((unused)))
 	emit_constant(NUMBER_VAL(value));
 }
 
-static void string(bool can_assign __attribute__((unused)))
+static void string(bool can_assign [[maybe_unused]])
 {
-	emit_constant(OBJ_VAL(copy_string(parser_state.previous.start + 1,
-					  parser_state.previous.length - 2)));
+	string_t *str = copy_string(parser_state.previous.start + 1,
+				    parser_state.previous.length - 2);
+
+	// NOTE(abduaziz): temporary push the value, fixes GC bug
+	push(OBJ_VAL(str));
+	emit_constant(OBJ_VAL(str));
+	pop();
 }
+
 static uint8_t identifier_constant(token_t *name)
 {
 	string_t *string_val = copy_string(name->start, name->length);
-	return make_constant(OBJ_VAL(string_val));
+	push(OBJ_VAL(string_val)); // NOTE(abduaziz): fixes same GC error above
+	uint8_t constant = make_constant(OBJ_VAL(string_val));
+	pop();
+	return constant;
 }
 
 static bool identifiers_equal(token_t *a, token_t *b)
@@ -543,7 +553,7 @@ static void variable(bool can_assign)
 	named_variable(parser_state.previous, can_assign);
 }
 
-static void unary(bool can_assign __attribute__((unused)))
+static void unary(bool can_assign [[maybe_unused]])
 {
 	TokenType operator_type = parser_state.previous.type;
 
@@ -561,7 +571,7 @@ static void unary(bool can_assign __attribute__((unused)))
 	}
 }
 
-static void and_(bool can_assign __attribute__((unused)))
+static void and_(bool can_assign [[maybe_unused]])
 {
 	int end_jump = emit_jump(OP_JUMP_IF_FALSE);
 
@@ -571,7 +581,7 @@ static void and_(bool can_assign __attribute__((unused)))
 	patch_jump(end_jump);
 }
 
-static void or_(bool can_assign __attribute__((unused)))
+static void or_(bool can_assign [[maybe_unused]])
 {
 	int else_jump = emit_jump(OP_JUMP_IF_FALSE);
 	int end_jump = emit_jump(OP_JUMP);
@@ -638,7 +648,7 @@ static void parse_precedence(Precedence precedence)
 		return;
 	}
 
-	bool can_assign = precedence <= PREC_ASSIGNMENT;
+	bool can_assign = (bool)(precedence <= PREC_ASSIGNMENT);
 	prefix_rule(can_assign);
 
 	while (precedence <= get_rule(parser_state.current.type)->precedence) {
@@ -740,7 +750,10 @@ static void function(FunctionType type)
 	consume(TOKEN_LEFT_BRACE, "Expect '{' before function body.");
 	block();
 	function_t *function = finish_compiling();
-	EMIT_BYTES(OP_CLOSURE, make_constant(OBJ_VAL(function)));
+	value_t function_value = OBJ_VAL(function);
+	push(function_value);
+	EMIT_BYTES(OP_CLOSURE, make_constant(function_value));
+	pop();
 
 	for (int i = 0; i < function->upvalue_count; i++) {
 		EMIT_BYTES(compiler.upvalues[i].is_local ? 1 : 0,
@@ -971,7 +984,10 @@ function_t *compile(const char *source)
 
 	function_t *function = finish_compiling();
 
-	return parser_state.had_error ? NULL : function;
+	if (parser_state.had_error) {
+		return NULL;
+	}
+	return function;
 }
 
 void mark_compiler_roots(void)

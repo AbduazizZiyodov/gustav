@@ -174,11 +174,21 @@ string_t *ht_find_string(hash_table_t *hash_table, const char *chars,
 	}
 }
 
+void ht_remove_white(hash_table_t *hash_table)
+{
+	for (size_t i = 0; i < hash_table->capacity; i++) {
+		ht_entry_t *entry = &hash_table->entries[i];
+
+		if (entry->key != NULL && !entry->key->obj.is_marked) {
+			ht_delete(hash_table, entry->key);
+		}
+	}
+}
+
 void mark_table(hash_table_t *table)
 {
 	for (size_t i = 0; i < table->capacity; i++) {
 		ht_entry_t *entry = &table->entries[i];
-
 		mark_object((obj_t *)entry->key);
 		mark_value(entry->value);
 	}

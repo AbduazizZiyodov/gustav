@@ -7,6 +7,7 @@
 #include "common.h"
 #include "memory.h"
 #include "value.h"
+#include "vm.h"
 
 void init_chunk(chunk_t *chunk)
 {
@@ -43,11 +44,12 @@ void free_chunk(chunk_t *chunk)
 
 size_t add_constant(chunk_t *chunk, value_t value)
 {
+	push(value);
 	write_value_array(&chunk->constants, value);
 
 	if (chunk->constants.count > UINT8_MAX) {
 		gustav_error(EXIT_FAILURE, "Too many constants in one chunk");
 	}
-
+	pop();
 	return chunk->constants.count - 1;
 }

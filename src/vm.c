@@ -106,6 +106,14 @@ void init_vm(void)
 	LOG_INFO("VM initialized\n");
 	reset_stack();
 	vm.objects = NULL;
+
+	vm.bytes_allocated = 0;
+	vm.next_gc = (size_t)(1024 * 1024);
+
+	vm.gray_count = 0;
+	vm.gray_capacity = 0;
+	vm.gray_stack = NULL;
+
 	init_hash_table(&vm.strings);
 	init_hash_table(&vm.globals);
 
@@ -127,7 +135,7 @@ void free_vm(void)
 #ifdef DEBUG // DEBUG
 static void trace(call_frame_t *frame)
 #else
-static void trace(call_frame_t *frame __attribute__((unused)))
+static void trace(call_frame_t *frame [[maybe_unused]])
 #endif // DEBUG - mark arg as unused on release/non-debug builds
 {
 // Prints the instruction that currently being executed (if enabled) &
@@ -244,8 +252,8 @@ static bool is_falsey(value_t value)
 
 static void concatenate(void)
 {
-	string_t *b = AS_STRING(pop());
-	string_t *a = AS_STRING(pop());
+	string_t *b = AS_STRING(peek(0));
+	string_t *a = AS_STRING(peek(1));
 
 	size_t total_length = a->length + b->length;
 
@@ -258,6 +266,8 @@ static void concatenate(void)
 
 	string_t *concatenated = take_string(chars, total_length);
 
+	pop();
+	pop();
 	push(OBJ_VAL(concatenated));
 }
 
