@@ -5,8 +5,7 @@ set(CMAKE_C_COMPILER "clang-19")
 project(
   gustav
   VERSION 2.0
-  LANGUAGES C
-)
+  LANGUAGES C)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_C_STANDARD 23)
@@ -16,20 +15,24 @@ set(CMAKE_C_EXTENSIONS OFF)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 if(NOT CMAKE_C_COMPILER_ID MATCHES "Clang")
-    message(FATAL_ERROR "clang is required")
+  message(FATAL_ERROR "clang is required")
 endif()
 
 set(CMAKE_C_CLANG_TIDY
-    clang-tidy;
-    --config-file=${CMAKE_SOURCE_DIR}/.clang-tidy;
-    --use-color;
-)
+    clang-tidy; --config-file=${CMAKE_SOURCE_DIR}/.clang-tidy; --use-color;)
 
 if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Debug)
+  set(CMAKE_BUILD_TYPE Debug)
 endif()
 
-set(LINE_LENGTH 1024 CACHE STRING "Maximum line length for REPL")
+option(SANITIZE "Enable address sanitizer and ubsan" ON)
+
+option(DEBUG_STRESS_GC "Run GC on every allocation" OFF)
+option(DEBUG_LOG_GC "Log GC events" OFF)
+
+set(LINE_LENGTH
+    1024
+    CACHE STRING "Maximum line length for REPL")
 set(HASH_TABLE_MAX_LOAD_FACTOR 0.75)
 
 set(SOURCES
@@ -48,8 +51,7 @@ set(SOURCES
     src/vm.c
     src/native_functions.c
     src/lib/gustav_time.c
-    src/lib/gustav_math.c
-)
+    src/lib/gustav_math.c)
 
 set(HEADERS
     include/api.h
@@ -65,57 +67,57 @@ set(HEADERS
     include/scanner.h
     include/value.h
     include/vm.h
-    include/native_functions.h
-)
+    include/native_functions.h)
 
 add_executable(gustav ${SOURCES})
 
 target_include_directories(gustav PUBLIC ${CMAKE_SOURCE_DIR}/include)
 
-configure_file(
-    "${CMAKE_SOURCE_DIR}/include/version.h.in"
-    "${CMAKE_BINARY_DIR}/include/version.h"
-    @ONLY
-)
+configure_file("${CMAKE_SOURCE_DIR}/include/version.h.in"
+               "${CMAKE_BINARY_DIR}/include/version.h" @ONLY)
 
 target_include_directories(gustav PRIVATE ${CMAKE_BINARY_DIR}/include)
 
 target_compile_definitions(
-  gustav PRIVATE
-  LOG_USE_COLOR
-  LINE_LENGTH=${LINE_LENGTH}
-  HASH_TABLE_MAX_LOAD_FACTOR=${HASH_TABLE_MAX_LOAD_FACTOR}
-  $<$<CONFIG:Debug>:DEBUG DEBUG_STRESS_GC DEBUG_LOG_GC>
-)
+  gustav
+  PRIVATE LOG_USE_COLOR
+          LINE_LENGTH=${LINE_LENGTH}
+          HASH_TABLE_MAX_LOAD_FACTOR=${HASH_TABLE_MAX_LOAD_FACTOR}
+          $<$<CONFIG:Debug>:DEBUG>
+          $<$<BOOL:${DEBUG_STRESS_GC}>:DEBUG_STRESS_GC>
+          $<$<BOOL:${DEBUG_LOG_GC}>:DEBUG_LOG_GC>)
 
 target_compile_options(
-    gustav
-    PRIVATE
-    -Wall
-    -Wextra
-    -pedantic
-    -Wshadow
-    -Wcast-align
-    -Wconversion
-    -Wsign-conversion
-    -Wformat=2
-    -Wvla
-    -Wstrict-prototypes
-    -Wmissing-prototypes
-    -Wnull-dereference
-    -Wdouble-promotion
-    -Wformat-security
-    -Werror
-    $<$<CONFIG:Debug>:-g -O0 -fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer -fno-optimize-sibling-calls>
-    $<$<CONFIG:Release>:-O3 -flto>
-)
-
-target_link_libraries(gustav PRIVATE m)
+  gustav
+  PRIVATE -Wall
+          -Wextra
+          -pedantic
+          -Wshadow
+          -Wcast-align
+          -Wconversion
+          -Wsign-conversion
+          -Wformat=2
+          -Wvla
+          -Wstrict-prototypes
+          -Wmissing-prototypes
+          -Wnull-dereference
+          -Wdouble-promotion
+          -Wformat-security
+          -Werror
+          $<$<CONFIG:Debug>:-g
+          -O0
+          -fno-omit-frame-pointer
+          -fno-optimize-sibling-calls>
+          $<$<AND:$<CONFIG:Debug>,$<BOOL:${SANITIZE}>>:-fsanitize=address
+          -fsanitize=undefined>
+          $<$<CONFIG:Release>:-O3
+          -flto>)
 
 target_link_options(
-    gustav PRIVATE
-    $<$<CONFIG:Debug>:-fsanitize=address -fsanitize=undefined>
-    $<$<CONFIG:Release>:-flto>
-)
+  gustav PRIVATE
+  $<$<AND:$<CONFIG:Debug>,$<BOOL:${SANITIZE}>>:-fsanitize=address
+  -fsanitize=undefined> $<$<CONFIG:Release>:-flto>)
+
+target_link_libraries(gustav PRIVATE m)
 
 install(TARGETS gustav DESTINATION bin)
