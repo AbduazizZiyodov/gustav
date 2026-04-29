@@ -133,8 +133,8 @@ static int jump_instruction(const char *name, int sign, chunk_t *chunk,
 #include "chunk.h"
 #include "debug.h"
 
-void disassemble_chunk(chunk_t *chunk __attribute__((unused)),
-		       const char *name __attribute__((unused)))
+void disassemble_chunk(chunk_t *chunk [[maybe_unused]],
+		       const char *name [[maybe_unused]])
 {
 }
 #endif // DEBUG

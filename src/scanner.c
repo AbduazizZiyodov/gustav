@@ -199,7 +199,7 @@ static token_t make_string_token(void)
 
 static bool is_digit(char c)
 {
-	return c >= '0' && c <= '9';
+	return (bool)(c >= '0' && c <= '9');
 }
 
 static token_t make_number_token(void)

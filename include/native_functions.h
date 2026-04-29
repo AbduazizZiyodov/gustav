@@ -2,14 +2,14 @@
 #include "object.h"
 #include "value.h"
 
-value_t gustav_clock_native(size_t arg_count __attribute__((unused)),
-			    value_t *args __attribute__((unused)));
+value_t gustav_clock_native(size_t arg_count [[maybe_unused]],
+			    value_t *args [[maybe_unused]]);
 
-value_t gustav_sleep_native(size_t arg_count __attribute__((unused)),
-			    value_t *args __attribute__((unused)));
+value_t gustav_sleep_native(size_t arg_count [[maybe_unused]],
+			    value_t *args [[maybe_unused]]);
 
-value_t gustav_max_native(size_t arg_count __attribute__((unused)),
-			  value_t *args __attribute__((unused)));
+value_t gustav_max_native(size_t arg_count [[maybe_unused]],
+			  value_t *args [[maybe_unused]]);
 
 typedef struct {
 	native_fn function;
