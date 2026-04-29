@@ -71,7 +71,9 @@ static string_t *allocate_string(char *chars, size_t length, uint32_t hash)
 	string->chars = chars;
 	string->hash = hash;
 
+	push(OBJ_VAL(string));
 	ht_insert(&vm.strings, string, NIL_VAL);
+	pop();
 
 	return string;
 }

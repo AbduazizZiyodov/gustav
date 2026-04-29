@@ -29,6 +29,13 @@ typedef struct {
 	size_t frame_count;
 	ObjUpvalue *open_upvalues;
 	call_frame_t frames[FRAMES_MAX];
+
+	size_t gray_count;
+	size_t gray_capacity;
+	obj_t **gray_stack;
+
+	size_t bytes_allocated;
+	size_t next_gc;
 } VM;
 
 typedef enum {

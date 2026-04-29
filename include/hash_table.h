@@ -23,6 +23,7 @@ bool ht_insert(hash_table_t *hash_table, string_t *key, value_t value);
 bool ht_get(hash_table_t *hash_table, string_t *key, value_t *value);
 bool ht_delete(hash_table_t *hash_table, string_t *key);
 void ht_add_all(hash_table_t *from, hash_table_t *to);
+void ht_remove_white(hash_table_t *hash_table);
 
 string_t *ht_find_string(hash_table_t *hash_table, const char *chars,
 			 size_t length, uint32_t hash);
