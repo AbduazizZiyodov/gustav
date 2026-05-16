@@ -85,6 +85,7 @@ typedef struct Compiler {
 
 typedef struct ClassCompiler {
 	struct ClassCompiler *enclosing;
+	bool has_super_class;
 } ClassCompiler;
 
 ParserState parser_state;
@@ -592,6 +593,40 @@ static void variable(bool can_assign)
 	named_variable(parser_state.previous, can_assign);
 }
 
+static token_t synthetic_token(const char *text)
+{
+	token_t token;
+	token.start = text;
+	token.length = strlen(text);
+	return token;
+}
+
+static void super(bool can_assign [[maybe_unused]])
+{
+	if (current_class == NULL) {
+		gustav_error(-1, "Can't use 'super' outside of a class");
+	} else if (!current_class->has_super_class) {
+		gustav_error(
+			-1, "Can't use 'super' in a class with no superclass.");
+	}
+
+	consume(TOKEN_DOT, "Expect '.' after 'super'.");
+	consume(TOKEN_IDENTIFIER, "Expect superclass method name.");
+	uint8_t name = identifier_constant(&parser_state.previous);
+
+	named_variable(synthetic_token("this"), false);
+
+	if (match(TOKEN_LEFT_PAREN)) {
+		uint8_t arg_count = argument_list();
+		named_variable(synthetic_token("super"), false);
+		EMIT_BYTES(OP_SUPER_INVOKE, name);
+		emit_byte(arg_count);
+	} else {
+		named_variable(synthetic_token("super"), false);
+		EMIT_BYTES(OP_GET_SUPER, name);
+	}
+}
+
 static void this(bool can_assign [[maybe_unused]])
 {
 	if (current_class == NULL) {
@@ -677,7 +712,7 @@ ParseRule rules[] = {
 	[TOKEN_OR] = { NULL, or_, PREC_OR },
 	[TOKEN_PRINT] = { NULL, NULL, PREC_NONE },
 	[TOKEN_RETURN] = { NULL, NULL, PREC_NONE },
-	[TOKEN_SUPER] = { NULL, NULL, PREC_NONE },
+	[TOKEN_SUPER] = { super, NULL, PREC_NONE },
 	[TOKEN_THIS] = { this, NULL, PREC_NONE },
 	[TOKEN_TRUE] = { literal, NULL, PREC_NONE },
 	[TOKEN_VAR] = { NULL, NULL, PREC_NONE },
@@ -840,8 +875,26 @@ static void class_declaration()
 	define_variable(name_constant);
 
 	ClassCompiler class_compiler;
+	class_compiler.has_super_class = false;
 	class_compiler.enclosing = current_class;
 	current_class = &class_compiler;
+
+	if (match(TOKEN_LESS)) {
+		consume(TOKEN_IDENTIFIER, "Expect superclass name.");
+		variable(false);
+
+		if (identifiers_equal(&class_name, &parser_state.previous)) {
+			gustav_error(-1, "A class can't inherit from itself.");
+		}
+
+		begin_scope();
+		add_local(synthetic_token("super"));
+		define_variable(0);
+
+		named_variable(class_name, false);
+		emit_byte(OP_INHERIT);
+		class_compiler.has_super_class = true;
+	}
 
 	named_variable(class_name, false);
 
@@ -853,6 +906,10 @@ static void class_declaration()
 
 	consume(TOKEN_RIGHT_BRACE, "Expect '}' before class body.");
 	emit_byte(OP_POP);
+
+	if (class_compiler.has_super_class) {
+		end_scope();
+	}
 
 	current_class = current_class->enclosing;
 }

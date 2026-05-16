@@ -54,6 +54,7 @@ int disassemble_instruction(chunk_t *chunk, int offset)
 	case OP_PRINT:
 	case OP_POP:
 	case OP_CLOSE_UPVALUE:
+	case OP_INHERIT:
 		LOG_DEBUG("%04d %s\n", offset, op_string);
 		return offset + 1;
 	case OP_CONSTANT:
@@ -64,6 +65,7 @@ int disassemble_instruction(chunk_t *chunk, int offset)
 	case OP_GET_PROPERTY:
 	case OP_SET_PROPERTY:
 	case OP_METHOD:
+	case OP_GET_SUPER:
 		return constant_instruction(op_string, chunk, offset);
 	case OP_GET_LOCAL:
 	case OP_SET_LOCAL:
@@ -97,6 +99,7 @@ int disassemble_instruction(chunk_t *chunk, int offset)
 		return offset;
 	}
 	case OP_INVOKE:
+	case OP_SUPER_INVOKE:
 		return invoke_instruction(op_string, chunk, offset);
 	default:
 		LOG_ERROR("Unknown opcode %d\n", current_instruction);

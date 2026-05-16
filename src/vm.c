@@ -619,9 +619,40 @@ static interpreter_result_t run(void)
 		case OP_CLASS:
 			push(OBJ_VAL(new_class(READ_STRING())));
 			break;
+		case OP_INHERIT: {
+			value_t superclass = peek(1);
+			if (!IS_CLASS(superclass)) {
+				runtime_error("Superclass must be a class");
+				return INTERPRET_RUNTIME_ERROR;
+			}
+			ObjClass *subclass = AS_CLASS(peek(0));
+			ht_add_all(&AS_CLASS(superclass)->methods,
+				   &subclass->methods);
+			pop(); // subclass
+			break;
+		}
+		case OP_GET_SUPER: {
+			string_t *name = READ_STRING();
+			ObjClass *superclass = AS_CLASS(pop());
+
+			if (!bind_method(superclass, name)) {
+				return INTERPRET_RUNTIME_ERROR;
+			}
+			break;
+		}
 		case OP_METHOD:
 			define_method(READ_STRING());
 			break;
+		case OP_SUPER_INVOKE: {
+			string_t *method = READ_STRING();
+			int arg_count = READ_BYTE();
+			ObjClass *superclass = AS_CLASS(pop());
+			if (!invoke_from_class(superclass, method, arg_count)) {
+				return INTERPRET_RUNTIME_ERROR;
+			}
+			frame = &vm.frames[vm.frame_count - 1];
+			break;
+		}
 		default:
 			UNREACHABLE();
 		}
