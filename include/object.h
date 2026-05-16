@@ -9,6 +9,7 @@
 
 #define OBJ_TYPE(value) (AS_OBJ(value)->type)
 
+#define IS_BOUND_METHOD(value) is_obj_type(value, OBJ_BOUND_METHOD)
 #define IS_CLOSURE(value) is_obj_type(value, OBJ_CLOSURE)
 #define IS_FUNCTION(value) is_obj_type(value, OBJ_FUNCTION)
 #define IS_NATIVE(value) is_obj_type(value, OBJ_NATIVE)
@@ -23,6 +24,7 @@
 #define AS_CSTRING(value) (((string_t *)AS_OBJ(value))->chars)
 #define AS_CLASS(value) (((ObjClass *)AS_OBJ(value)))
 #define AS_INSTANCE(value) (((ObjInstance *)AS_OBJ(value)))
+#define AS_BOUND_METHOD(value) (((ObjBoundMethod *)AS_OBJ(value)))
 
 typedef enum {
 	OBJ_CLOSURE,
@@ -31,7 +33,8 @@ typedef enum {
 	OBJ_STRING,
 	OBJ_UPVALUE,
 	OBJ_CLASS,
-	OBJ_INSTANCE
+	OBJ_INSTANCE,
+	OBJ_BOUND_METHOD
 } ObjType;
 
 struct Obj {
@@ -79,6 +82,7 @@ typedef struct {
 typedef struct {
 	struct Obj obj;
 	string_t *name;
+	hash_table_t methods;
 } ObjClass;
 
 typedef struct {
@@ -87,6 +91,13 @@ typedef struct {
 	hash_table_t fields;
 } ObjInstance;
 
+typedef struct {
+	struct Obj obj;
+	value_t receiver;
+	ObjClosure *method;
+} ObjBoundMethod;
+
+ObjBoundMethod *new_bound_method(value_t receiver, ObjClosure *method);
 ObjClass *new_class(string_t *name);
 ObjInstance *new_instance(ObjClass *klass);
 

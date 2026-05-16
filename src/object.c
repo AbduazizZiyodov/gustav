@@ -26,10 +26,19 @@ static obj_t *allocate_object(size_t size, ObjType type)
 	return object;
 }
 
+ObjBoundMethod *new_bound_method(value_t receiver, ObjClosure *method)
+{
+	ObjBoundMethod *bound = ALLOCATE_OBJ(ObjBoundMethod, OBJ_BOUND_METHOD);
+	bound->receiver = receiver;
+	bound->method = method;
+	return bound;
+}
+
 ObjClass *new_class(string_t *name)
 {
 	ObjClass *klass = ALLOCATE_OBJ(ObjClass, OBJ_CLASS);
 	klass->name = name;
+	init_hash_table(&klass->methods);
 	return klass;
 }
 
@@ -153,6 +162,9 @@ void print_object(value_t value)
 		break;
 	case OBJ_INSTANCE:
 		printf("%s<Instance>", AS_INSTANCE(value)->klass->name->chars);
+		break;
+	case OBJ_BOUND_METHOD:
+		print_function(AS_BOUND_METHOD(value)->method->function);
 		break;
 	}
 }
