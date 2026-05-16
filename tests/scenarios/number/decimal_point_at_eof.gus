@@ -1,2 +1,2 @@
-// expect: [line 2] Error at '.': Expect ';' after expression.
+// expect: [at line 2] Error at '.': Expect ';' after expression.
 123.

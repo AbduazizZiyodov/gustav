@@ -2,8 +2,8 @@ class Base {}
 
 class Derived < Base {
   foo() {
-    super.doesNotExist(1); // expect: [at line 5] Undefined property 'doesNotExist'.
-  }
-}
+    super.doesNotExist(1); // expect: Undefined property 'doesNotExist'.
+  } // [at line 5] in foo()
+} // [at line 9] in script
 
 Derived().foo();

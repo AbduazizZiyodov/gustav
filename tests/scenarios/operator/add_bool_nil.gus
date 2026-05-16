@@ -1,1 +1,1 @@
-true + nil; // expect: [line 1] Operands must be two numbers or two strings.
+true + nil; // expect: [at line 1] Operands must be two numbers or two strings.

@@ -1,7 +1,7 @@
 class Foo {
   method() {
     print method; // expect: [at line 3] Undefined variable 'method'.
-  }
-}
+  }       // expect: [at line 3] in method()
+}         // expect: [at line 7] in script
 
 Foo().method();

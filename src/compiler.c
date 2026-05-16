@@ -112,7 +112,7 @@ static void error_at(token_t *token, const char *message)
 
 	parser_state.panic_mode = true;
 
-	(void)fprintf(stderr, "[line %lu] Error", token->line);
+	(void)fprintf(stderr, "[at line %lu] Error", token->line);
 
 	if (token->type == TOKEN_EOF) {
 		(void)fprintf(stderr, " at end");
@@ -193,7 +193,7 @@ static void emit_loop(size_t loop_start)
 	size_t offset = current_chunk()->count - loop_start + 2;
 
 	if (offset > UINT16_MAX) {
-		gustav_error(1, "Loop body too large");
+		compiler_error("Loop body too large");
 	}
 
 	emit_byte((offset >> 8) & 0xff);
@@ -239,7 +239,7 @@ static void patch_jump(int offset)
 	int jump = ((int)current_chunk()->count) - offset - 2;
 
 	if (jump > UINT16_MAX) {
-		gustav_error(1, "Too much code to jump over");
+		compiler_error("Too much code to jump over");
 	}
 
 	current_chunk()->code[offset] = (jump >> 8) & 0xff;
@@ -466,8 +466,8 @@ static int resolve_local(Compiler *compiler, token_t *name)
 
 		if (identifiers_equal(name, &local->name)) {
 			if (local->depth == -1) {
-				gustav_error(
-					1,
+				compiler_error(
+
 					"Can't read local variable in its own initializer.");
 			}
 			return i;
@@ -488,7 +488,7 @@ static int add_upvalue(Compiler *compiler, uint8_t index, bool is_local)
 	}
 
 	if (upvalue_count == UINT8_MAX) {
-		gustav_error(1, "Too many closure variables in function.");
+		compiler_error("Too many closure variables in function.");
 		return 0;
 	}
 
@@ -523,8 +523,7 @@ static int resolve_upvalue(Compiler *compiler, token_t *name)
 static void add_local(token_t name)
 {
 	if (current->local_count == UINT8_COUNT) {
-		// NOTE(abduaziz): error, gustav_error ...
-		gustav_error(1, "Too many local variables in function.");
+		compiler_error("Too many local variables in function.");
 		return;
 	}
 	Local *local = &current->locals[current->local_count++];
@@ -549,8 +548,8 @@ static void declare_variable(void)
 		}
 
 		if (identifiers_equal(name, &local->name)) {
-			gustav_error(
-				1,
+			compiler_error(
+
 				"Already a variable with this name in this scope.");
 		}
 	}
@@ -604,10 +603,10 @@ static token_t synthetic_token(const char *text)
 static void super(bool can_assign [[maybe_unused]])
 {
 	if (current_class == NULL) {
-		gustav_error(-1, "Can't use 'super' outside of a class");
+		compiler_error("Can't use 'super' outside of a class.");
 	} else if (!current_class->has_super_class) {
-		gustav_error(
-			-1, "Can't use 'super' in a class with no superclass.");
+		compiler_error(
+			"Can't use 'super' in a class with no superclass.");
 	}
 
 	consume(TOKEN_DOT, "Expect '.' after 'super'.");
@@ -630,7 +629,7 @@ static void super(bool can_assign [[maybe_unused]])
 static void this(bool can_assign [[maybe_unused]])
 {
 	if (current_class == NULL) {
-		gustav_error(-1, "Can't use 'this' outside of a class.");
+		compiler_error("Can't use 'this' outside of a class.");
 		return;
 	}
 
@@ -743,7 +742,7 @@ static void parse_precedence(Precedence precedence)
 	}
 
 	if (can_assign && match(TOKEN_EQUAL)) {
-		gustav_error(1, "Invalid assignment target.");
+		compiler_error("Invalid assignment target.");
 	}
 }
 
@@ -798,8 +797,7 @@ static uint8_t argument_list(void)
 		do {
 			expression();
 			if (arg_count == 255) {
-				gustav_error(
-					1,
+				compiler_error(
 					"Can't have more than 255 arguments.");
 			}
 			arg_count++;
@@ -884,7 +882,7 @@ static void class_declaration()
 		variable(false);
 
 		if (identifiers_equal(&class_name, &parser_state.previous)) {
-			gustav_error(-1, "A class can't inherit from itself.");
+			compiler_error("A class can't inherit from itself.");
 		}
 
 		begin_scope();
@@ -1021,15 +1019,15 @@ static void return_statement(void)
 {
 	// NOTE(abduaziz): return via exit-code, from script (top-level code) ?
 	if (current->type == TYPE_SCRIPT) {
-		gustav_error(1, "Can't return from top-level code.");
+		compiler_error("Can't return from top-level code.");
 	}
 
 	if (match(TOKEN_SEMICOLON)) {
 		emit_return();
 	} else {
 		if (current->type == TYPE_INITIALIZER) {
-			gustav_error(
-				-1,
+			compiler_error(
+
 				"Can't return a value from an initializer.");
 		}
 		expression();
