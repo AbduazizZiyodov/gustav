@@ -4,6 +4,7 @@
 #include "chunk.h"
 #include <stdint.h>
 
+#include "hash_table.h"
 #include "value.h"
 
 #define OBJ_TYPE(value) (AS_OBJ(value)->type)
@@ -12,12 +13,16 @@
 #define IS_FUNCTION(value) is_obj_type(value, OBJ_FUNCTION)
 #define IS_NATIVE(value) is_obj_type(value, OBJ_NATIVE)
 #define IS_STRING(value) is_obj_type(value, OBJ_STRING)
+#define IS_CLASS(value) is_obj_type(value, OBJ_CLASS)
+#define IS_INSTANCE(value) is_obj_type(value, OBJ_INSTANCE)
 
 #define AS_CLOSURE(value) ((ObjClosure *)AS_OBJ(value))
 #define AS_FUNCTION(value) ((function_t *)AS_OBJ(value))
 #define AS_NATIVE(value) (((ObjNative *)AS_OBJ(value))->function)
 #define AS_STRING(value) ((string_t *)AS_OBJ(value))
 #define AS_CSTRING(value) (((string_t *)AS_OBJ(value))->chars)
+#define AS_CLASS(value) (((ObjClass *)AS_OBJ(value)))
+#define AS_INSTANCE(value) (((ObjInstance *)AS_OBJ(value)))
 
 typedef enum {
 	OBJ_CLOSURE,
@@ -25,6 +30,8 @@ typedef enum {
 	OBJ_NATIVE,
 	OBJ_STRING,
 	OBJ_UPVALUE,
+	OBJ_CLASS,
+	OBJ_INSTANCE
 } ObjType;
 
 struct Obj {
@@ -41,7 +48,7 @@ typedef struct {
 	string_t *name;
 } function_t;
 
-typedef value_t (*native_fn)(size_t arg_count, value_t *args);
+typedef value_t (*native_fn)(int arg_count, value_t *args);
 
 typedef struct {
 	struct Obj obj;
@@ -68,6 +75,20 @@ typedef struct {
 	ObjUpvalue **upvalues;
 	int upvalue_count;
 } ObjClosure;
+
+typedef struct {
+	struct Obj obj;
+	string_t *name;
+} ObjClass;
+
+typedef struct {
+	struct Obj obj;
+	ObjClass *klass;
+	hash_table_t fields;
+} ObjInstance;
+
+ObjClass *new_class(string_t *name);
+ObjInstance *new_instance(ObjClass *klass);
 
 ObjClosure *new_closure(function_t *function);
 

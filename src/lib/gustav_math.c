@@ -4,7 +4,7 @@
 #include "native_functions.h"
 #include "value.h"
 
-value_t gustav_max_native(size_t arg_count [[maybe_unused]],
+value_t gustav_max_native(int arg_count [[maybe_unused]],
 			  value_t *args [[maybe_unused]])
 {
 	if (arg_count != 2) {

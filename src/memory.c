@@ -99,6 +99,17 @@ static void blackify(obj_t *object)
 #endif
 
 	switch (object->type) {
+	case OBJ_CLASS: {
+		ObjClass *klass = (ObjClass *)object;
+		mark_object((obj_t *)klass->name);
+		break;
+	}
+	case OBJ_INSTANCE: {
+		ObjInstance *instance = (ObjInstance *)object;
+		mark_object((obj_t *)instance->klass);
+		mark_table(&instance->fields);
+		break;
+	}
 	case OBJ_CLOSURE: {
 		ObjClosure *closure = (ObjClosure *)object;
 		mark_object((obj_t *)closure->function);
@@ -127,6 +138,16 @@ static void free_object(obj_t *object)
 	ObjClosure *closure;
 
 	switch (object->type) {
+	case OBJ_CLASS: {
+		FREE(ObjClass, object);
+		break;
+	}
+	case OBJ_INSTANCE: {
+		ObjInstance *instance = (ObjInstance *)object;
+		free_hash_table(&instance->fields);
+		FREE(ObjInstance, object);
+		break;
+	}
 	case OBJ_STRING: {
 		string_t *string = (string_t *)object;
 		LOG_GC("Freeing string object: object=%p string_repr=%s\n",

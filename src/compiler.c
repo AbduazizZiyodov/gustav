@@ -86,6 +86,7 @@ chunk_t *compiling_chunk;
 static void statement(void);
 static void declaration(void);
 static uint8_t argument_list(void);
+static uint8_t identifier_constant(token_t *name);
 
 static chunk_t *current_chunk(void)
 {
@@ -355,6 +356,19 @@ static void call(bool can_assign [[maybe_unused]])
 	EMIT_BYTES(OP_CALL, arg_count);
 }
 
+static void dot(bool can_assign)
+{
+	consume(TOKEN_IDENTIFIER, "Expect property name after '.'.");
+	uint8_t name = identifier_constant(&parser_state.previous);
+
+	if (can_assign && match(TOKEN_EQUAL)) {
+		expression();
+		EMIT_BYTES(OP_SET_PROPERTY, name);
+	} else {
+		EMIT_BYTES(OP_GET_PROPERTY, name);
+	}
+}
+
 static void literal(bool can_assign [[maybe_unused]])
 {
 	switch (parser_state.previous.type) {
@@ -599,7 +613,7 @@ ParseRule rules[] = {
 	[TOKEN_LEFT_BRACE] = { NULL, NULL, PREC_NONE },
 	[TOKEN_RIGHT_BRACE] = { NULL, NULL, PREC_NONE },
 	[TOKEN_COMMA] = { NULL, NULL, PREC_NONE },
-	[TOKEN_DOT] = { NULL, NULL, PREC_NONE },
+	[TOKEN_DOT] = { NULL, dot, PREC_CALL },
 	[TOKEN_MINUS] = { unary, binary, PREC_TERM },
 	[TOKEN_PLUS] = { NULL, binary, PREC_TERM },
 	[TOKEN_PLUS_PLUS] = { NULL, binary, PREC_TERM },
@@ -759,6 +773,19 @@ static void function(FunctionType type)
 		EMIT_BYTES(compiler.upvalues[i].is_local ? 1 : 0,
 			   compiler.upvalues[i].index)
 	}
+}
+
+static void class_declaration()
+{
+	consume(TOKEN_IDENTIFIER, "Expect class name.");
+	uint8_t name_constant = identifier_constant(&parser_state.previous);
+	declare_variable();
+
+	EMIT_BYTES(OP_CLASS, name_constant);
+	define_variable(name_constant);
+
+	consume(TOKEN_LEFT_BRACE, "Expect '{' before class body.");
+	consume(TOKEN_RIGHT_BRACE, "Expect '}' before class body.");
 }
 
 static void fun_declaration(void)
@@ -945,7 +972,9 @@ static void statement(void)
 
 static void declaration(void)
 {
-	if (match(TOKEN_FUN)) {
+	if (match(TOKEN_CLASS)) {
+		class_declaration();
+	} else if (match(TOKEN_FUN)) {
 		fun_declaration();
 	} else if (match(TOKEN_VAR)) {
 		var_declaration();
