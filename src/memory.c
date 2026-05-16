@@ -99,9 +99,16 @@ static void blackify(obj_t *object)
 #endif
 
 	switch (object->type) {
+	case OBJ_BOUND_METHOD: {
+		ObjBoundMethod *bound = (ObjBoundMethod *)object;
+		mark_value(bound->receiver);
+		mark_object((obj_t *)bound->method);
+		break;
+	}
 	case OBJ_CLASS: {
 		ObjClass *klass = (ObjClass *)object;
 		mark_object((obj_t *)klass->name);
+		mark_table(&klass->methods);
 		break;
 	}
 	case OBJ_INSTANCE: {
@@ -138,7 +145,12 @@ static void free_object(obj_t *object)
 	ObjClosure *closure;
 
 	switch (object->type) {
+	case OBJ_BOUND_METHOD:
+		FREE(ObjBoundMethod, object);
+		break;
 	case OBJ_CLASS: {
+		ObjClass *klass = (ObjClass *)object;
+		free_hash_table(&klass->methods);
 		FREE(ObjClass, object);
 		break;
 	}
@@ -195,6 +207,8 @@ static void mark_roots(void)
 
 	mark_table(&vm.globals);
 	mark_compiler_roots();
+
+	mark_object((obj_t *)vm.init_string);
 }
 
 static void trace_references(void)

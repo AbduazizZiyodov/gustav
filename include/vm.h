@@ -23,6 +23,7 @@ typedef struct {
 	value_t stack[STACK_MAX];
 	value_t *stack_top;
 	obj_t *objects;
+	string_t *init_string;
 	hash_table_t strings;
 	hash_table_t globals;
 

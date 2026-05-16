@@ -117,6 +117,9 @@ void init_vm(void)
 	init_hash_table(&vm.strings);
 	init_hash_table(&vm.globals);
 
+	vm.init_string = NULL;
+	vm.init_string = copy_string("init", 4);
+
 	for (size_t i = 0; i < ARRAY_LENGTH(NATIVE_FUNCTIONS); i++) {
 		NativeFunctionPair pair = NATIVE_FUNCTIONS[i];
 		define_native(pair.name, pair.function);
@@ -129,6 +132,7 @@ void free_vm(void)
 	free_objects();
 	free_hash_table(&vm.strings);
 	free_hash_table(&vm.globals);
+	vm.init_string = NULL;
 	LOG_INFO("VM freed\n");
 }
 
@@ -188,10 +192,26 @@ static bool call_value(value_t callee, int arg_count)
 {
 	if (IS_OBJ(callee)) {
 		switch (OBJ_TYPE(callee)) {
+		case OBJ_BOUND_METHOD: {
+			ObjBoundMethod *bound = AS_BOUND_METHOD(callee);
+			vm.stack_top[-arg_count - 1] = bound->receiver;
+			return call(bound->method, arg_count);
+		}
 		case OBJ_CLASS: {
 			ObjClass *klass = AS_CLASS(callee);
 			vm.stack_top[-arg_count - 1] =
 				OBJ_VAL(new_instance(klass));
+
+			value_t initializer;
+			if (ht_get(&klass->methods, vm.init_string,
+				   &initializer)) {
+				return call(AS_CLOSURE(initializer), arg_count);
+			}
+			if (arg_count != 0) {
+				runtime_error("Expected 0 arguments but got %d",
+					      arg_count);
+				return false;
+			}
 			return true;
 		}
 		case OBJ_CLOSURE:
@@ -212,6 +232,22 @@ static bool call_value(value_t callee, int arg_count)
 
 	runtime_error("Can only call functions and classes.");
 	return false;
+}
+
+static bool bind_method(ObjClass *klass, string_t *name)
+{
+	value_t method;
+
+	if (!ht_get(&klass->methods, name, &method)) {
+		runtime_error("Undefined property '%s'.", name->chars);
+		return false;
+	}
+
+	ObjBoundMethod *bound = new_bound_method(peek(0), AS_CLOSURE(method));
+
+	pop();
+	push(OBJ_VAL(bound));
+	return true;
 }
 
 static ObjUpvalue *capture_upvalue(value_t *local)
@@ -249,6 +285,15 @@ static void close_upvalues(value_t *last)
 		upvalue->location = &upvalue->closed;
 		vm.open_upvalues = upvalue->next;
 	}
+}
+
+static void define_method(string_t *name)
+{
+	value_t method = peek(0);
+	ObjClass *klass = AS_CLASS(peek(1));
+	LOG_TRACE("ADDING METHOD !!!!");
+	ht_insert(&klass->methods, name, method);
+	pop();
 }
 
 static bool is_falsey(value_t value)
@@ -375,8 +420,12 @@ static interpreter_result_t run(void)
 				push(value);
 				break;
 			}
-			runtime_error("Undefined property '%s'.", name->chars);
-			return INTERPRET_RUNTIME_ERROR;
+
+			if (!bind_method(instance->klass, name)) {
+				return INTERPRET_RUNTIME_ERROR;
+			}
+
+			break;
 		}
 		case OP_SET_PROPERTY: {
 			if (!IS_INSTANCE(peek(1))) {
@@ -526,6 +575,9 @@ static interpreter_result_t run(void)
 		}
 		case OP_CLASS:
 			push(OBJ_VAL(new_class(READ_STRING())));
+			break;
+		case OP_METHOD:
+			define_method(READ_STRING());
 			break;
 		default:
 			UNREACHABLE();
