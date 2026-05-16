@@ -1,0 +1,148 @@
+name: Build
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+  workflow_dispatch:
+
+jobs:
+  lint:
+    name: clang-format check
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install clang
+        run: |
+          wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc
+          echo "deb http://apt.llvm.org/noble/ llvm-toolchain-noble-19 main" | sudo tee /etc/apt/sources.list.d/llvm-19.list
+          sudo apt-get update -qq
+          sudo apt-get install -y clang-format-19
+
+      - name: Check formatting
+        run: |
+          find src include -name '*.[ch]' | xargs clang-format-19 --dry-run --Werror --verbose
+
+  build:
+    name: Build (${{ matrix.name }})
+    runs-on: ubuntu-24.04
+    needs: lint
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: debug
+            cmake_args: >-
+              -DCMAKE_BUILD_TYPE=Debug
+              -DSANITIZE=ON
+              -DDEBUG_STRESS_GC=ON
+              -DDEBUG_LOG_GC=ON
+              -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+            artifact: gustav_debug
+
+          - name: release
+            cmake_args: >-
+              -DCMAKE_BUILD_TYPE=Release
+              -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+            artifact: gustav_release
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Clang and Clang Tidy
+        run: |
+          wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key  sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc
+          echo "deb http://apt.llvm.org/noble/ llvm-toolchain-noble-19 main" sudo tee /etc/apt/sources.list.d/llvm-19.list
+          sudo apt-get update -qq
+          sudo apt-get install -y clang-19 clang-tidy-19
+
+      - name: Symlink clang/clang-tidy to unversioned names
+        run: |
+          sudo ln -sf /usr/bin/clang-19 /usr/local/bin/clang-19
+          sudo ln -sf /usr/bin/clang-tidy-19 /usr/local/bin/clang-tidy
+
+      - name: Configure (${{ matrix.name }})
+        run: |
+          cmake -B builds/build-${{ matrix.name }} --fresh ${{ matrix.cmake_args }}
+
+      - name: Build (${{ matrix.name }})
+        run: |
+          cmake --build builds/build-${{ matrix.name }} --parallel "$(nproc)"
+
+      - name: Stage artifact
+        run: |
+          mkdir -p target
+          cp builds/build-${{ matrix.name }}/gustav target/${{ matrix.artifact }}
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: target/${{ matrix.artifact }}
+          retention-days: 7
+
+  valgrind:
+    name: Valgrind build (${{ matrix.name }})
+    runs-on: ubuntu-24.04
+    needs: build
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: valgrind
+            cmake_args: >-
+              -DCMAKE_BUILD_TYPE=Debug
+              -DSANITIZE=OFF
+              -DDEBUG_STRESS_GC=OFF
+              -DDEBUG_LOG_GC=OFF
+              -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+            artifact: gustav_valgrind
+
+          - name: valgrind-stress
+            cmake_args: >-
+              -DCMAKE_BUILD_TYPE=Debug
+              -DSANITIZE=OFF
+              -DDEBUG_STRESS_GC=ON
+              -DDEBUG_LOG_GC=OFF
+              -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+            artifact: gustav_valgrind_stress
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install clang-19 + clang-tidy-19 + valgrind
+        run: |
+          wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc
+          echo "deb http://apt.llvm.org/noble/ llvm-toolchain-noble-19 main" sudo tee /etc/apt/sources.list.d/llvm-19.list
+          sudo apt-get update -qq
+          sudo apt-get install -y clang-19 clang-tidy-19 valgrind
+
+      - name: Symlink clang/clang-tidy
+        run: |
+          sudo ln -sf /usr/bin/clang-19 /usr/local/bin/clang-19
+          sudo ln -sf /usr/bin/clang-tidy-19 /usr/local/bin/clang-tidy
+
+      - name: Configure (${{ matrix.name }})
+        run: |
+          cmake -B builds/build-${{ matrix.name }} --fresh ${{ matrix.cmake_args }}
+
+      - name: Build (${{ matrix.name }})
+        run: |
+          cmake --build builds/build-${{ matrix.name }} --parallel "$(nproc)"
+
+      - name: Stage artifact
+        run: |
+          mkdir -p target
+          cp builds/build-${{ matrix.name }}/gustav target/${{ matrix.artifact }}
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: target/${{ matrix.artifact }}
+          retention-days: 7
