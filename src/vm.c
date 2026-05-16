@@ -80,7 +80,7 @@ runtime_error(const char *format, ...) // TODO(abduaziz): better stack trace
 		// NOTE(abduaziz) ?!
 		int line = frame->closure->function->chunk.lines[instruction];
 
-		(void)fprintf(stderr, "[line %d] in ", line);
+		(void)fprintf(stderr, "[at line %d] in ", line);
 
 		if (function->name == NULL) {
 			(void)fprintf(stderr, "script\n");

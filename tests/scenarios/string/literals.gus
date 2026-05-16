@@ -1,4 +1,4 @@
-print "(" + "" + ")";   // expect: ()
+print "(" ++ "" ++ ")";   // expect: ()
 print "a string"; // expect: a string
 
 // Non-ASCII.

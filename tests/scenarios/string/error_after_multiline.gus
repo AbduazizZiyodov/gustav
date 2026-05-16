@@ -4,4 +4,5 @@ var a = "1
 3
 ";
 
-err; // expect: [at line 7] Undefined variable 'err'.
+err; // expect: Undefined variable 'err'.
+     // expect: [at line 7] in script

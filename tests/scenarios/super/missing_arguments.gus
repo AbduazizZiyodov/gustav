@@ -6,8 +6,8 @@ class Base {
 
 class Derived < Base {
   foo() {
-    super.foo(1); // expect: [at line 9] Expected 2 arguments but got 1.
-  }
-}
+    super.foo(1); // expect: Expected 2 arguments but got 1.
+  } // expect: [at line 9] in foo()
+} // expect: [at line 13] in script
 
 Derived().foo();
