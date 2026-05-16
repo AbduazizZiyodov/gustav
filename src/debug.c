@@ -16,6 +16,7 @@ static int constant_instruction(const char *name, chunk_t *chunk, int offset);
 static int byte_instruction(const char *name, chunk_t *chunk, int offset);
 static int jump_instruction(const char *name, int sign, chunk_t *chunk,
 			    int offset);
+static int invoke_instruction(const char *name, chunk_t *chunk, int offset);
 
 void disassemble_chunk(chunk_t *chunk, const char *name)
 {
@@ -95,10 +96,23 @@ int disassemble_instruction(chunk_t *chunk, int offset)
 
 		return offset;
 	}
+	case OP_INVOKE:
+		return invoke_instruction(op_string, chunk, offset);
 	default:
 		LOG_ERROR("Unknown opcode %d\n", current_instruction);
 		return offset + 1;
 	}
+}
+
+static int invoke_instruction(const char *name, chunk_t *chunk, int offset)
+{
+	uint8_t constant = chunk->code[offset + 1];
+	uint8_t arg_count = chunk->code[offset + 2];
+	LOG_DEBUG("%-16s (%d args) %4d '", name, arg_count, constant);
+	print_value(chunk->constants.values[constant]);
+	printf("\n");
+
+	return offset + 3;
 }
 
 static int constant_instruction(const char *name, chunk_t *chunk, int offset)
