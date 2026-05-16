@@ -163,10 +163,10 @@ static value_t peek(int distance)
 	return vm.stack_top[-1 - distance];
 }
 
-static bool call(ObjClosure *closure, size_t arg_count)
+static bool call(ObjClosure *closure, int arg_count)
 {
-	if (arg_count != closure->function->arity) {
-		runtime_error("Expected %d arguments but got %zu",
+	if ((size_t)arg_count != closure->function->arity) {
+		runtime_error("Expected %d arguments but got %d",
 			      (int)closure->function->arity, arg_count);
 		return false;
 	}
@@ -184,10 +184,16 @@ static bool call(ObjClosure *closure, size_t arg_count)
 	return true;
 }
 
-static bool call_value(value_t callee, size_t arg_count)
+static bool call_value(value_t callee, int arg_count)
 {
 	if (IS_OBJ(callee)) {
 		switch (OBJ_TYPE(callee)) {
+		case OBJ_CLASS: {
+			ObjClass *klass = AS_CLASS(callee);
+			vm.stack_top[-arg_count - 1] =
+				OBJ_VAL(new_instance(klass));
+			return true;
+		}
 		case OBJ_CLOSURE:
 			return call(AS_CLOSURE(callee), arg_count);
 		case OBJ_NATIVE: {
@@ -352,6 +358,38 @@ static interpreter_result_t run(void)
 			*frame->closure->upvalues[slot]->location = peek(0);
 			break;
 		}
+		case OP_GET_PROPERTY: {
+			if (!IS_INSTANCE(peek(0))) {
+				runtime_error(
+					"Only instances have properties.");
+				return INTERPRET_RUNTIME_ERROR;
+			}
+
+			ObjInstance *instance = AS_INSTANCE(peek(0));
+			string_t *name = READ_STRING();
+
+			value_t value;
+
+			if (ht_get(&instance->fields, name, &value)) {
+				pop();
+				push(value);
+				break;
+			}
+			runtime_error("Undefined property '%s'.", name->chars);
+			return INTERPRET_RUNTIME_ERROR;
+		}
+		case OP_SET_PROPERTY: {
+			if (!IS_INSTANCE(peek(1))) {
+				runtime_error("Only instances have fields.");
+				return INTERPRET_RUNTIME_ERROR;
+			}
+			ObjInstance *instance = AS_INSTANCE(peek(1));
+			ht_insert(&instance->fields, READ_STRING(), peek(0));
+			value_t value = pop();
+			pop();
+			push(value);
+			break;
+		}
 		case OP_EQUAL: {
 			y = pop();
 			x = pop();
@@ -443,7 +481,7 @@ static interpreter_result_t run(void)
 		}
 		case OP_CALL: {
 			int arg_count = READ_BYTE();
-			if (!call_value(peek(arg_count), (size_t)arg_count)) {
+			if (!call_value(peek(arg_count), arg_count)) {
 				return INTERPRET_RUNTIME_ERROR;
 			}
 			frame = &vm.frames[vm.frame_count - 1];
@@ -473,19 +511,21 @@ static interpreter_result_t run(void)
 			pop();
 			break;
 		}
-		case OP_RETURN:
+		case OP_RETURN: {
 			result_value = pop();
 			close_upvalues(frame->slots);
 			vm.frame_count--;
-
 			if (vm.frame_count == 0) {
 				pop();
 				return INTERPRET_OK;
 			}
-
 			vm.stack_top = frame->slots;
 			push(result_value);
 			frame = &vm.frames[vm.frame_count - 1];
+			break;
+		}
+		case OP_CLASS:
+			push(OBJ_VAL(new_class(READ_STRING())));
 			break;
 		default:
 			UNREACHABLE();

@@ -26,6 +26,21 @@ static obj_t *allocate_object(size_t size, ObjType type)
 	return object;
 }
 
+ObjClass *new_class(string_t *name)
+{
+	ObjClass *klass = ALLOCATE_OBJ(ObjClass, OBJ_CLASS);
+	klass->name = name;
+	return klass;
+}
+
+ObjInstance *new_instance(ObjClass *klass)
+{
+	ObjInstance *instance = ALLOCATE_OBJ(ObjInstance, OBJ_INSTANCE);
+	instance->klass = klass;
+	init_hash_table(&instance->fields);
+	return instance;
+}
+
 ObjClosure *new_closure(function_t *function)
 {
 	ObjUpvalue **upvalues =
@@ -132,6 +147,12 @@ void print_object(value_t value)
 		break;
 	case OBJ_UPVALUE:
 		printf("<upvalue>");
+		break;
+	case OBJ_CLASS:
+		printf("%s", AS_CLASS(value)->name->chars);
+		break;
+	case OBJ_INSTANCE:
+		printf("%s<Instance>", AS_INSTANCE(value)->klass->name->chars);
 		break;
 	}
 }

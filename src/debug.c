@@ -58,7 +58,10 @@ int disassemble_instruction(chunk_t *chunk, int offset)
 	case OP_CONSTANT:
 	case OP_GET_GLOBAL:
 	case OP_DEFINE_GLOBAL:
+	case OP_CLASS:
 	case OP_SET_GLOBAL:
+	case OP_GET_PROPERTY:
+	case OP_SET_PROPERTY:
 		return constant_instruction(op_string, chunk, offset);
 	case OP_GET_LOCAL:
 	case OP_SET_LOCAL:
