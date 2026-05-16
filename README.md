@@ -15,14 +15,19 @@
   <a href="https://github.com/AbduazizZiyodov/gustav/actions/workflows/ci.yml">
     <img src="https://github.com/AbduazizZiyodov/gustav/actions/workflows/ci.yml/badge.svg" alt="CI">
   </a>
-  <a href="https://codecov.io/github/AbduazizZiyodov/gustav" >
+  <!-- <a href="https://codecov.io/github/AbduazizZiyodov/gustav" >
    <img src="https://codecov.io/github/AbduazizZiyodov/gustav/branch/master/graph/badge.svg?token=LMJJLRK4OF" alt="codecov"/>
-  </a>
+  </a> -->
 </p>
 
 <p align="center"><i>Too heavy for its own good.</i></p>
 
-> NOTE: Refer to legacy/python for python tree walk interpreter implementation: <https://github.com/AbduazizZiyodov/gustav/tree/legacy/python>
+> [!IMPORTANT]
+> **Work in progress**. You can refer to legacy tree walk interpreter [implementation](<https://github.com/AbduazizZiyodov/gustav/tree/legacy/python>) in Python for *full language*.
+
+# About
+
+Experimental programming language with its own VM implemented in C.
 
 # Build
 
@@ -30,6 +35,68 @@
 ./build.sh
 ```
 
+This creates 4 binaries: debug, release, valgrind & valgrind (with GC stress enabled)
+
 # Usage
 
+Sample program(BST), create file named `test.gus`:
+
+```javascript
+class Tree {
+    init(value) {
+        this.value = value; this.left = this.right = nil;
+    }
+
+    insert(value) {
+        if (value < this.value) {
+            if (this.left == nil) { this.left = Tree(value); } 
+            else { this.left.insert(value); }
+        } else {
+            if (this.right == nil) { this.right = Tree(value); }
+            else { this.right.insert(value); }
+        }
+    }
+}
+
+fun binary_search(node, value) {
+    if (node == nil) return false;
+
+    if (node.value == value) return true;
+
+    if (value < node.value) return binary_search(node.left, value);
+
+    return binary_search(node.right, value);
+}
+
+var root = Tree(10);
+
+root.insert(5); root.insert(15); root.insert(3); root.insert(7);
+
+print Tree;
+print root;
+print binary_search(root, 7);
+print binary_search(root, 15);
+print binary_search(root, 12);
+print binary_search(root, 5);
+```
+
+```shell
+[gustav] # ./target/gustav_release test.gus
+Gustav v2.0 (May 17 2026 00:18:33) [ Debian Clang 19.1.7 (3+b1) ] | optimized RELEASE build for "Linux x86_64"
+
+Tree
+Tree<Instance>
+true
+true
+false
+true
+```
+
 # Testing
+
+Install `pytest` via `uv` (or whataver):
+
+```shell
+uv tool install pytest
+pytest -vv tests
+```
