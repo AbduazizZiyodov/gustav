@@ -29,6 +29,7 @@ option(SANITIZE "Enable address sanitizer and ubsan" ON)
 
 option(DEBUG_STRESS_GC "Run GC on every allocation" OFF)
 option(DEBUG_LOG_GC "Log GC events" OFF)
+option(NAN_BOXING "Enable/disable NaN boxing optimization" ON)
 
 set(LINE_LENGTH
     1024
@@ -85,7 +86,8 @@ target_compile_definitions(
           HASH_TABLE_MAX_LOAD_FACTOR=${HASH_TABLE_MAX_LOAD_FACTOR}
           $<$<CONFIG:Debug>:DEBUG>
           $<$<BOOL:${DEBUG_STRESS_GC}>:DEBUG_STRESS_GC>
-          $<$<BOOL:${DEBUG_LOG_GC}>:DEBUG_LOG_GC>)
+          $<$<BOOL:${DEBUG_LOG_GC}>:DEBUG_LOG_GC>
+          $<$<BOOL:${NAN_BOXING}>:NAN_BOXING>)
 
 target_compile_options(
   gustav
