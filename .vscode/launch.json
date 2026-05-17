@@ -7,7 +7,7 @@
             "name": "Debug via LLDB",
             "program": "./target/gustav_debug",
             "console": "integratedTerminal",
-            "args": [ "test.gus"],
+            "args": ["test.gus"],
         }
     ]
 }

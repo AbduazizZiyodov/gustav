@@ -310,7 +310,7 @@ static ObjUpvalue *capture_upvalue(value_t *local)
 	return created_upvalue;
 }
 
-static void close_upvalues(value_t *last)
+static void close_upvalues(const value_t *last)
 {
 	while (vm.open_upvalues != NULL && vm.open_upvalues->location >= last) {
 		ObjUpvalue *upvalue = vm.open_upvalues;
