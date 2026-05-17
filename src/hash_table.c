@@ -27,7 +27,7 @@ static ht_entry_t *find_entry(ht_entry_t *entries, size_t capacity,
 			      string_t *key)
 {
 	/* NOLINTNEXTLINE(clang-analyzer-core.DivideZero) */
-	uint32_t index = key->hash % capacity; // capacity > 0
+	uint32_t index = key->hash & (capacity - 1); // capacity > 0
 
 	ht_entry_t *tombstone = NULL;
 
@@ -46,7 +46,7 @@ static ht_entry_t *find_entry(ht_entry_t *entries, size_t capacity,
 			return entry;
 		}
 
-		index = (index + 1) % capacity;
+		index = (index + 1) & (capacity - 1);
 	}
 }
 
@@ -155,7 +155,7 @@ string_t *ht_find_string(hash_table_t *hash_table, const char *chars,
 		return NULL;
 	}
 
-	uint32_t index = hash % hash_table->capacity;
+	uint32_t index = hash & (hash_table->capacity - 1);
 
 	while (true) {
 		ht_entry_t *entry = &hash_table->entries[index];
@@ -170,7 +170,7 @@ string_t *ht_find_string(hash_table_t *hash_table, const char *chars,
 			return entry->key;
 		}
 
-		index = (index + 1) % hash_table->capacity;
+		index = (index + 1) & (hash_table->capacity - 1);
 	}
 }
 
