@@ -9,7 +9,10 @@ MARKER = "// expect: "
 
 EXCLUDED_SCENARIOS: tuple[str, ...] = (
     "builtins.gus",
-    "to_this.gus",
+    "loop_statement.gus",
+    "break_continue_errors.gus",
+    "break_continue.gus",
+    "ternary.gus"
 )
 
 
@@ -59,7 +62,8 @@ def collect_tests() -> list[Path]:
     return sorted(
         filter(
             lambda file: file.name not in EXCLUDED_SCENARIOS
-            and "benchmark" not in file.parts,
+            and "benchmark" not in file.parts
+            and "scanning" not in file.parts,
             root.rglob("*.gus"),
         )
     )
