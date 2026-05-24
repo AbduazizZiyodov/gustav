@@ -1,3 +1,6 @@
 {
-  print notDefined;  // expect: [at line 2] Undefined variable 'notDefined'.
+  print notDefined;
 }
+
+// expect: Undefined variable 'notDefined'.
+// expect: [at line 2] in script
