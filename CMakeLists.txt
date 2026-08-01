@@ -122,4 +122,5 @@ target_link_options(
 
 target_link_libraries(gustav PRIVATE m)
 
-install(TARGETS gustav DESTINATION bin)
+include(GNUInstallDirs)
+install(TARGETS gustav RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
