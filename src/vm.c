@@ -170,7 +170,7 @@ static value_t peek(int distance)
 static bool call(ObjClosure *closure, int arg_count)
 {
 	if ((size_t)arg_count != closure->function->arity) {
-		runtime_error("Expected %d arguments but got %d",
+		runtime_error("Expected %d arguments but got %d.",
 			      (int)closure->function->arity, arg_count);
 		return false;
 	}
@@ -208,8 +208,9 @@ static bool call_value(value_t callee, int arg_count)
 				return call(AS_CLOSURE(initializer), arg_count);
 			}
 			if (arg_count != 0) {
-				runtime_error("Expected 0 arguments but got %d",
-					      arg_count);
+				runtime_error(
+					"Expected 0 arguments but got %d.",
+					arg_count);
 				return false;
 			}
 			return true;
@@ -251,7 +252,7 @@ static bool invoke(string_t *name, int arg_count)
 	value_t receiver = peek(arg_count);
 
 	if (!IS_INSTANCE(receiver)) {
-		runtime_error("Only instance have methods");
+		runtime_error("Only instance have methods.");
 		return false;
 	}
 
@@ -622,7 +623,7 @@ static interpreter_result_t run(void)
 		case OP_INHERIT: {
 			value_t superclass = peek(1);
 			if (!IS_CLASS(superclass)) {
-				runtime_error("Superclass must be a class");
+				runtime_error("Superclass must be a class.");
 				return INTERPRET_RUNTIME_ERROR;
 			}
 			ObjClass *subclass = AS_CLASS(peek(0));
