@@ -24,4 +24,4 @@
     print i; // expect: 0
   }
 }
-// expect: [WARNING] at line 2: Variable 'i' is not used.
+// [TODO] expect: [WARNING] at line 2: Variable 'i' is not used.

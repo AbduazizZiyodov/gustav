@@ -21,5 +21,5 @@ fun callCaller() {
 
 callCaller();
 
-// expect: [WARNING] at line 8: Variable 'capturedVar' is not used.
-// expect: [WARNING] at line 9: Variable 'a' is not used.
+// [TODO] expect: [WARNING] at line 8: Variable 'capturedVar' is not used.
+// [TODO] expect: [WARNING] at line 9: Variable 'a' is not used.

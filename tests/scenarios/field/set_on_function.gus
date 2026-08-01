@@ -1,3 +1,4 @@
 fun foo() {}
 
 foo.bar = "value"; // expect: Only instances have fields.
+                   // expect: [at line 3] in script

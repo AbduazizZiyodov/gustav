@@ -4,3 +4,4 @@ var foo = Foo();
 foo.bar = "not fn";
 
 foo.bar(); // expect: Can only call functions and classes.
+// expect: [at line 6] in script

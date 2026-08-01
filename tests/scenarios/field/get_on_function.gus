@@ -1,3 +1,4 @@
 fun foo() {}
 
 foo.bar; // expect: Only instances have properties.
+         // expect: [at line 3] in script

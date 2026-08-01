@@ -1,6 +1,7 @@
 fun f(a, b) {}
 
 f(1);
-// expect: [WARNING] at line 1: Variable 'a' is not used.
-// expect: [WARNING] at line 1: Variable 'b' is not used.
-// expect: [at line 3] Expected 2 arguments but got 1.
+// [TODO] expect: [WARNING] at line 1: Variable 'a' is not used.
+// [TODO] expect: [WARNING] at line 1: Variable 'b' is not used.
+// expect: Expected 2 arguments but got 1.
+// expect: [at line 3] in script

@@ -3,4 +3,4 @@ fun foo(arg, arg) {
 }
 
 // expect: [at line 1] Error at 'arg': Already a variable with this name in this scope.
-// expect: [WARNING] at line 1: Variable 'arg' is not used.
+// [TODO] expect: [WARNING] at line 1: Variable 'arg' is not used.

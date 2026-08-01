@@ -1,1 +1,2 @@
 true(); // expect: Can only call functions and classes.
+        // expect: [at line 1] in script

@@ -1,1 +1,2 @@
-"str".foo; // expect: nly instances have properties.
+"str".foo; // expect: Only instances have properties.
+           // expect: [at line 1] in script

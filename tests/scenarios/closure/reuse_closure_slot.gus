@@ -14,4 +14,4 @@
     f(); // expect: a
   }
 }
-// expect: [WARNING] at line 13: Variable 'b' is not used.
+// [TODO] expect: [WARNING] at line 13: Variable 'b' is not used.

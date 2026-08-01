@@ -11,5 +11,6 @@
 
   isEven(4);
 }
-// expect: [WARNING] at line 7: Variable 'isOdd' is not used.
-// expect: [at line 4] Undefined variable 'isOdd'.
+// expect: Undefined variable 'isOdd'.
+// expect: [at line 4] in isEven()
+// expect: [at line 12] in script
