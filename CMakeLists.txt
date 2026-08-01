@@ -50,6 +50,7 @@ set(SOURCES
     src/scanner.c
     src/value.c
     src/vm.c
+    src/gc.c
     src/native_functions.c
     src/lib/gustav_time.c
     src/lib/gustav_math.c)
@@ -68,6 +69,7 @@ set(HEADERS
     include/scanner.h
     include/value.h
     include/vm.h
+    include/gc.h
     include/native_functions.h)
 
 add_executable(gustav ${SOURCES})

@@ -4,13 +4,6 @@
 
 #include "value.h"
 
-#ifdef DEBUG_LOG_GC
-#include "log.h"
-#define LOG_GC(...) log_log(LOG_TRACE_, __FILE__, __LINE__, __VA_ARGS__)
-#else
-#define LOG_GC(...)
-#endif
-
 #define GROW_CAPACITY(capacity) ((capacity) < 8 ? 8 : (size_t)((capacity) * 2))
 
 #define ALLOCATE(type, count) \
@@ -38,5 +31,6 @@ void mark_object(obj_t *object);
 void mark_value(value_t value);
 void collect_garbage(void);
 void free_objects(void);
+void free_object(obj_t *object);
 
 #endif // GUSTAV_MEMORY_H
