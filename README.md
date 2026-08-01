@@ -94,6 +94,9 @@ true
 
 # Testing
 
+> [!NOTE]
+> Current state of tests (to be considered as "phase one complete"/legacy python compatible): 13 failed, 229 passed in 0.51s
+
 Install `pytest` via `uv` (or whataver):
 
 ```shell
