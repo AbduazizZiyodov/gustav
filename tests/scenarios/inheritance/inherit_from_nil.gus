@@ -1,2 +1,3 @@
 var Nil = nil;
-class Foo < Nil {} // expect: [at line 2] Superclass must be a class.
+class Foo < Nil {} // expect: Superclass must be a class.
+                   // expect: [at line 2] in script

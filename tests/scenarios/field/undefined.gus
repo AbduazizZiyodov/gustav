@@ -2,3 +2,4 @@ class Foo {}
 var foo = Foo();
 
 foo.bar; // expect: Undefined property 'bar'.
+// expect: [at line 4] in script

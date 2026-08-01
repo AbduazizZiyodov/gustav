@@ -1,2 +1,3 @@
 class Foo {}
 Foo.bar = "value"; // expect: Only instances have fields.
+                   // expect: [at line 2] in script

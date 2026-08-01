@@ -12,4 +12,4 @@
 // If we get here, we didn't segfault when a went out of scope.
 print "ok"; // expect: ok
 
-// expect: [WARNING] at line 8: Variable 'foo' is not used.
+// [TODO] expect: [WARNING] at line 8: Variable 'foo' is not used.

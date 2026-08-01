@@ -1,3 +1,4 @@
 fun foo() {}
 
-class Subclass < foo {} // expect: [at line 3] Superclass must be a class.
+class Subclass < foo {} // expect: Superclass must be a class.
+                        // expect: [at line 3] in script

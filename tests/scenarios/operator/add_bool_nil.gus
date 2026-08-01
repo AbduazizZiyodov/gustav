@@ -1,1 +1,2 @@
-true + nil; // expect: [at line 1] Operands must be two numbers or two strings.
+true + nil; // expect: Operands must be numbers.
+            // expect: [at line 1] in script

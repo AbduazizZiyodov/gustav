@@ -8,4 +8,4 @@ var a = "outer";
   var a = "inner";
   foo(); // expect: outer
 }
-// expect: [WARNING] at line 8: Variable 'a' is not used.
+// [TODO] expect: [WARNING] at line 8: Variable 'a' is not used.

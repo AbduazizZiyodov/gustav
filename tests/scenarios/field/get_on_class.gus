@@ -1,2 +1,3 @@
 class Foo {}
 Foo.bar; // expect: Only instances have properties.
+// expect: [at line 2] in script

@@ -1,1 +1,2 @@
 unknown = "what"; // expect: Undefined variable 'unknown'.
+                  // expect: [at line 1] in script

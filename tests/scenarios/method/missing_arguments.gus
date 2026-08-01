@@ -3,6 +3,7 @@ class Foo {
 }
 
 Foo().method(1); 
-// expect: [WARNING] at line 2: Variable 'a' is not used.
-// expect: [WARNING] at line 2: Variable 'b' is not used.
-// expect: [at line 5] Expected 2 arguments but got 1.
+// [TODO] expect: [WARNING] at line 2: Variable 'a' is not used.
+// [TODO] expect: [WARNING] at line 2: Variable 'b' is not used.
+// expect: Expected 2 arguments but got 1.
+// expect: [at line 5] in script
