@@ -1,5 +1,4 @@
-#ifndef GUSTAV_COMMON_H
-#define GUSTAV_COMMON_H
+#pragma once
 
 #include <errno.h>
 #include <error.h>
@@ -46,5 +45,3 @@ gustav_error(short code, const char *format, ...)
 	va_end(args);
 	_Exit(code);
 }
-
-#endif // GUSTAV_COMMON_H

@@ -45,10 +45,11 @@ int log_add_callback(log_LogFn fn, void *udata, int level);
 int log_add_fp(FILE *fp, int level);
 
 void log_log(int level, const char *file, int line, const char *fmt, ...);
-#endif // LOG_H
 
 #ifdef DEBUG_LOG_GC
 #define LOG_GC(...) log_log(LOG_TRACE_, __FILE__, __LINE__, __VA_ARGS__)
 #else
 #define LOG_GC(...)
 #endif // DEBUG_LOG_GC
+
+#endif // LOG_H

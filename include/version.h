@@ -1,6 +1,3 @@
-#ifndef GUSTAV_VERSION_H
-#define GUSTAV_VERSION_H
+#pragma once
 
 #define PROJECT_VERSION_STRING "2.0"
-
-#endif // GUSTAV_VERSION_H

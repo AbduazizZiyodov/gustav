@@ -1,14 +1,13 @@
-#ifndef GUSTAV_CLI_H
-#define GUSTAV_CLI_H
+#pragma once
 
 #include <signal.h>
 
-#ifdef __GNUC__
-#define COMPILER_NAME "GCC"
-#define COMPILER_VERSION __VERSION__
-#elif defined(__clang__)
+#if defined(__clang__)
 #define COMPILER_NAME "Clang"
 #define COMPILER_VERSION __clang_version__
+#elif defined(__GNUC__)
+#define COMPILER_NAME "GCC"
+#define COMPILER_VERSION __VERSION__
 #endif
 
 #ifdef __OPTIMIZE__
@@ -38,5 +37,3 @@ void show_gustav_info(void);
 void run_file(const char *path);
 
 extern volatile sig_atomic_t shutdown_requested;
-
-#endif // GUSTAV_CLI_H
