@@ -1,9 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#ifndef NAN_BOXING
 #include "common.h"
-#endif
 
 #include "memory.h"
 #include "object.h"
@@ -36,17 +34,6 @@ void ValueArray_Free(ValueArray *array)
 
 void Value_Print(Value value)
 {
-#ifdef NAN_BOXING
-	if (Bool_Check(value)) {
-		printf(AS_BOOL(value) ? "true" : "false");
-	} else if (Nil_Check(value)) {
-		printf("nil");
-	} else if (Number_Check(value)) {
-		printf("%g", AS_NUMBER(value));
-	} else if (Object_Check(value)) {
-		Object_Print(value);
-	}
-#else
 	switch (value.type) {
 	case VAL_BOOL:
 		printf(AS_BOOL(value) ? "true" : "false");
@@ -56,7 +43,7 @@ void Value_Print(Value value)
 		break;
 	case VAL_NUMBER:
 		// TODO(abduaziz): needs better handling
-		printf("%f", AS_NUMBER(value));
+		printf("%g", AS_NUMBER(value));
 		break;
 	case VAL_OBJ:
 		Object_Print(value);
@@ -64,17 +51,10 @@ void Value_Print(Value value)
 	default:
 		UNREACHABLE();
 	}
-#endif
 }
 
 bool Value_Equal(Value a, Value b)
 {
-#ifdef NAN_BOXING
-	if (Number_Check(a) && Number_Check(b)) {
-		return AS_NUMBER(a) == AS_NUMBER(b);
-	}
-	return a == b;
-#else
 	if (a.type != b.type) {
 		return false;
 	}
@@ -91,5 +71,4 @@ bool Value_Equal(Value a, Value b)
 	default:
 		UNREACHABLE();
 	}
-#endif
 }
