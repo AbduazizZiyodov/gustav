@@ -1,10 +1,10 @@
 #include <stdio.h>
 
-#include "compiler.h"
-#include "compiler/error.h"
+#include "error.h"
+#include "internal.h"
 #include "scanner.h"
 
-void error_at(token_t *token, const char *message)
+void error_at(Token *token, const char *message)
 {
 	if (parser_state.panic_mode) {
 		return;

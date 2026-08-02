@@ -1,5 +1,4 @@
-#ifndef GUSTAV_VM_H
-#define GUSTAV_VM_H
+#pragma once
 
 #include "chunk.h"
 #include "common.h"
@@ -12,28 +11,28 @@
 #define STACK_MAX (FRAMES_MAX * UINT8_COUNT)
 
 typedef struct {
-	ObjClosure *closure;
+	ClosureObject *closure;
 	uint8_t *ip;
-	value_t *slots;
-} call_frame_t;
+	Value *slots;
+} CallFrame;
 
 typedef struct {
-	chunk_t *chunk;
+	Chunk *chunk;
 	uint8_t *ip;
-	value_t stack[STACK_MAX];
-	value_t *stack_top;
-	obj_t *objects;
-	string_t *init_string;
-	hash_table_t strings;
-	hash_table_t globals;
+	Value stack[STACK_MAX];
+	Value *stack_top;
+	Object *objects;
+	StringObject *init_string;
+	HashTable strings;
+	HashTable globals;
 
 	size_t frame_count;
-	ObjUpvalue *open_upvalues;
-	call_frame_t frames[FRAMES_MAX];
+	UpvalueObject *open_upvalues;
+	CallFrame frames[FRAMES_MAX];
 
 	size_t gray_count;
 	size_t gray_capacity;
-	obj_t **gray_stack;
+	Object **gray_stack;
 
 	size_t bytes_allocated;
 	size_t next_gc;
@@ -43,15 +42,13 @@ typedef enum {
 	INTERPRET_OK,
 	INTERPRET_COMPILE_ERROR,
 	INTERPRET_RUNTIME_ERROR
-} interpreter_result_t;
+} InterpretResult;
 
 extern VM vm;
 
-void init_vm(void);
-void free_vm(void);
-interpreter_result_t interpret(const char *source);
+void VM_Init(void);
+void VM_Free(void);
+InterpretResult VM_Interpret(const char *source);
 
-void push(value_t value);
-value_t pop(void);
-
-#endif // GUSTAV_VM_H
+void VM_Push(Value value);
+Value VM_Pop(void);

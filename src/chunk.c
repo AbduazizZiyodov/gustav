@@ -9,16 +9,16 @@
 #include "value.h"
 #include "vm.h"
 
-void init_chunk(chunk_t *chunk)
+void Chunk_Init(Chunk *chunk)
 {
 	chunk->count = 0;
 	chunk->capacity = 0;
 	chunk->code = NULL;
 	chunk->lines = NULL;
-	init_value_array(&chunk->constants);
+	ValueArray_Init(&chunk->constants);
 }
 
-void write_chunk(chunk_t *chunk, uint8_t byte, size_t line)
+void Chunk_Write(Chunk *chunk, uint8_t byte, size_t line)
 {
 	if (chunk->capacity < chunk->count + 1) {
 		size_t old_capacity = chunk->capacity;
@@ -33,23 +33,23 @@ void write_chunk(chunk_t *chunk, uint8_t byte, size_t line)
 	chunk->count++;
 }
 
-void free_chunk(chunk_t *chunk)
+void Chunk_Free(Chunk *chunk)
 {
 	FREE_ARRAY(uint8_t, chunk->code, chunk->capacity);
 	FREE_ARRAY(int, chunk->lines, chunk->capacity);
 
-	free_value_array(&chunk->constants);
-	init_chunk(chunk);
+	ValueArray_Free(&chunk->constants);
+	Chunk_Init(chunk);
 }
 
-size_t add_constant(chunk_t *chunk, value_t value)
+size_t Chunk_AddConstant(Chunk *chunk, Value value)
 {
-	push(value);
-	write_value_array(&chunk->constants, value);
+	VM_Push(value);
+	ValueArray_Write(&chunk->constants, value);
 
 	if (chunk->constants.count > UINT8_MAX) {
 		gustav_error(EXIT_FAILURE, "Too many constants in one chunk");
 	}
-	pop();
+	VM_Pop();
 	return chunk->constants.count - 1;
 }

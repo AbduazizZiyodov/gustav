@@ -21,7 +21,7 @@ int main(int argc, char **argv)
 
 	show_gustav_info();
 
-	init_vm();
+	VM_Init();
 
 	if (argc == 1) {
 		LOG_TRACE("Running from repl()\n");
@@ -33,7 +33,7 @@ int main(int argc, char **argv)
 		gustav_error(64, "Usage: gustav [path]\n");
 	}
 
-	free_vm();
+	VM_Free();
 
 	return EXIT_SUCCESS;
 }

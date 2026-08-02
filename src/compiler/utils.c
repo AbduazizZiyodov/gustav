@@ -2,21 +2,21 @@
 #include "log.h"
 #include "scanner.h"
 
-#include "compiler.h"
-#include "compiler/error.h"
-#include "compiler/utils.h"
+#include "error.h"
+#include "internal.h"
+#include "utils.h"
 
-chunk_t *current_chunk(void)
+Chunk *current_chunk(void)
 {
 	return &current->function->chunk;
 }
 
-void advance(void)
+void token_advance(void)
 {
 	parser_state.previous = parser_state.current;
 
 	while (true) {
-		parser_state.current = scan_token();
+		parser_state.current = Scanner_ScanToken();
 		LOG_DEBUG("line=%04d %-20s <=> '%.*s'\n",
 			  parser_state.current.line,
 			  TOKEN_TYPE_STRING[parser_state.current.type],
@@ -31,26 +31,26 @@ void advance(void)
 	}
 }
 
-void consume(TokenType type, const char *message)
+void token_consume(TokenType type, const char *message)
 {
 	if (parser_state.current.type == type) {
-		advance();
+		token_advance();
 		return;
 	}
 
 	error_at_current(message);
 }
 
-bool check(TokenType type)
+bool token_check(TokenType type)
 {
 	return parser_state.current.type == type;
 }
 
-bool match(TokenType type)
+bool token_match(TokenType type)
 {
-	if (!check(type)) {
+	if (!token_check(type)) {
 		return false;
 	}
-	advance();
+	token_advance();
 	return true;
 }
