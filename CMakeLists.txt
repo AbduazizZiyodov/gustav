@@ -38,64 +38,42 @@ set(LINE_LENGTH
 set(HASH_TABLE_MAX_LOAD_FACTOR 0.75)
 
 set(SOURCES
-    src/api.c
-    src/chunk.c
-    src/cli.c
-    src/compiler.c
-    src/debug.c
-    src/hash_table.c
-    src/log.c
+    # entrypoint
     src/main.c
-    src/memory.c
-    src/object.c
+    src/cli.c
+    src/api.c
+    # frontend
     src/scanner.c
-    src/value.c
-    src/vm.c
-    src/gc.c
+    src/compiler/compiler.c
     src/compiler/byte_code.c
     src/compiler/class.c
+    src/compiler/declaration.c
     src/compiler/error.c
+    src/compiler/expression.c
     src/compiler/function.c
-    src/compiler/if.c
-    src/compiler/loop.c
-    src/compiler/parse.c
-    src/compiler/print.c
+    src/compiler/rules.c
     src/compiler/scope.c
+    src/compiler/statement.c
     src/compiler/utils.c
     src/compiler/var.c
+    # backend
+    src/vm.c
+    src/chunk.c
+    src/debug.c
+    # runtime data & memory
+    src/value.c
+    src/object.c
+    src/hash_table.c
+    src/memory.c
+    src/gc.c
+    # stdlib, bruh
     src/native_functions.c
     src/lib/gustav_time.c
-    src/lib/gustav_math.c)
+    src/lib/gustav_math.c
+    # stolen
+    src/log.c)
 
-set(HEADERS
-    include/api.h
-    include/chunk.h
-    include/cli.h
-    include/common.h
-    include/compiler.h
-    include/debug.h
-    include/hash_table.h
-    include/log.h
-    include/memory.h
-    include/object.h
-    include/scanner.h
-    include/value.h
-    include/vm.h
-    include/gc.h
-    include/compiler/byte_code.h
-    include/compiler/class.h
-    include/compiler/error.h
-    include/compiler/function.h
-    include/compiler/if.h
-    include/compiler/loop.h
-    include/compiler/parse.h
-    include/compiler/print.h
-    include/compiler/scope.h
-    include/compiler/utils.h
-    include/compiler/var.h
-    include/native_functions.h)
-
-add_executable(gustav ${SOURCES} ${HEADERS})
+add_executable(gustav ${SOURCES})
 
 target_include_directories(gustav PRIVATE ${CMAKE_SOURCE_DIR}/include)
 
