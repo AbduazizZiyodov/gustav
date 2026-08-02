@@ -1,5 +1,4 @@
-var a = "1";
 var a;
 print a;
 // expect: Can't use uninitialized variable 'a'.
-// expect: [at line 3] in script
+// expect: [at line 2] in script

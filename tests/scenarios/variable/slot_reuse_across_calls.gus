@@ -1,0 +1,7 @@
+fun f() {
+  var a;
+  a = 1;
+  print a;
+}
+f(); // expect: 1
+f(); // expect: 1

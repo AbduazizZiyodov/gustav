@@ -1,0 +1,3 @@
+class C {}
+var c = C();
+print c; // expect: C<Instance>

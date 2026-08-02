@@ -400,6 +400,9 @@ static InterpretResult run(void)
 		case OP_FALSE:
 			VM_Push(BOOL_VAL(false));
 			break;
+		case OP_UNINITIALIZED:
+			VM_Push(UNINITIALIZED_VAL);
+			break;
 		case OP_POP:
 			VM_Pop();
 			break;
@@ -410,7 +413,15 @@ static InterpretResult run(void)
 		}
 		case OP_GET_LOCAL: {
 			uint8_t slot = READ_BYTE();
-			VM_Push(frame->slots[slot]);
+			Value slot_value = frame->slots[slot];
+
+			if (Uninitialized_Check(slot_value)) {
+				runtime_error(
+					"Can't use uninitialized variable.");
+				return INTERPRET_RUNTIME_ERROR;
+			}
+
+			VM_Push(slot_value);
 			break;
 		}
 		case OP_DEFINE_GLOBAL: {
@@ -428,6 +439,14 @@ static InterpretResult run(void)
 					      name->chars);
 				return INTERPRET_RUNTIME_ERROR;
 			}
+
+			if (Uninitialized_Check(value)) {
+				runtime_error(
+					"Can't use uninitialized variable '%s'.",
+					name->chars);
+				return INTERPRET_RUNTIME_ERROR;
+			}
+
 			VM_Push(value);
 			break;
 		}
@@ -443,7 +462,16 @@ static InterpretResult run(void)
 		}
 		case OP_GET_UPVALUE: {
 			uint8_t slot = READ_BYTE();
-			VM_Push(*frame->closure->upvalues[slot]->location);
+			Value slot_value =
+				*frame->closure->upvalues[slot]->location;
+
+			if (Uninitialized_Check(slot_value)) {
+				runtime_error(
+					"Can't use uninitialized variable.");
+				return INTERPRET_RUNTIME_ERROR;
+			}
+
+			VM_Push(slot_value);
 			break;
 		}
 		case OP_SET_UPVALUE: {
