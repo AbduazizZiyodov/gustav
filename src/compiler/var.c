@@ -41,7 +41,7 @@ void var_declaration(void)
 	if (token_match(TOKEN_EQUAL)) {
 		expression_parse();
 	} else {
-		emit_byte(OP_NIL);
+		emit_byte(OP_UNINITIALIZED);
 	}
 
 	token_consume(TOKEN_SEMICOLON, "Expect ';' after variable declaration");

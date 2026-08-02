@@ -1,0 +1,12 @@
+fun outer() {
+  var a;
+  fun inner() {
+    print a;
+  }
+  inner();
+}
+outer();
+// expect: Can't use uninitialized variable.
+// expect: [at line 4] in inner()
+// expect: [at line 6] in outer()
+// expect: [at line 8] in script

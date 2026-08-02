@@ -1,0 +1,9 @@
+fun outer() {
+  var a;
+  fun inner() {
+    print a; // expect: 1
+  }
+  a = 1;
+  inner();
+}
+outer();

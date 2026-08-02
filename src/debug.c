@@ -55,6 +55,7 @@ int Debug_DisassembleInstruction(Chunk *chunk, int offset)
 	case OP_POP:
 	case OP_CLOSE_UPVALUE:
 	case OP_INHERIT:
+	case OP_UNINITIALIZED:
 		LOG_DEBUG("%04d %s\n", offset, op_string);
 		return offset + 1;
 	case OP_CONSTANT:

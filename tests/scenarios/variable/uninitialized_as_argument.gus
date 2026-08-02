@@ -1,5 +1,5 @@
-var a = "1";
+fun f(x) { print x; }
 var a;
-print a;
+f(a);
 // expect: Can't use uninitialized variable 'a'.
 // expect: [at line 3] in script

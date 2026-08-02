@@ -1,0 +1,6 @@
+{
+  var a;
+  print a;
+}
+// expect: Can't use uninitialized variable.
+// expect: [at line 3] in script
