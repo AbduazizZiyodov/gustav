@@ -132,42 +132,44 @@ UpvalueObject *Upvalue_New(Value *slot)
 	return upvalue;
 }
 
-static void print_function(FunctionObject *function)
+static void print_function(FILE *stream, FunctionObject *function)
 {
 	if (function->name == NULL) {
-		printf("<script>");
+		fprintf(stream, "<script>");
 		return;
 	}
 
-	printf("<fn %s/%zu>", function->name->chars, function->arity);
+	fprintf(stream, "<fn %s/%zu>", function->name->chars, function->arity);
 }
 
-void Object_Print(Value value)
+void Object_Print(FILE *stream, Value value)
 {
 	switch (OBJ_TYPE(value)) {
 	case OBJ_STRING:
-		printf("%s", AS_CSTRING(value));
+		fprintf(stream, "%s", AS_CSTRING(value));
 		break;
 	case OBJ_FUNCTION:
-		print_function(AS_FUNCTION(value));
+		print_function(stream, AS_FUNCTION(value));
 		break;
 	case OBJ_CLOSURE:
-		print_function(AS_CLOSURE(value)->function);
+		print_function(stream, AS_CLOSURE(value)->function);
 		break;
 	case OBJ_NATIVE:
-		printf("<native_fn>");
+		fprintf(stream, "<native_fn>");
 		break;
 	case OBJ_UPVALUE:
-		printf("<upvalue>");
+		fprintf(stream, "<upvalue>");
 		break;
 	case OBJ_CLASS:
-		printf("%s", AS_CLASS(value)->name->chars);
+		fprintf(stream, "%s", AS_CLASS(value)->name->chars);
 		break;
 	case OBJ_INSTANCE:
-		printf("%s<Instance>", AS_INSTANCE(value)->klass->name->chars);
+		fprintf(stream, "%s<Instance>",
+			AS_INSTANCE(value)->klass->name->chars);
 		break;
 	case OBJ_BOUND_METHOD:
-		print_function(AS_BOUND_METHOD(value)->method->function);
+		print_function(stream,
+			       AS_BOUND_METHOD(value)->method->function);
 		break;
 	}
 }

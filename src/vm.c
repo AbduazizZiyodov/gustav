@@ -166,7 +166,7 @@ static void trace(CallFrame *frame [[maybe_unused]])
 
 	for (Value *slot = vm.stack; slot < vm.stack_top; i++, slot++) {
 		printf("[%d] ", i);
-		Value_Print(*slot);
+		Value_Print(stdout, *slot);
 		(void)putchar('\n');
 	}
 
@@ -582,12 +582,20 @@ static InterpretResult run(void)
 			*(vm.stack_top - 1) = result_value;
 			break;
 		}
-		case OP_PRINT: {
+		case OP_PRINT_STDOUT: {
 			LOG_DEBUG("== [stdout] ==\n");
-			Value_Print(VM_Pop());
-			(void)putchar('\n');
+			Value_Print(stdout, VM_Pop());
+			fputc('\n', stdout);
 			fflush(stdout); // NOTE(abduaziz): I had hard time to find out its buffered
 			LOG_DEBUG("== [/stdout] ==\n\n");
+			break;
+		}
+		case OP_PRINT_STDERR: {
+			LOG_DEBUG("== [stderr] ==\n");
+			Value_Print(stderr, VM_Pop());
+			(void)fputc('\n', stderr);
+			fflush(stderr);
+			LOG_DEBUG("== [/stderr] ==\n\n");
 			break;
 		}
 		case OP_JUMP: {

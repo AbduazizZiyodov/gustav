@@ -110,7 +110,7 @@ StringObject *String_FromChars(const char *chars, size_t length);
 
 UpvalueObject *Upvalue_New(Value *slot);
 
-void Object_Print(Value value);
+void Object_Print(FILE *stream, Value value);
 
 static inline bool Object_TypeCheck(Value value, ObjectType type)
 {

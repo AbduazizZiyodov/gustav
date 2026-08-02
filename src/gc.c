@@ -23,7 +23,7 @@ void GC_MarkObject(Object *object)
 
 #ifdef DEBUG_LOG_GC
 	LOG_GC("%p [mark] ", (void *)object);
-	Value_Print(OBJ_VAL(object));
+	Value_Print(stdout, OBJ_VAL(object));
 	printf("\n");
 #endif
 
@@ -65,7 +65,7 @@ static void blackify(Object *object)
 {
 #ifdef DEBUG_LOG_GC
 	LOG_GC("%p [blackify] ", (void *)object);
-	Value_Print(OBJ_VAL(object));
+	Value_Print(stdout, OBJ_VAL(object));
 	printf("\n");
 #endif
 

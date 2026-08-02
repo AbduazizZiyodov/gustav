@@ -25,7 +25,8 @@
 	DO(OP_CONCAT)        \
 	DO(OP_NOT)           \
 	DO(OP_NEGATE)        \
-	DO(OP_PRINT)         \
+	DO(OP_PRINT_STDOUT)  \
+	DO(OP_PRINT_STDERR)  \
 	DO(OP_POP)           \
 	DO(OP_DEFINE_GLOBAL) \
 	DO(OP_GET_GLOBAL)    \
