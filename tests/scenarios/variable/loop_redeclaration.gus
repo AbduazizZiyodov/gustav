@@ -1,0 +1,9 @@
+var i = 0;
+while (i < 2) {
+  var a;
+  a = i;
+  print a;
+  i = i + 1;
+}
+// expect: 0
+// expect: 1

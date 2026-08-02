@@ -48,7 +48,7 @@ void Value_Print(Value value)
 	case VAL_OBJ:
 		Object_Print(value);
 		break;
-	default:
+	case VAL_UNINITIALIZED:
 		UNREACHABLE();
 	}
 }
@@ -68,7 +68,7 @@ bool Value_Equal(Value a, Value b)
 		return AS_NUMBER(a) == AS_NUMBER(b);
 	case VAL_OBJ:
 		return AS_OBJ(a) == AS_OBJ(b);
-	default:
-		UNREACHABLE();
+	case VAL_UNINITIALIZED:
+		return false;
 	}
 }

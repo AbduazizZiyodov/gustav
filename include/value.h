@@ -5,7 +5,13 @@
 #include <stdint.h>
 #include <string.h>
 
-typedef enum { VAL_BOOL, VAL_NIL, VAL_NUMBER, VAL_OBJ } ValueType;
+typedef enum {
+	VAL_BOOL,
+	VAL_NIL,
+	VAL_NUMBER,
+	VAL_OBJ,
+	VAL_UNINITIALIZED,
+} ValueType;
 
 typedef struct Object Object;
 typedef struct StringObject StringObject;
@@ -27,12 +33,14 @@ typedef struct {
 #define NIL_VAL ((Value){ VAL_NIL, { .number = 0 } })
 #define NUMBER_VAL(value) ((Value){ VAL_NUMBER, { .number = (value) } })
 #define OBJ_VAL(value) ((Value){ VAL_OBJ, { .obj = (Object *)(value) } })
+#define UNINITIALIZED_VAL ((Value){ VAL_UNINITIALIZED, { .number = 0 } })
 
 #define IS(TYPE, value) ((value).type == VAL_##TYPE)
 #define Bool_Check(value) IS(BOOL, value)
 #define Nil_Check(value) IS(NIL, value)
 #define Number_Check(value) IS(NUMBER, value)
 #define Object_Check(value) IS(OBJ, value)
+#define Uninitialized_Check(value) ((value).type == VAL_UNINITIALIZED)
 
 typedef struct {
 	size_t count;
