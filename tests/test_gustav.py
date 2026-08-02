@@ -14,5 +14,5 @@ interpreter_tests = collect_tests()
 )
 def test(capfd: CaptureFixture, file_path: Path) -> None:
     expected = extract_expected(file_path)
-    actual = run_file(capfd, file_path)
-    assert actual == expected, f"[FAILED] '{file_path}'"
+    extracted_result, source_code = run_file(capfd, file_path)
+    assert extracted_result == expected, f"[FAILED] '{file_path}'\n == source code ==\n{source_code}\n== /source code =="
