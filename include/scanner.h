@@ -1,5 +1,4 @@
-#ifndef GUSTAV_SCANNER_H
-#define GUSTAV_SCANNER_H
+#pragma once
 
 #include <stddef.h>
 
@@ -65,9 +64,7 @@ typedef struct {
 	const char *start;
 	size_t length;
 	size_t line;
-} token_t;
+} Token;
 
-void init_scanner(const char *source);
-token_t scan_token(void);
-
-#endif // GUSTAV_SCANNER_H
+void Scanner_Init(const char *source);
+Token Scanner_ScanToken(void);
