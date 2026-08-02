@@ -6,10 +6,10 @@ class Base {
 
 class Derived < Base {
   foo() {
-    print "Derived.foo()"; // expect: Derived.foo()
+    print "Derived.foo()";         // expect: Derived.foo()
     super.foo("a", "b", "c", "d"); // expect: Expected 2 arguments but got 4.
-                                   // expect [at line 10] in foo()
-                                   // expect [at line 14] in script
+                                   // expect: [at line 10] in foo()
+                                   // expect: [at line 16] in script
   }
 }
 
