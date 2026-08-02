@@ -23,17 +23,19 @@ int main(int argc, char **argv)
 
 	VM_Init();
 
+	int status = EXIT_SUCCESS;
+
 	if (argc == 1) {
 		LOG_TRACE("Running from repl()\n");
 		repl();
 	} else if (argc == 2) {
 		LOG_TRACE("Running from run_file()\n");
-		run_file(argv[1]);
+		status = run_file(argv[1]);
 	} else {
 		gustav_error(64, "Usage: gustav [path]\n");
 	}
 
 	VM_Free();
 
-	return EXIT_SUCCESS;
+	return status;
 }

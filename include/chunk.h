@@ -17,6 +17,7 @@
 	DO(OP_GREATER)       \
 	DO(OP_LESS)          \
 	DO(OP_RETURN)        \
+	DO(OP_RETURN_EXIT)   \
 	DO(OP_ADD)           \
 	DO(OP_SUBTRACT)      \
 	DO(OP_MULTIPLY)      \

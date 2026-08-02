@@ -36,12 +36,15 @@ typedef struct {
 
 	size_t bytes_allocated;
 	size_t next_gc;
+
+	int exit_status;
 } VM;
 
 typedef enum {
 	INTERPRET_OK,
 	INTERPRET_COMPILE_ERROR,
-	INTERPRET_RUNTIME_ERROR
+	INTERPRET_RUNTIME_ERROR,
+	INTERPRET_EXIT
 } InterpretResult;
 
 extern VM vm;

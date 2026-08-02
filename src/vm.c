@@ -74,12 +74,6 @@ runtime_error(const char *format, ...) // TODO(abduaziz): better stack trace
 		CallFrame *frame = &vm.frames[i];
 		FunctionObject *function = frame->closure->function;
 
-		/*
-		 * ip already points at the *next* instruction, so the one
-		 * that faulted sits at ip - 1. A frame that has not executed
-		 * anything yet (a native raising on entry) would make that
-		 * negative and wrap, so clamp into the chunk before indexing.
-		 */
 		int line = 0;
 
 		if (function->chunk.count > 0) {
@@ -669,6 +663,26 @@ static InterpretResult run(void)
 			VM_Push(result_value);
 			frame = &vm.frames[vm.frame_count - 1];
 			break;
+		}
+		case OP_RETURN_EXIT: {
+			result_value = VM_Pop();
+
+			if (!Number_Check(result_value)) {
+				runtime_error("Exit status must be a number.");
+				return INTERPRET_RUNTIME_ERROR;
+			}
+
+			double status = AS_NUMBER(result_value);
+
+			if (!isfinite(status)) {
+				runtime_error(
+					"Exit status must be a finite number.");
+				return INTERPRET_RUNTIME_ERROR;
+			}
+
+			vm.exit_status = ((int)fmod(status, 256.0)) & 0xff;
+
+			return INTERPRET_EXIT;
 		}
 		case OP_CLASS:
 			VM_Push(OBJ_VAL(Class_New(READ_STRING())));
