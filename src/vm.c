@@ -586,6 +586,7 @@ static InterpretResult run(void)
 			LOG_DEBUG("== [stdout] ==\n");
 			Value_Print(VM_Pop());
 			(void)putchar('\n');
+			fflush(stdout); // NOTE(abduaziz): I had hard time to find out its buffered
 			LOG_DEBUG("== [/stdout] ==\n\n");
 			break;
 		}
