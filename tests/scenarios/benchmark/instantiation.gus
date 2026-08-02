@@ -40,4 +40,4 @@ while (i < 50000) {
   i = i + 1;
 }
 
-print clock() - start;
+stdout clock() - start;

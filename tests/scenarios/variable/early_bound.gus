@@ -1,7 +1,7 @@
 var a = "outer";
 {
   fun foo() {
-    print a;
+    stdout a;
   }
 
   foo(); // expect: outer

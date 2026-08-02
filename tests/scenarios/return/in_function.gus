@@ -1,6 +1,6 @@
 fun f() {
   return "ok";
-  print "bad";
+  stdout "bad";
 }
 
-print f(); // expect: ok
+stdout f(); // expect: ok

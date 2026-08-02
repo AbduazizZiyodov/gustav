@@ -1,14 +1,14 @@
-print nil != nil; // expect: false
+stdout nil != nil; // expect: false
 
-print true != true; // expect: false
-print true != false; // expect: true
+stdout true != true; // expect: false
+stdout true != false; // expect: true
 
-print 1 != 1; // expect: false
-print 1 != 2; // expect: true
+stdout 1 != 1; // expect: false
+stdout 1 != 2; // expect: true
 
-print "str" != "str"; // expect: false
-print "str" != "ing"; // expect: true
+stdout "str" != "str"; // expect: false
+stdout "str" != "ing"; // expect: true
 
-print nil != false; // expect: true
-print false != 0; // expect: true
-print 0 != "0"; // expect: true
+stdout nil != false; // expect: true
+stdout false != 0; // expect: true
+stdout 0 != "0"; // expect: true

@@ -24,7 +24,7 @@ var closure;
     }
   }
 
-  print closure(); // expect: a
+  stdout closure(); // expect: a
 }
 
 // [TODO] expect: [WARNING] at line 21: Variable 'returnB' is not used.

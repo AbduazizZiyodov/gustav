@@ -1,5 +1,5 @@
 {
-  print notDefined;
+  stdout notDefined;
 }
 
 // expect: Undefined variable 'notDefined'.

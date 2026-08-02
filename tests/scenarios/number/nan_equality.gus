@@ -1,8 +1,8 @@
 var nan = 0/0;
 
-print nan == 0; // expect: false
-print nan != 1; // expect: true
+stdout nan == 0; // expect: false
+stdout nan != 1; // expect: true
 
 // NaN is not equal to self.
-print nan == nan; // expect: false
-print nan != nan; // expect: true
+stdout nan == nan; // expect: false
+stdout nan != nan; // expect: true

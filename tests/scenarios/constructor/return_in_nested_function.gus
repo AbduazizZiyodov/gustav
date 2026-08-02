@@ -3,8 +3,8 @@ class Foo {
     fun init() {
       return "bar";
     }
-    print init(); // expect: bar
+    stdout init(); // expect: bar
   }
 }
 
-print Foo(); // expect: Foo<Instance>
+stdout Foo(); // expect: Foo<Instance>

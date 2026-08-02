@@ -1,8 +1,8 @@
 {
   var a = "outer";
   {
-    print a; // expect: outer
+    stdout a; // expect: outer
     var a = "inner";
-    print a; // expect: inner
+    stdout a; // expect: inner
   }
 }

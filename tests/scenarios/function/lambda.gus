@@ -1,17 +1,17 @@
 var f = λ(x) { return x + 1; };
-print f(2); // expect: 3
+stdout f(2); // expect: 3
 
 
-print λ(x) { return x * x; }(4); // expect: 16
+stdout λ(x) { return x * x; }(4); // expect: 16
 
 var a = 10;
 var add_a = λ(x) { return x + a; };
-print add_a(5); // expect: 15
+stdout add_a(5); // expect: 15
 
 var x = 1;
 var f = λ(x) { return x + 100; };
-print f(5); // expect: 105
-print x; // expect: 1
+stdout f(5); // expect: 105
+stdout x; // expect: 1
 
 
 var make_adder = λ(x) {
@@ -19,8 +19,8 @@ var make_adder = λ(x) {
 };
 
 var add_two = make_adder(2);
-print add_two(3); // expect: 5
-print make_adder(10)(1); // expect: 11
+stdout add_two(3); // expect: 5
+stdout make_adder(10)(1); // expect: 11
 
 
 fun outer() {
@@ -28,17 +28,17 @@ fun outer() {
   return λ(x) { return x + z; };
 }
 var closure = outer();
-print closure(3); // expect: 8
+stdout closure(3); // expect: 8
 
 
 var double = λ(x) {
   return x + x;
 };
-print double(7); // expect: 14
+stdout double(7); // expect: 14
 
 
 var give = λ() { return 42; };
-print give(); // expect: 42
+stdout give(); // expect: 42
 
 
 var test = λ(x) {
@@ -46,8 +46,8 @@ var test = λ(x) {
   return "non-positive";
 };
 
-print test(1); // expect: positive
-print test(0); // expect: non-positive
+stdout test(1); // expect: positive
+stdout test(0); // expect: non-positive
 
 
 fun Test() {
@@ -55,11 +55,11 @@ fun Test() {
     return "from lambda";
   };
 
-  print f(); // expect: from lambda
+  stdout f(); // expect: from lambda
   return "from function";
 }
 
-print Test(); // expect: from function
+stdout Test(); // expect: from function
 
-print λ() {}(); // expect: nil
-print λ() {}; // expect: <λ fn>
+stdout λ() {}(); // expect: nil
+stdout λ() {}; // expect: <λ fn>

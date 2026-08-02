@@ -5,5 +5,5 @@ fun f() {
   }
 }
 
-print f();
+stdout f();
 // expect: i

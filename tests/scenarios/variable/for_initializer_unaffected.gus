@@ -1,5 +1,5 @@
 for (var i = 0; i < 2; i = i + 1) {
-  print i;
+  stdout i;
 }
 // expect: 0
 // expect: 1

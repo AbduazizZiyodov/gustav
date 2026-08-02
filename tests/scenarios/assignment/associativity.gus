@@ -5,6 +5,6 @@ var c = "c";
 // Assignment is right-associative.
 a = b = c;
 
-print a; // expect: c
-print b; // expect: c
-print c; // expect: c
+stdout a; // expect: c
+stdout b; // expect: c
+stdout c; // expect: c

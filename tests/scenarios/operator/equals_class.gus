@@ -2,12 +2,12 @@
 class Foo {}
 class Bar {}
 
-print Foo == Foo; // expect: true
-print Foo == Bar; // expect: false
-print Bar == Foo; // expect: false
-print Bar == Bar; // expect: true
+stdout Foo == Foo; // expect: true
+stdout Foo == Bar; // expect: false
+stdout Bar == Foo; // expect: false
+stdout Bar == Bar; // expect: true
 
-print Foo == "Foo"; // expect: false
-print Foo == nil;   // expect: false
-print Foo == 123;   // expect: false
-print Foo == true;  // expect: false
+stdout Foo == "Foo"; // expect: false
+stdout Foo == nil;   // expect: false
+stdout Foo == 123;   // expect: false
+stdout Foo == true;  // expect: false

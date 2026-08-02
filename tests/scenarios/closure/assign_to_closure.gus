@@ -4,16 +4,16 @@ var g;
 {
   var local = "local";
   fun f_() {
-    print local;
+    stdout local;
     local = "after f";
-    print local;
+    stdout local;
   }
   f = f_;
 
   fun g_() {
-    print local;
+    stdout local;
     local = "after g";
-    print local;
+    stdout local;
   }
   g = g_;
 }

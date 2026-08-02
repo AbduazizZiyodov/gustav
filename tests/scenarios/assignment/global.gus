@@ -1,8 +1,8 @@
 var a = "before";
-print a; // expect: before
+stdout a; // expect: before
 
 a = "after";
-print a; // expect: after
+stdout a; // expect: after
 
-print a = "arg"; // expect: arg
-print a; // expect: arg
+stdout a = "arg"; // expect: arg
+stdout a; // expect: arg
