@@ -32,21 +32,21 @@ void ValueArray_Free(ValueArray *array)
 	ValueArray_Init(array);
 }
 
-void Value_Print(Value value)
+void Value_Print(FILE *stream, Value value)
 {
 	switch (value.type) {
 	case VAL_BOOL:
-		printf(AS_BOOL(value) ? "true" : "false");
+		fprintf(stream, AS_BOOL(value) ? "true" : "false");
 		break;
 	case VAL_NIL:
-		printf("nil");
+		fprintf(stream, "nil");
 		break;
 	case VAL_NUMBER:
 		// TODO(abduaziz): needs better handling
-		printf("%g", AS_NUMBER(value));
+		fprintf(stream, "%g", AS_NUMBER(value));
 		break;
 	case VAL_OBJ:
-		Object_Print(value);
+		Object_Print(stream, value);
 		break;
 	case VAL_UNINITIALIZED:
 		UNREACHABLE();

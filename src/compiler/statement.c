@@ -1,4 +1,5 @@
 #include <stddef.h>
+#include <stdint.h>
 
 #include "chunk.h"
 #include "scanner.h"
@@ -29,11 +30,11 @@ void statement_expression(void)
 	emit_byte(OP_POP);
 }
 
-void statement_print(void)
+void statement_print(OpCode op)
 {
 	expression_parse();
 	token_consume(TOKEN_SEMICOLON, "Expect ';' after value.");
-	emit_byte(OP_PRINT);
+	emit_byte((uint8_t)op);
 }
 
 void statement_if(void)
@@ -146,8 +147,10 @@ void statement_return(void)
 
 void statement_parse(void)
 {
-	if (token_match(TOKEN_PRINT)) {
-		statement_print();
+	if (token_match(TOKEN_PRINT_STDOUT)) {
+		statement_print(OP_PRINT_STDOUT);
+	} else if (token_match(TOKEN_PRINT_STDERR)) {
+		statement_print(OP_PRINT_STDERR);
 	} else if (token_match(TOKEN_IF)) {
 		statement_if();
 	} else if (token_match(TOKEN_RETURN)) {

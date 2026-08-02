@@ -264,12 +264,38 @@ static TokenType get_identifier_type(void)
 		return check_keyword(1, 2, "il", TOKEN_NIL);
 	case 'o':
 		return check_keyword(1, 1, "r", TOKEN_OR);
-	case 'p':
-		return check_keyword(1, 4, "rint", TOKEN_PRINT);
 	case 'r':
 		return check_keyword(1, 5, "eturn", TOKEN_RETURN);
 	case 's':
-		return check_keyword(1, 4, "uper", TOKEN_SUPER);
+		// stdout, stderr, super
+		if (scanner_state.current - scanner_state.start > 1) {
+			switch (scanner_state.start[1]) {
+			case 'u':
+				return check_keyword(2, 3, "per", TOKEN_SUPER);
+			case 't':
+				if (scanner_state.current -
+						    scanner_state.start >
+					    3 &&
+				    scanner_state.start[2] == 'd') {
+					switch (scanner_state.start[3]) {
+					case 'o':
+						return check_keyword(
+							4, 2, "ut",
+							TOKEN_PRINT_STDOUT);
+					case 'e':
+						return check_keyword(
+							4, 2, "rr",
+							TOKEN_PRINT_STDERR);
+					default:
+						break;
+					}
+				}
+				break;
+			default:
+				break;
+			}
+		}
+		break;
 	case 't':
 		if (scanner_state.current - scanner_state.start > 1) {
 			switch (scanner_state.start[1]) {

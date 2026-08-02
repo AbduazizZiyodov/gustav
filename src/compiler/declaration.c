@@ -24,7 +24,8 @@ static void synchronize(void)
 		case TOKEN_FOR:
 		case TOKEN_IF:
 		case TOKEN_WHILE:
-		case TOKEN_PRINT:
+		case TOKEN_PRINT_STDOUT:
+		case TOKEN_PRINT_STDERR:
 		case TOKEN_RETURN:
 			return;
 		default:;

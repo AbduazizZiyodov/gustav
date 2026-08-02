@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 
 typedef enum {
@@ -54,4 +55,4 @@ void ValueArray_Init(ValueArray *value_array);
 void ValueArray_Free(ValueArray *value_array);
 void ValueArray_Write(ValueArray *value_array, Value value);
 
-void Value_Print(Value value);
+void Value_Print(FILE *stream, Value value);

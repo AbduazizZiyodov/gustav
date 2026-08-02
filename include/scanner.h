@@ -39,7 +39,8 @@
 	DO(TOKEN_IF)            \
 	DO(TOKEN_NIL)           \
 	DO(TOKEN_OR)            \
-	DO(TOKEN_PRINT)         \
+	DO(TOKEN_PRINT_STDOUT)  \
+	DO(TOKEN_PRINT_STDERR)  \
 	DO(TOKEN_RETURN)        \
 	DO(TOKEN_SUPER)         \
 	DO(TOKEN_THIS)          \

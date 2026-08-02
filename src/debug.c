@@ -51,7 +51,8 @@ int Debug_DisassembleInstruction(Chunk *chunk, int offset)
 	case OP_DIVIDE:
 	case OP_NOT:
 	case OP_NEGATE:
-	case OP_PRINT:
+	case OP_PRINT_STDOUT:
+	case OP_PRINT_STDERR:
 	case OP_POP:
 	case OP_CLOSE_UPVALUE:
 	case OP_INHERIT:
@@ -83,7 +84,7 @@ int Debug_DisassembleInstruction(Chunk *chunk, int offset)
 		offset++;
 		uint8_t constant = chunk->code[offset++];
 		LOG_DEBUG("%-16s %4d ", "OP_CLOSURE", constant);
-		Value_Print(chunk->constants.values[constant]);
+		Value_Print(stdout, chunk->constants.values[constant]);
 		printf("\n");
 
 		FunctionObject *function =
@@ -113,7 +114,7 @@ static int invoke_instruction(const char *name, Chunk *chunk, int offset)
 	uint8_t constant = chunk->code[offset + 1];
 	uint8_t arg_count = chunk->code[offset + 2];
 	LOG_DEBUG("%-16s (%d args) %4d '", name, arg_count, constant);
-	Value_Print(chunk->constants.values[constant]);
+	Value_Print(stdout, chunk->constants.values[constant]);
 	printf("\n");
 
 	return offset + 3;
@@ -125,7 +126,7 @@ static int constant_instruction(const char *name, Chunk *chunk, int offset)
 	Value value = chunk->constants.values[constant];
 
 	LOG_DEBUG("%04d %s %04d value=", offset, name, constant);
-	Value_Print(value);
+	Value_Print(stdout, value);
 	printf("\n");
 
 	return offset + 2;
