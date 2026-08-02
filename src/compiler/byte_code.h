@@ -16,8 +16,8 @@ int emit_jump(uint8_t instruction);
 
 void emit_return(void);
 
-uint8_t make_constant(value_t value);
+uint8_t make_constant(Value value);
 
-void emit_constant(value_t value);
+void emit_constant(Value value);
 
 void patch_jump(int offset);

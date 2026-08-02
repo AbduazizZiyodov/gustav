@@ -2,7 +2,7 @@
 
 #include "scanner.h"
 
-void error_at(token_t *token, const char *message);
+void error_at(Token *token, const char *message);
 
 void compiler_error(const char *message);
 

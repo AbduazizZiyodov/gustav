@@ -5,15 +5,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "byte_code.h"
 #include "compiler.h"
-#include "compiler/byte_code.h"
-#include "compiler/function.h"
-#include "compiler/parse.h"
-#include "compiler/utils.h"
+#include "declaration.h"
+#include "gc.h"
+#include "internal.h"
 #include "log.h"
-#include "memory.h"
 #include "object.h"
 #include "scanner.h"
+#include "utils.h"
 #include "value.h"
 
 #ifdef DEBUG
@@ -34,14 +34,14 @@ void init_compiler(Compiler *compiler, FunctionType type)
 	compiler->local_count = 0;
 	compiler->scope_depth = 0;
 
-	compiler->function = new_function();
+	compiler->function = Function_New();
 
 	current = compiler;
 
 	if (type != TYPE_SCRIPT) {
 		current->function->name =
-			copy_string(parser_state.previous.start,
-				    parser_state.previous.length);
+			String_FromChars(parser_state.previous.start,
+					 parser_state.previous.length);
 	}
 
 	Local *local = &current->locals[current->local_count++];
@@ -57,17 +57,17 @@ void init_compiler(Compiler *compiler, FunctionType type)
 	}
 }
 
-function_t *finish_compiling(void)
+FunctionObject *finish_compiling(void)
 {
 	emit_return();
-	function_t *function = current->function;
+	FunctionObject *function = current->function;
 
 #ifdef DEBUG
 	if (!parser_state.had_error) {
-		disassemble_chunk(current_chunk(),
-				  function->name != NULL ?
-					  function->name->chars :
-					  "<script>");
+		Debug_DisassembleChunk(current_chunk(),
+				       function->name != NULL ?
+					       function->name->chars :
+					       "<script>");
 	}
 #endif // DEBUG
 	current = current->enclosing;
@@ -75,9 +75,9 @@ function_t *finish_compiling(void)
 	return function;
 }
 
-function_t *compile(const char *source)
+FunctionObject *Compiler_Compile(const char *source)
 {
-	init_scanner(source);
+	Scanner_Init(source);
 	Compiler compiler;
 	init_compiler(&compiler, TYPE_SCRIPT);
 
@@ -87,14 +87,14 @@ function_t *compile(const char *source)
 	LOG_INFO("Begin scanning\n");
 	LOG_DEBUG("== [scanner] ==\n");
 
-	advance();
+	token_advance();
 
-	while (!match(TOKEN_EOF)) {
-		declaration();
+	while (!token_match(TOKEN_EOF)) {
+		declaration_parse();
 	}
 	LOG_DEBUG("== [/scanner] ==\n");
 
-	function_t *function = finish_compiling();
+	FunctionObject *function = finish_compiling();
 
 	if (parser_state.had_error) {
 		return NULL;
@@ -102,12 +102,12 @@ function_t *compile(const char *source)
 	return function;
 }
 
-void mark_compiler_roots(void)
+void Compiler_MarkRoots(void)
 {
 	Compiler *compiler = current;
 
 	while (compiler != NULL) {
-		mark_object((obj_t *)compiler->function);
+		GC_MarkObject((Object *)compiler->function);
 		compiler = compiler->enclosing;
 	}
 }

@@ -1,5 +1,4 @@
-#ifndef GUSTAV_OBJECT_H
-#define GUSTAV_OBJECT_H
+#pragma once
 
 #include "chunk.h"
 #include <stdint.h>
@@ -9,22 +8,22 @@
 
 #define OBJ_TYPE(value) (AS_OBJ(value)->type)
 
-#define IS_BOUND_METHOD(value) is_obj_type(value, OBJ_BOUND_METHOD)
-#define IS_CLOSURE(value) is_obj_type(value, OBJ_CLOSURE)
-#define IS_FUNCTION(value) is_obj_type(value, OBJ_FUNCTION)
-#define IS_NATIVE(value) is_obj_type(value, OBJ_NATIVE)
-#define IS_STRING(value) is_obj_type(value, OBJ_STRING)
-#define IS_CLASS(value) is_obj_type(value, OBJ_CLASS)
-#define IS_INSTANCE(value) is_obj_type(value, OBJ_INSTANCE)
+#define BoundMethod_Check(value) Object_TypeCheck(value, OBJ_BOUND_METHOD)
+#define Closure_Check(value) Object_TypeCheck(value, OBJ_CLOSURE)
+#define Function_Check(value) Object_TypeCheck(value, OBJ_FUNCTION)
+#define Native_Check(value) Object_TypeCheck(value, OBJ_NATIVE)
+#define String_Check(value) Object_TypeCheck(value, OBJ_STRING)
+#define Class_Check(value) Object_TypeCheck(value, OBJ_CLASS)
+#define Instance_Check(value) Object_TypeCheck(value, OBJ_INSTANCE)
 
-#define AS_CLOSURE(value) ((ObjClosure *)AS_OBJ(value))
-#define AS_FUNCTION(value) ((function_t *)AS_OBJ(value))
-#define AS_NATIVE(value) (((ObjNative *)AS_OBJ(value))->function)
-#define AS_STRING(value) ((string_t *)AS_OBJ(value))
-#define AS_CSTRING(value) (((string_t *)AS_OBJ(value))->chars)
-#define AS_CLASS(value) (((ObjClass *)AS_OBJ(value)))
-#define AS_INSTANCE(value) (((ObjInstance *)AS_OBJ(value)))
-#define AS_BOUND_METHOD(value) (((ObjBoundMethod *)AS_OBJ(value)))
+#define AS_CLOSURE(value) ((ClosureObject *)AS_OBJ(value))
+#define AS_FUNCTION(value) ((FunctionObject *)AS_OBJ(value))
+#define AS_NATIVE(value) (((NativeObject *)AS_OBJ(value))->function)
+#define AS_STRING(value) ((StringObject *)AS_OBJ(value))
+#define AS_CSTRING(value) (((StringObject *)AS_OBJ(value))->chars)
+#define AS_CLASS(value) (((ClassObject *)AS_OBJ(value)))
+#define AS_INSTANCE(value) (((InstanceObject *)AS_OBJ(value)))
+#define AS_BOUND_METHOD(value) (((BoundMethodObject *)AS_OBJ(value)))
 
 typedef enum {
 	OBJ_CLOSURE,
@@ -35,89 +34,87 @@ typedef enum {
 	OBJ_CLASS,
 	OBJ_INSTANCE,
 	OBJ_BOUND_METHOD
-} ObjType;
+} ObjectType;
 
-struct Obj {
-	ObjType type;
+struct Object {
+	ObjectType type;
 	bool is_marked;
-	struct Obj *next;
+	struct Object *next;
 };
 
 typedef struct {
-	struct Obj obj;
+	struct Object obj;
 	size_t arity;
 	int upvalue_count;
-	chunk_t chunk;
-	string_t *name;
-} function_t;
+	Chunk chunk;
+	StringObject *name;
+} FunctionObject;
 
-typedef value_t (*native_fn)(int arg_count, value_t *args);
+typedef Value (*NativeFn)(int arg_count, Value *args);
 
 typedef struct {
-	struct Obj obj;
-	native_fn function;
-} ObjNative;
+	struct Object obj;
+	NativeFn function;
+} NativeObject;
 
-struct string_t {
-	obj_t obj;
+struct StringObject {
+	Object obj;
 	size_t length;
 	char *chars;
 	uint32_t hash;
 };
 
-typedef struct ObjUpvalue {
-	struct Obj obj;
-	value_t *location;
-	value_t closed;
-	struct ObjUpvalue *next;
-} ObjUpvalue;
+typedef struct UpvalueObject {
+	struct Object obj;
+	Value *location;
+	Value closed;
+	struct UpvalueObject *next;
+} UpvalueObject;
 
 typedef struct {
-	struct Obj obj;
-	function_t *function;
-	ObjUpvalue **upvalues;
+	struct Object obj;
+	FunctionObject *function;
+	UpvalueObject **upvalues;
 	int upvalue_count;
-} ObjClosure;
+} ClosureObject;
 
 typedef struct {
-	struct Obj obj;
-	string_t *name;
-	hash_table_t methods;
-} ObjClass;
+	struct Object obj;
+	StringObject *name;
+	HashTable methods;
+} ClassObject;
 
 typedef struct {
-	struct Obj obj;
-	ObjClass *klass;
-	hash_table_t fields;
-} ObjInstance;
+	struct Object obj;
+	ClassObject *klass;
+	HashTable fields;
+} InstanceObject;
 
 typedef struct {
-	struct Obj obj;
-	value_t receiver;
-	ObjClosure *method;
-} ObjBoundMethod;
+	struct Object obj;
+	Value receiver;
+	ClosureObject *method;
+} BoundMethodObject;
 
-ObjBoundMethod *new_bound_method(value_t receiver, ObjClosure *method);
-ObjClass *new_class(string_t *name);
-ObjInstance *new_instance(ObjClass *klass);
+BoundMethodObject *BoundMethod_New(Value receiver, ClosureObject *method);
+ClassObject *Class_New(StringObject *name);
+InstanceObject *Instance_New(ClassObject *klass);
 
-ObjClosure *new_closure(function_t *function);
+ClosureObject *Closure_New(FunctionObject *function);
 
-function_t *new_function(void);
-ObjNative *new_native(native_fn function);
+FunctionObject *Function_New(void);
+NativeObject *Native_New(NativeFn function);
 
-string_t *take_string(char *chars, size_t length);
-string_t *copy_string(const char *chars, size_t length);
+StringObject *String_FromOwnedChars(char *chars, size_t length);
+StringObject *String_FromChars(const char *chars, size_t length);
 
-ObjUpvalue *new_upvalue(value_t *slot);
+UpvalueObject *Upvalue_New(Value *slot);
 
-void print_object(value_t value);
+void Object_Print(Value value);
 
-static inline bool is_obj_type(value_t value, ObjType type)
+static inline bool Object_TypeCheck(Value value, ObjectType type)
 {
-	return (IS_OBJ(value) && AS_OBJ(value)->type == type);
+	return (Object_Check(value) && AS_OBJ(value)->type == type);
 }
 
-uint32_t hash_string(const char *key, size_t length);
-
-#endif // GUSTAV_OBJECT_H
+uint32_t String_Hash(const char *key, size_t length);

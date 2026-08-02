@@ -30,24 +30,24 @@ VM vm;
 #define READ_CONSTANT() \
 	(frame->closure->function->chunk.constants.values[READ_BYTE()])
 #define READ_STRING() AS_STRING(READ_CONSTANT())
-#define BINARY_OP(TYPE, op)                                         \
-	do {                                                        \
-		if (!IS_NUMBER(peek(0)) || !IS_NUMBER(peek(1))) {   \
-			runtime_error("Operands must be numbers."); \
-			return INTERPRET_RUNTIME_ERROR;             \
-		}                                                   \
-		b = AS_NUMBER(pop());                               \
-		a = AS_NUMBER(pop());                               \
-		push(TYPE(a op b));                                 \
+#define BINARY_OP(TYPE, op)                                             \
+	do {                                                            \
+		if (!Number_Check(peek(0)) || !Number_Check(peek(1))) { \
+			runtime_error("Operands must be numbers.");     \
+			return INTERPRET_RUNTIME_ERROR;                 \
+		}                                                       \
+		b = AS_NUMBER(VM_Pop());                                \
+		a = AS_NUMBER(VM_Pop());                                \
+		VM_Push(TYPE(a op b));                                  \
 	} while (false);
 
-void push(value_t value)
+void VM_Push(Value value)
 {
 	*vm.stack_top = value;
 	vm.stack_top++;
 }
 
-value_t pop(void)
+Value VM_Pop(void)
 {
 	vm.stack_top--;
 	return *vm.stack_top;
@@ -71,14 +71,27 @@ runtime_error(const char *format, ...) // TODO(abduaziz): better stack trace
 	fputs("\n", stderr);
 
 	for (int i = (int)vm.frame_count - 1; i >= 0; i--) {
-		call_frame_t *frame = &vm.frames[i];
-		function_t *function = frame->closure->function;
+		CallFrame *frame = &vm.frames[i];
+		FunctionObject *function = frame->closure->function;
 
-		size_t instruction =
-			(size_t)(frame->ip - function->chunk.code - 1);
+		/*
+		 * ip already points at the *next* instruction, so the one
+		 * that faulted sits at ip - 1. A frame that has not executed
+		 * anything yet (a native raising on entry) would make that
+		 * negative and wrap, so clamp into the chunk before indexing.
+		 */
+		int line = 0;
 
-		// NOTE(abduaziz) ?!
-		int line = frame->closure->function->chunk.lines[instruction];
+		if (function->chunk.count > 0) {
+			ptrdiff_t offset = frame->ip - function->chunk.code - 1;
+			size_t instruction = offset < 0 ? 0 : (size_t)offset;
+
+			if (instruction >= function->chunk.count) {
+				instruction = function->chunk.count - 1;
+			}
+
+			line = function->chunk.lines[instruction];
+		}
 
 		(void)fprintf(stderr, "[at line %d] in ", line);
 
@@ -92,16 +105,16 @@ runtime_error(const char *format, ...) // TODO(abduaziz): better stack trace
 	reset_stack();
 }
 
-static void define_native(const char *name, native_fn function)
+static void define_native(const char *name, NativeFn function)
 {
-	push(OBJ_VAL(copy_string(name, strlen(name))));
-	push(OBJ_VAL(new_native(function)));
-	ht_insert(&vm.globals, AS_STRING(vm.stack[0]), vm.stack[1]);
-	pop();
-	pop();
+	VM_Push(OBJ_VAL(String_FromChars(name, strlen(name))));
+	VM_Push(OBJ_VAL(Native_New(function)));
+	HashTable_SetItem(&vm.globals, AS_STRING(vm.stack[0]), vm.stack[1]);
+	VM_Pop();
+	VM_Pop();
 }
 
-void init_vm(void)
+void VM_Init(void)
 {
 	LOG_INFO("VM initialized\n");
 	reset_stack();
@@ -114,46 +127,46 @@ void init_vm(void)
 	vm.gray_capacity = 0;
 	vm.gray_stack = NULL;
 
-	init_hash_table(&vm.strings);
-	init_hash_table(&vm.globals);
+	HashTable_Init(&vm.strings);
+	HashTable_Init(&vm.globals);
 
 	vm.init_string = NULL;
-	vm.init_string = copy_string("init", 4);
+	vm.init_string = String_FromChars("init", 4);
 
-	for (size_t i = 0; i < ARRAY_LENGTH(NATIVE_FUNCTIONS); i++) {
+	for (size_t i = 0; i < NATIVE_FUNCTION_COUNT; i++) {
 		NativeFunctionPair pair = NATIVE_FUNCTIONS[i];
 		define_native(pair.name, pair.function);
 	}
 }
 
-void free_vm(void)
+void VM_Free(void)
 {
 	LOG_DEBUG("Running cleanup ...\n");
-	free_objects();
-	free_hash_table(&vm.strings);
-	free_hash_table(&vm.globals);
+	Mem_FreeObjects();
+	HashTable_Free(&vm.strings);
+	HashTable_Free(&vm.globals);
 	vm.init_string = NULL;
 	LOG_INFO("VM freed\n");
 }
 
 #ifdef DEBUG // DEBUG
-static void trace(call_frame_t *frame)
+static void trace(CallFrame *frame)
 #else
-static void trace(call_frame_t *frame [[maybe_unused]])
+static void trace(CallFrame *frame [[maybe_unused]])
 #endif // DEBUG - mark arg as unused on release/non-debug builds
 {
 // Prints the instruction that currently being executed (if enabled) &
 // content of the stack
 #ifdef DEBUG
 	int offset = (int)(frame->ip - frame->closure->function->chunk.code);
-	disassemble_instruction(&frame->closure->function->chunk, offset);
+	Debug_DisassembleInstruction(&frame->closure->function->chunk, offset);
 
 	LOG_DEBUG("== [stack] ==\n");
 	uint16_t i = 0;
 
-	for (value_t *slot = vm.stack; slot < vm.stack_top; i++, slot++) {
+	for (Value *slot = vm.stack; slot < vm.stack_top; i++, slot++) {
 		printf("[%d] ", i);
-		print_value(*slot);
+		Value_Print(*slot);
 		(void)putchar('\n');
 	}
 
@@ -162,12 +175,12 @@ static void trace(call_frame_t *frame [[maybe_unused]])
 #endif // DEBUG
 }
 
-static value_t peek(int distance)
+static Value peek(int distance)
 {
 	return vm.stack_top[-1 - distance];
 }
 
-static bool call(ObjClosure *closure, int arg_count)
+static bool call(ClosureObject *closure, int arg_count)
 {
 	if ((size_t)arg_count != closure->function->arity) {
 		runtime_error("Expected %d arguments but got %d.",
@@ -180,7 +193,7 @@ static bool call(ObjClosure *closure, int arg_count)
 		return false;
 	}
 
-	call_frame_t *frame = &vm.frames[vm.frame_count++];
+	CallFrame *frame = &vm.frames[vm.frame_count++];
 	frame->closure = closure;
 	frame->ip = closure->function->chunk.code;
 	frame->slots = vm.stack_top - arg_count - 1;
@@ -188,23 +201,23 @@ static bool call(ObjClosure *closure, int arg_count)
 	return true;
 }
 
-static bool call_value(value_t callee, int arg_count)
+static bool call_value(Value callee, int arg_count)
 {
-	if (IS_OBJ(callee)) {
+	if (Object_Check(callee)) {
 		switch (OBJ_TYPE(callee)) {
 		case OBJ_BOUND_METHOD: {
-			ObjBoundMethod *bound = AS_BOUND_METHOD(callee);
+			BoundMethodObject *bound = AS_BOUND_METHOD(callee);
 			vm.stack_top[-arg_count - 1] = bound->receiver;
 			return call(bound->method, arg_count);
 		}
 		case OBJ_CLASS: {
-			ObjClass *klass = AS_CLASS(callee);
+			ClassObject *klass = AS_CLASS(callee);
 			vm.stack_top[-arg_count - 1] =
-				OBJ_VAL(new_instance(klass));
+				OBJ_VAL(Instance_New(klass));
 
-			value_t initializer;
-			if (ht_get(&klass->methods, vm.init_string,
-				   &initializer)) {
+			Value initializer;
+			if (HashTable_GetItem(&klass->methods, vm.init_string,
+					      &initializer)) {
 				return call(AS_CLOSURE(initializer), arg_count);
 			}
 			if (arg_count != 0) {
@@ -219,11 +232,11 @@ static bool call_value(value_t callee, int arg_count)
 			return call(AS_CLOSURE(callee), arg_count);
 		case OBJ_NATIVE: {
 			// TODO(abduaziz): arity check, runtime errors ...
-			native_fn native = AS_NATIVE(callee);
-			value_t result =
+			NativeFn native = AS_NATIVE(callee);
+			Value result =
 				native(arg_count, vm.stack_top - arg_count);
 			vm.stack_top -= arg_count + 1;
-			push(result);
+			VM_Push(result);
 			return true;
 		}
 		default:
@@ -235,11 +248,12 @@ static bool call_value(value_t callee, int arg_count)
 	return false;
 }
 
-static bool invoke_from_class(ObjClass *klass, string_t *name, int arg_count)
+static bool invoke_from_class(ClassObject *klass, StringObject *name,
+			      int arg_count)
 {
-	value_t method;
+	Value method;
 
-	if (!ht_get(&klass->methods, name, &method)) {
+	if (!HashTable_GetItem(&klass->methods, name, &method)) {
 		runtime_error("Undefined property '%s'.", name->chars);
 		return false;
 	}
@@ -247,20 +261,20 @@ static bool invoke_from_class(ObjClass *klass, string_t *name, int arg_count)
 	return call(AS_CLOSURE(method), arg_count);
 }
 
-static bool invoke(string_t *name, int arg_count)
+static bool invoke(StringObject *name, int arg_count)
 {
-	value_t receiver = peek(arg_count);
+	Value receiver = peek(arg_count);
 
-	if (!IS_INSTANCE(receiver)) {
+	if (!Instance_Check(receiver)) {
 		runtime_error("Only instance have methods.");
 		return false;
 	}
 
-	ObjInstance *instance = AS_INSTANCE(receiver);
+	InstanceObject *instance = AS_INSTANCE(receiver);
 
-	value_t value;
+	Value value;
 
-	if (ht_get(&instance->fields, name, &value)) {
+	if (HashTable_GetItem(&instance->fields, name, &value)) {
 		vm.stack_top[-arg_count - 1] = value;
 		return call_value(value, arg_count);
 	}
@@ -268,26 +282,26 @@ static bool invoke(string_t *name, int arg_count)
 	return invoke_from_class(instance->klass, name, arg_count);
 }
 
-static bool bind_method(ObjClass *klass, string_t *name)
+static bool bind_method(ClassObject *klass, StringObject *name)
 {
-	value_t method;
+	Value method;
 
-	if (!ht_get(&klass->methods, name, &method)) {
+	if (!HashTable_GetItem(&klass->methods, name, &method)) {
 		runtime_error("Undefined property '%s'.", name->chars);
 		return false;
 	}
 
-	ObjBoundMethod *bound = new_bound_method(peek(0), AS_CLOSURE(method));
+	BoundMethodObject *bound = BoundMethod_New(peek(0), AS_CLOSURE(method));
 
-	pop();
-	push(OBJ_VAL(bound));
+	VM_Pop();
+	VM_Push(OBJ_VAL(bound));
 	return true;
 }
 
-static ObjUpvalue *capture_upvalue(value_t *local)
+static UpvalueObject *capture_upvalue(Value *local)
 {
-	ObjUpvalue *prev_upvalue = NULL;
-	ObjUpvalue *upvalue = vm.open_upvalues;
+	UpvalueObject *prev_upvalue = NULL;
+	UpvalueObject *upvalue = vm.open_upvalues;
 
 	while (upvalue != NULL && upvalue->location > local) {
 		prev_upvalue = upvalue;
@@ -298,7 +312,7 @@ static ObjUpvalue *capture_upvalue(value_t *local)
 		return upvalue;
 	}
 
-	ObjUpvalue *created_upvalue = new_upvalue(local);
+	UpvalueObject *created_upvalue = Upvalue_New(local);
 
 	created_upvalue->next = upvalue;
 
@@ -311,34 +325,34 @@ static ObjUpvalue *capture_upvalue(value_t *local)
 	return created_upvalue;
 }
 
-static void close_upvalues(const value_t *last)
+static void close_upvalues(const Value *last)
 {
 	while (vm.open_upvalues != NULL && vm.open_upvalues->location >= last) {
-		ObjUpvalue *upvalue = vm.open_upvalues;
+		UpvalueObject *upvalue = vm.open_upvalues;
 		upvalue->closed = *upvalue->location;
 		upvalue->location = &upvalue->closed;
 		vm.open_upvalues = upvalue->next;
 	}
 }
 
-static void define_method(string_t *name)
+static void define_method(StringObject *name)
 {
-	value_t method = peek(0);
-	ObjClass *klass = AS_CLASS(peek(1));
+	Value method = peek(0);
+	ClassObject *klass = AS_CLASS(peek(1));
 	LOG_TRACE("ADDING METHOD !!!!");
-	ht_insert(&klass->methods, name, method);
-	pop();
+	HashTable_SetItem(&klass->methods, name, method);
+	VM_Pop();
 }
 
-static bool is_falsey(value_t value)
+static bool is_falsey(Value value)
 {
-	return IS_NIL(value) || (IS_BOOL(value) && !AS_BOOL(value));
+	return Nil_Check(value) || (Bool_Check(value) && !AS_BOOL(value));
 }
 
 static void concatenate(void)
 {
-	string_t *b = AS_STRING(peek(0));
-	string_t *a = AS_STRING(peek(1));
+	StringObject *b = AS_STRING(peek(0));
+	StringObject *a = AS_STRING(peek(1));
 
 	size_t total_length = a->length + b->length;
 
@@ -349,25 +363,25 @@ static void concatenate(void)
 
 	chars[total_length] = '\0';
 
-	string_t *concatenated = take_string(chars, total_length);
+	StringObject *concatenated = String_FromOwnedChars(chars, total_length);
 
-	pop();
-	pop();
-	push(OBJ_VAL(concatenated));
+	VM_Pop();
+	VM_Pop();
+	VM_Push(OBJ_VAL(concatenated));
 }
 
 /* NOLINTNEXTLINE(readability-function-size) */
-static interpreter_result_t run(void)
+static InterpretResult run(void)
 {
-	value_t result_value;
-	value_t top_value;
-	value_t x;
-	value_t y;
+	Value result_value;
+	Value top_value;
+	Value x;
+	Value y;
 	uint8_t instruction;
 	double a;
 	double b;
 
-	call_frame_t *frame = &vm.frames[vm.frame_count - 1];
+	CallFrame *frame = &vm.frames[vm.frame_count - 1];
 
 	while (true) {
 		trace(frame);
@@ -375,19 +389,19 @@ static interpreter_result_t run(void)
 		switch (instruction = READ_BYTE()) {
 		case OP_CONSTANT:
 			result_value = READ_CONSTANT();
-			push(result_value);
+			VM_Push(result_value);
 			break;
 		case OP_NIL:
-			push(NIL_VAL);
+			VM_Push(NIL_VAL);
 			break;
 		case OP_TRUE:
-			push(BOOL_VAL(true));
+			VM_Push(BOOL_VAL(true));
 			break;
 		case OP_FALSE:
-			push(BOOL_VAL(false));
+			VM_Push(BOOL_VAL(false));
 			break;
 		case OP_POP:
-			pop();
+			VM_Pop();
 			break;
 		case OP_SET_LOCAL: {
 			uint8_t slot = READ_BYTE();
@@ -396,31 +410,31 @@ static interpreter_result_t run(void)
 		}
 		case OP_GET_LOCAL: {
 			uint8_t slot = READ_BYTE();
-			push(frame->slots[slot]);
+			VM_Push(frame->slots[slot]);
 			break;
 		}
 		case OP_DEFINE_GLOBAL: {
-			string_t *name = READ_STRING();
-			ht_insert(&vm.globals, name, peek(0));
-			pop();
+			StringObject *name = READ_STRING();
+			HashTable_SetItem(&vm.globals, name, peek(0));
+			VM_Pop();
 			break;
 		}
 		case OP_GET_GLOBAL: {
-			string_t *name = READ_STRING();
-			value_t value;
+			StringObject *name = READ_STRING();
+			Value value;
 
-			if (!ht_get(&vm.globals, name, &value)) {
+			if (!HashTable_GetItem(&vm.globals, name, &value)) {
 				runtime_error("Undefined variable '%s'.",
 					      name->chars);
 				return INTERPRET_RUNTIME_ERROR;
 			}
-			push(value);
+			VM_Push(value);
 			break;
 		}
 		case OP_SET_GLOBAL: {
-			string_t *name = READ_STRING();
-			if (ht_insert(&vm.globals, name, peek(0))) {
-				ht_delete(&vm.globals, name);
+			StringObject *name = READ_STRING();
+			if (HashTable_SetItem(&vm.globals, name, peek(0))) {
+				HashTable_DelItem(&vm.globals, name);
 				runtime_error("Undefined variable '%s'.",
 					      name->chars);
 				return INTERPRET_RUNTIME_ERROR;
@@ -429,7 +443,7 @@ static interpreter_result_t run(void)
 		}
 		case OP_GET_UPVALUE: {
 			uint8_t slot = READ_BYTE();
-			push(*frame->closure->upvalues[slot]->location);
+			VM_Push(*frame->closure->upvalues[slot]->location);
 			break;
 		}
 		case OP_SET_UPVALUE: {
@@ -438,20 +452,21 @@ static interpreter_result_t run(void)
 			break;
 		}
 		case OP_GET_PROPERTY: {
-			if (!IS_INSTANCE(peek(0))) {
+			if (!Instance_Check(peek(0))) {
 				runtime_error(
 					"Only instances have properties.");
 				return INTERPRET_RUNTIME_ERROR;
 			}
 
-			ObjInstance *instance = AS_INSTANCE(peek(0));
-			string_t *name = READ_STRING();
+			InstanceObject *instance = AS_INSTANCE(peek(0));
+			StringObject *name = READ_STRING();
 
-			value_t value;
+			Value value;
 
-			if (ht_get(&instance->fields, name, &value)) {
-				pop();
-				push(value);
+			if (HashTable_GetItem(&instance->fields, name,
+					      &value)) {
+				VM_Pop();
+				VM_Push(value);
 				break;
 			}
 
@@ -462,22 +477,23 @@ static interpreter_result_t run(void)
 			break;
 		}
 		case OP_SET_PROPERTY: {
-			if (!IS_INSTANCE(peek(1))) {
+			if (!Instance_Check(peek(1))) {
 				runtime_error("Only instances have fields.");
 				return INTERPRET_RUNTIME_ERROR;
 			}
-			ObjInstance *instance = AS_INSTANCE(peek(1));
-			ht_insert(&instance->fields, READ_STRING(), peek(0));
-			value_t value = pop();
-			pop();
-			push(value);
+			InstanceObject *instance = AS_INSTANCE(peek(1));
+			HashTable_SetItem(&instance->fields, READ_STRING(),
+					  peek(0));
+			Value value = VM_Pop();
+			VM_Pop();
+			VM_Push(value);
 			break;
 		}
 		case OP_EQUAL: {
-			y = pop();
-			x = pop();
-			result_value = BOOL_VAL(values_equal(x, y));
-			push(result_value);
+			y = VM_Pop();
+			x = VM_Pop();
+			result_value = BOOL_VAL(Value_Equal(x, y));
+			VM_Push(result_value);
 			break;
 		}
 		case OP_GREATER:
@@ -490,7 +506,7 @@ static interpreter_result_t run(void)
 			BINARY_OP(NUMBER_VAL, +);
 			break;
 		case OP_CONCAT: {
-			if (IS_STRING(peek(0)) && IS_STRING(peek(1))) {
+			if (String_Check(peek(0)) && String_Check(peek(1))) {
 				concatenate();
 			} else {
 				runtime_error(
@@ -505,13 +521,13 @@ static interpreter_result_t run(void)
 			BINARY_OP(NUMBER_VAL, *);
 			break;
 		case OP_POW:
-			if (!IS_NUMBER(peek(0)) || !IS_NUMBER(peek(1))) {
+			if (!Number_Check(peek(0)) || !Number_Check(peek(1))) {
 				runtime_error("Operands must be numbers.");
 				return INTERPRET_RUNTIME_ERROR;
 			}
-			b = AS_NUMBER(pop());
-			a = AS_NUMBER(pop());
-			push(NUMBER_VAL(pow(a, b)));
+			b = AS_NUMBER(VM_Pop());
+			a = AS_NUMBER(VM_Pop());
+			VM_Push(NUMBER_VAL(pow(a, b)));
 			break;
 		case OP_DIVIDE:
 			BINARY_OP(NUMBER_VAL, /);
@@ -526,7 +542,7 @@ static interpreter_result_t run(void)
 				result_value = BOOL_VAL(is_falsey(top_value));
 			} else {
 				// for OP_NEGATE
-				if (!IS_NUMBER(top_value)) {
+				if (!Number_Check(top_value)) {
 					runtime_error(
 						"Operand must be a number.");
 					return INTERPRET_RUNTIME_ERROR;
@@ -540,7 +556,7 @@ static interpreter_result_t run(void)
 		}
 		case OP_PRINT: {
 			LOG_DEBUG("== [stdout] ==\n");
-			print_value(pop());
+			Value_Print(VM_Pop());
 			(void)putchar('\n');
 			LOG_DEBUG("== [/stdout] ==\n\n");
 			break;
@@ -571,7 +587,7 @@ static interpreter_result_t run(void)
 			break;
 		}
 		case OP_INVOKE: {
-			string_t *method = READ_STRING();
+			StringObject *method = READ_STRING();
 			int arg_count = READ_BYTE();
 
 			if (!invoke(method, arg_count)) {
@@ -581,9 +597,9 @@ static interpreter_result_t run(void)
 			break;
 		}
 		case OP_CLOSURE: {
-			function_t *function = AS_FUNCTION(READ_CONSTANT());
-			ObjClosure *closure = new_closure(function);
-			push(OBJ_VAL(closure));
+			FunctionObject *function = AS_FUNCTION(READ_CONSTANT());
+			ClosureObject *closure = Closure_New(function);
+			VM_Push(OBJ_VAL(closure));
 
 			for (int i = 0; i < closure->upvalue_count; i++) {
 				uint8_t is_local = READ_BYTE();
@@ -601,40 +617,40 @@ static interpreter_result_t run(void)
 		}
 		case OP_CLOSE_UPVALUE: {
 			close_upvalues(vm.stack_top - 1);
-			pop();
+			VM_Pop();
 			break;
 		}
 		case OP_RETURN: {
-			result_value = pop();
+			result_value = VM_Pop();
 			close_upvalues(frame->slots);
 			vm.frame_count--;
 			if (vm.frame_count == 0) {
-				pop();
+				VM_Pop();
 				return INTERPRET_OK;
 			}
 			vm.stack_top = frame->slots;
-			push(result_value);
+			VM_Push(result_value);
 			frame = &vm.frames[vm.frame_count - 1];
 			break;
 		}
 		case OP_CLASS:
-			push(OBJ_VAL(new_class(READ_STRING())));
+			VM_Push(OBJ_VAL(Class_New(READ_STRING())));
 			break;
 		case OP_INHERIT: {
-			value_t superclass = peek(1);
-			if (!IS_CLASS(superclass)) {
+			Value superclass = peek(1);
+			if (!Class_Check(superclass)) {
 				runtime_error("Superclass must be a class.");
 				return INTERPRET_RUNTIME_ERROR;
 			}
-			ObjClass *subclass = AS_CLASS(peek(0));
-			ht_add_all(&AS_CLASS(superclass)->methods,
-				   &subclass->methods);
-			pop(); // subclass
+			ClassObject *subclass = AS_CLASS(peek(0));
+			HashTable_AddAll(&AS_CLASS(superclass)->methods,
+					 &subclass->methods);
+			VM_Pop(); // subclass
 			break;
 		}
 		case OP_GET_SUPER: {
-			string_t *name = READ_STRING();
-			ObjClass *superclass = AS_CLASS(pop());
+			StringObject *name = READ_STRING();
+			ClassObject *superclass = AS_CLASS(VM_Pop());
 
 			if (!bind_method(superclass, name)) {
 				return INTERPRET_RUNTIME_ERROR;
@@ -645,9 +661,9 @@ static interpreter_result_t run(void)
 			define_method(READ_STRING());
 			break;
 		case OP_SUPER_INVOKE: {
-			string_t *method = READ_STRING();
+			StringObject *method = READ_STRING();
 			int arg_count = READ_BYTE();
-			ObjClass *superclass = AS_CLASS(pop());
+			ClassObject *superclass = AS_CLASS(VM_Pop());
 			if (!invoke_from_class(superclass, method, arg_count)) {
 				return INTERPRET_RUNTIME_ERROR;
 			}
@@ -660,21 +676,21 @@ static interpreter_result_t run(void)
 	}
 }
 
-interpreter_result_t interpret(const char *source)
+InterpretResult VM_Interpret(const char *source)
 {
 	LOG_DEBUG("\n== [source] ==\n%s\n== [/source] ==\n\n", source);
 	LOG_INFO("Begin compiling\n");
 
-	function_t *function = compile(source);
+	FunctionObject *function = Compiler_Compile(source);
 	if (function == NULL) {
 		return INTERPRET_COMPILE_ERROR;
 	}
 
-	push(OBJ_VAL(function));
+	VM_Push(OBJ_VAL(function));
 
-	ObjClosure *closure = new_closure(function);
-	pop();
-	push(OBJ_VAL(closure));
+	ClosureObject *closure = Closure_New(function);
+	VM_Pop();
+	VM_Push(OBJ_VAL(closure));
 	call(closure, 0);
 
 	return run();

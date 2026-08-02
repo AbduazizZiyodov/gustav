@@ -1,5 +1,4 @@
-#ifndef GUSTAV_CHUNK_H
-#define GUSTAV_CHUNK_H
+#pragma once
 
 #include <stddef.h>
 #include <stdint.h>
@@ -53,7 +52,7 @@
 #define GENERATE_ENUM(ENUM) ENUM,
 #define GENERATE_STRING(STRING) #STRING,
 
-typedef enum { FOREACH_OP_CODE(GENERATE_ENUM) } op_code_t;
+typedef enum { FOREACH_OP_CODE(GENERATE_ENUM) } OpCode;
 
 static const char *OP_CODE_STRING[] = { FOREACH_OP_CODE(GENERATE_STRING) };
 
@@ -61,15 +60,13 @@ typedef struct {
 	size_t count;
 	size_t capacity;
 	uint8_t *code;
-	value_array_t constants;
+	ValueArray constants;
 	int *lines;
-} chunk_t;
+} Chunk;
 
-void init_chunk(chunk_t *chunk);
-void free_chunk(chunk_t *chunk);
+void Chunk_Init(Chunk *chunk);
+void Chunk_Free(Chunk *chunk);
 
-void write_chunk(chunk_t *chunk, uint8_t byte, size_t line);
+void Chunk_Write(Chunk *chunk, uint8_t byte, size_t line);
 
-size_t add_constant(chunk_t *chunk, value_t value);
-
-#endif // GUSTAV_CHUNK_H
+size_t Chunk_AddConstant(Chunk *chunk, Value value);

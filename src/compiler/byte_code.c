@@ -2,21 +2,16 @@
 #include <stdint.h>
 
 #include "chunk.h"
-#include "compiler.h"
+#include "internal.h"
 #include "value.h"
 
-#include "compiler/byte_code.h"
-#include "compiler/error.h"
-#include "compiler/function.h"
-#include "compiler/utils.h"
-
-#define EMIT_BYTES(first_byte, second_byte) \
-	emit_byte(first_byte);              \
-	emit_byte(second_byte);
+#include "byte_code.h"
+#include "error.h"
+#include "utils.h"
 
 void emit_byte(uint8_t byte)
 {
-	write_chunk(current_chunk(), byte, parser_state.previous.line);
+	Chunk_Write(current_chunk(), byte, parser_state.previous.line);
 }
 
 void emit_loop(size_t loop_start)
@@ -49,9 +44,9 @@ void emit_return(void)
 	emit_byte(OP_RETURN);
 }
 
-uint8_t make_constant(value_t value)
+uint8_t make_constant(Value value)
 {
-	size_t constant = add_constant(current_chunk(), value);
+	size_t constant = Chunk_AddConstant(current_chunk(), value);
 
 	if (constant > UINT8_MAX) {
 		compiler_error("Too many constants in one chunk");
@@ -61,7 +56,7 @@ uint8_t make_constant(value_t value)
 	return (uint8_t)constant;
 }
 
-void emit_constant(value_t value)
+void emit_constant(Value value)
 {
 	EMIT_BYTES(OP_CONSTANT, make_constant(value));
 }

@@ -12,24 +12,24 @@
 
 static uint8_t current_instruction;
 
-static int constant_instruction(const char *name, chunk_t *chunk, int offset);
-static int byte_instruction(const char *name, chunk_t *chunk, int offset);
-static int jump_instruction(const char *name, int sign, chunk_t *chunk,
+static int constant_instruction(const char *name, Chunk *chunk, int offset);
+static int byte_instruction(const char *name, Chunk *chunk, int offset);
+static int jump_instruction(const char *name, int sign, Chunk *chunk,
 			    int offset);
-static int invoke_instruction(const char *name, chunk_t *chunk, int offset);
+static int invoke_instruction(const char *name, Chunk *chunk, int offset);
 
-void disassemble_chunk(chunk_t *chunk, const char *name)
+void Debug_DisassembleChunk(Chunk *chunk, const char *name)
 {
 	printf("\n");
 
 	LOG_DEBUG("== [%s] ==\n", name);
 	for (int offset = 0; offset < (int)chunk->count;) {
-		offset = disassemble_instruction(chunk, offset);
+		offset = Debug_DisassembleInstruction(chunk, offset);
 	}
 	LOG_DEBUG("== [/%s] ==\n\n", name);
 }
 
-int disassemble_instruction(chunk_t *chunk, int offset)
+int Debug_DisassembleInstruction(Chunk *chunk, int offset)
 {
 	current_instruction = chunk->code[offset];
 
@@ -82,10 +82,10 @@ int disassemble_instruction(chunk_t *chunk, int offset)
 		offset++;
 		uint8_t constant = chunk->code[offset++];
 		LOG_DEBUG("%-16s %4d ", "OP_CLOSURE", constant);
-		print_value(chunk->constants.values[constant]);
+		Value_Print(chunk->constants.values[constant]);
 		printf("\n");
 
-		function_t *function =
+		FunctionObject *function =
 			AS_FUNCTION(chunk->constants.values[constant]);
 
 		for (int i = 0; i < function->upvalue_count; i++) {
@@ -107,37 +107,37 @@ int disassemble_instruction(chunk_t *chunk, int offset)
 	}
 }
 
-static int invoke_instruction(const char *name, chunk_t *chunk, int offset)
+static int invoke_instruction(const char *name, Chunk *chunk, int offset)
 {
 	uint8_t constant = chunk->code[offset + 1];
 	uint8_t arg_count = chunk->code[offset + 2];
 	LOG_DEBUG("%-16s (%d args) %4d '", name, arg_count, constant);
-	print_value(chunk->constants.values[constant]);
+	Value_Print(chunk->constants.values[constant]);
 	printf("\n");
 
 	return offset + 3;
 }
 
-static int constant_instruction(const char *name, chunk_t *chunk, int offset)
+static int constant_instruction(const char *name, Chunk *chunk, int offset)
 {
 	uint8_t constant = chunk->code[offset + 1];
-	value_t value = chunk->constants.values[constant];
+	Value value = chunk->constants.values[constant];
 
 	LOG_DEBUG("%04d %s %04d value=", offset, name, constant);
-	print_value(value);
+	Value_Print(value);
 	printf("\n");
 
 	return offset + 2;
 }
 
-static int byte_instruction(const char *name, chunk_t *chunk, int offset)
+static int byte_instruction(const char *name, Chunk *chunk, int offset)
 {
 	uint8_t slot = chunk->code[offset + 1];
 	LOG_DEBUG("%04d %s slot=%04d\n", offset, name, slot);
 	return offset + 2;
 }
 
-static int jump_instruction(const char *name, int sign, chunk_t *chunk,
+static int jump_instruction(const char *name, int sign, Chunk *chunk,
 			    int offset)
 {
 	uint16_t jump = (uint16_t)(chunk->code[offset + 1] << 8);
@@ -154,8 +154,8 @@ static int jump_instruction(const char *name, int sign, chunk_t *chunk,
 #include "chunk.h"
 #include "debug.h"
 
-void disassemble_chunk(chunk_t *chunk [[maybe_unused]],
-		       const char *name [[maybe_unused]])
+void Debug_DisassembleChunk(Chunk *chunk [[maybe_unused]],
+			    const char *name [[maybe_unused]])
 {
 }
 #endif // DEBUG

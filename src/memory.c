@@ -11,15 +11,15 @@
 #include "value.h"
 #include "vm.h"
 
-void *reallocate(void *pointer, size_t old_size, size_t new_size)
+void *Mem_Realloc(void *pointer, size_t old_size, size_t new_size)
 {
 	if (new_size > old_size) {
 		vm.bytes_allocated += new_size - old_size;
 #ifdef DEBUG_STRESS_GC
-		collect_garbage();
+		GC_Collect();
 #endif
 		if (vm.bytes_allocated > vm.next_gc) {
-			collect_garbage();
+			GC_Collect();
 		}
 	} else {
 		vm.bytes_allocated -= old_size - new_size;
@@ -39,63 +39,63 @@ void *reallocate(void *pointer, size_t old_size, size_t new_size)
 	return result;
 }
 
-void free_object(obj_t *object)
+void Mem_FreeObject(Object *object)
 {
-	ObjClosure *closure;
+	ClosureObject *closure;
 
 	switch (object->type) {
 	case OBJ_BOUND_METHOD:
-		FREE(ObjBoundMethod, object);
+		FREE(BoundMethodObject, object);
 		break;
 	case OBJ_CLASS: {
-		ObjClass *klass = (ObjClass *)object;
-		free_hash_table(&klass->methods);
-		FREE(ObjClass, object);
+		ClassObject *klass = (ClassObject *)object;
+		HashTable_Free(&klass->methods);
+		FREE(ClassObject, object);
 		break;
 	}
 	case OBJ_INSTANCE: {
-		ObjInstance *instance = (ObjInstance *)object;
-		free_hash_table(&instance->fields);
-		FREE(ObjInstance, object);
+		InstanceObject *instance = (InstanceObject *)object;
+		HashTable_Free(&instance->fields);
+		FREE(InstanceObject, object);
 		break;
 	}
 	case OBJ_STRING: {
-		string_t *string = (string_t *)object;
+		StringObject *string = (StringObject *)object;
 		LOG_GC("Freeing string object: object=%p string_repr=%s\n",
 		       object, string->chars);
 		FREE_ARRAY(char, string->chars, string->length + 1);
-		FREE(string_t, object);
+		FREE(StringObject, object);
 		break;
 	}
 	case OBJ_FUNCTION: {
-		function_t *function = (function_t *)object;
-		free_chunk(&function->chunk);
-		FREE(function_t, object);
+		FunctionObject *function = (FunctionObject *)object;
+		Chunk_Free(&function->chunk);
+		FREE(FunctionObject, object);
 		break;
 	}
 	case OBJ_NATIVE:
-		FREE(ObjNative, object);
+		FREE(NativeObject, object);
 		break;
 	case OBJ_CLOSURE:
-		closure = (ObjClosure *)object;
+		closure = (ClosureObject *)object;
 		/*NOLINTNEXTLINE(bugprone-multi-level-implicit-pointer-conversion)*/
-		FREE_ARRAY(ObjUpvalue *, closure->upvalues,
+		FREE_ARRAY(UpvalueObject *, closure->upvalues,
 			   closure->upvalue_count);
-		FREE(ObjClosure, object);
+		FREE(ClosureObject, object);
 		break;
 	case OBJ_UPVALUE:
-		FREE(ObjUpvalue, object);
+		FREE(UpvalueObject, object);
 		break;
 	}
 }
 
-void free_objects(void)
+void Mem_FreeObjects(void)
 {
-	obj_t *object = vm.objects;
+	Object *object = vm.objects;
 
 	while (object != NULL) {
-		obj_t *next = object->next;
-		free_object(object);
+		Object *next = object->next;
+		Mem_FreeObject(object);
 		object = next;
 	}
 
