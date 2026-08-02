@@ -4,8 +4,8 @@
 #include "native_functions.h"
 #include "value.h"
 
-value_t gustav_max_native(int arg_count [[maybe_unused]],
-			  value_t *args [[maybe_unused]])
+Value gustav_max_native(int arg_count [[maybe_unused]],
+			Value *args [[maybe_unused]])
 {
 	if (arg_count != 2) {
 		gustav_error(-1, "Should be twins you mazafaka!");

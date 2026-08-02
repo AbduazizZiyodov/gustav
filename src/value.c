@@ -9,42 +9,42 @@
 #include "object.h"
 #include "value.h"
 
-void init_value_array(value_array_t *array)
+void ValueArray_Init(ValueArray *array)
 {
 	array->count = 0;
 	array->capacity = 0;
 	array->values = NULL;
 }
 
-void write_value_array(value_array_t *array, value_t value)
+void ValueArray_Write(ValueArray *array, Value value)
 {
 	if (array->capacity < array->count + 1) {
 		size_t old_capacity = array->capacity;
 		array->capacity = GROW_CAPACITY(old_capacity);
-		array->values = GROW_ARRAY(value_t, array->values, old_capacity,
+		array->values = GROW_ARRAY(Value, array->values, old_capacity,
 					   array->capacity);
 	}
 	array->values[array->count] = value;
 	array->count++;
 }
 
-void free_value_array(value_array_t *array)
+void ValueArray_Free(ValueArray *array)
 {
-	FREE_ARRAY(value_t, array->values, array->capacity);
-	init_value_array(array);
+	FREE_ARRAY(Value, array->values, array->capacity);
+	ValueArray_Init(array);
 }
 
-void print_value(value_t value)
+void Value_Print(Value value)
 {
 #ifdef NAN_BOXING
-	if (IS_BOOL(value)) {
+	if (Bool_Check(value)) {
 		printf(AS_BOOL(value) ? "true" : "false");
-	} else if (IS_NIL(value)) {
+	} else if (Nil_Check(value)) {
 		printf("nil");
-	} else if (IS_NUMBER(value)) {
+	} else if (Number_Check(value)) {
 		printf("%g", AS_NUMBER(value));
-	} else if (IS_OBJ(value)) {
-		print_object(value);
+	} else if (Object_Check(value)) {
+		Object_Print(value);
 	}
 #else
 	switch (value.type) {
@@ -59,7 +59,7 @@ void print_value(value_t value)
 		printf("%f", AS_NUMBER(value));
 		break;
 	case VAL_OBJ:
-		print_object(value);
+		Object_Print(value);
 		break;
 	default:
 		UNREACHABLE();
@@ -67,10 +67,10 @@ void print_value(value_t value)
 #endif
 }
 
-bool values_equal(value_t a, value_t b)
+bool Value_Equal(Value a, Value b)
 {
 #ifdef NAN_BOXING
-	if (IS_NUMBER(a) && IS_NUMBER(b)) {
+	if (Number_Check(a) && Number_Check(b)) {
 		return AS_NUMBER(a) == AS_NUMBER(b);
 	}
 	return a == b;

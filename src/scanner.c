@@ -8,15 +8,15 @@
 
 static bool is_at_end(void);
 static void skip_whitespace(void);
-static token_t make_token(TokenType type);
+static Token make_token(TokenType type);
 static char advance(void);
 static bool is_alpha(char c);
-static token_t make_identifier_token(void);
+static Token make_identifier_token(void);
 static bool is_digit(char c);
-static token_t make_number_token(void);
+static Token make_number_token(void);
 static bool match(char expected);
-static token_t make_string_token(void);
-static token_t make_error_token(const char *message);
+static Token make_string_token(void);
+static Token make_error_token(const char *message);
 
 typedef struct {
 	const char *start;
@@ -26,14 +26,14 @@ typedef struct {
 
 static ScannerState scanner_state;
 
-void init_scanner(const char *source)
+void Scanner_Init(const char *source)
 {
 	scanner_state.start = source;
 	scanner_state.current = source;
 	scanner_state.line = 1;
 }
 
-token_t scan_token(void)
+Token Scanner_ScanToken(void)
 {
 	skip_whitespace();
 
@@ -94,22 +94,22 @@ token_t scan_token(void)
 	return make_error_token("Unexpected character.");
 }
 
-static token_t make_token(TokenType type)
+static Token make_token(TokenType type)
 {
 	size_t length = (size_t)(scanner_state.current - scanner_state.start);
 
-	return (token_t){ .type = type,
-			  .start = scanner_state.start,
-			  .length = length,
-			  .line = scanner_state.line };
+	return (Token){ .type = type,
+			.start = scanner_state.start,
+			.length = length,
+			.line = scanner_state.line };
 }
 
-static token_t make_error_token(const char *message)
+static Token make_error_token(const char *message)
 {
-	return (token_t){ .type = TOKEN_ERROR,
-			  .start = message,
-			  .length = (size_t)strlen(message),
-			  .line = scanner_state.line };
+	return (Token){ .type = TOKEN_ERROR,
+			.start = message,
+			.length = (size_t)strlen(message),
+			.line = scanner_state.line };
 }
 
 static bool is_at_end(void)
@@ -181,7 +181,7 @@ static void skip_whitespace(void)
 	}
 }
 
-static token_t make_string_token(void)
+static Token make_string_token(void)
 {
 	while (peek() != '"' && !is_at_end()) {
 		if (peek() == '\n') {
@@ -202,7 +202,7 @@ static bool is_digit(char c)
 	return (bool)(c >= '0' && c <= '9');
 }
 
-static token_t make_number_token(void)
+static Token make_number_token(void)
 {
 	while (is_digit(peek())) {
 		advance();
@@ -293,7 +293,7 @@ static TokenType get_identifier_type(void)
 	return TOKEN_IDENTIFIER;
 }
 
-static token_t make_identifier_token(void)
+static Token make_identifier_token(void)
 {
 	while (is_alpha(peek()) || is_digit(peek())) {
 		advance();

@@ -3,39 +3,40 @@
 #include <string.h>
 
 #include "common.h"
+#include "gc.h"
 #include "hash_table.h"
 #include "memory.h"
 /* NOLINTNEXTLINE(misc-include-cleaner) */
 #include "object.h"
 #include "value.h"
 
-void init_hash_table(hash_table_t *hash_table)
+void HashTable_Init(HashTable *hash_table)
 {
 	hash_table->count = 0;
 	hash_table->capacity = 0;
 	hash_table->entries = NULL;
 }
 
-void free_hash_table(hash_table_t *hash_table)
+void HashTable_Free(HashTable *hash_table)
 {
-	FREE_ARRAY(ht_entry_t, hash_table->entries, hash_table->capacity);
-	init_hash_table(hash_table);
+	FREE_ARRAY(HashTableEntry, hash_table->entries, hash_table->capacity);
+	HashTable_Init(hash_table);
 }
 
 // TODO(abduaziz): nesting
-static ht_entry_t *find_entry(ht_entry_t *entries, size_t capacity,
-			      string_t *key)
+static HashTableEntry *find_entry(HashTableEntry *entries, size_t capacity,
+				  StringObject *key)
 {
 	/* NOLINTNEXTLINE(clang-analyzer-core.DivideZero) */
 	uint32_t index = key->hash & (capacity - 1); // capacity > 0
 
-	ht_entry_t *tombstone = NULL;
+	HashTableEntry *tombstone = NULL;
 
 	for (;;) {
-		ht_entry_t *entry = &entries[index];
+		HashTableEntry *entry = &entries[index];
 
 		if (entry->key == NULL) {
-			if (IS_NIL(entry->value)) {
+			if (Nil_Check(entry->value)) {
 				return tombstone != NULL ? tombstone : entry;
 			}
 			if (tombstone == NULL) {
@@ -50,13 +51,13 @@ static ht_entry_t *find_entry(ht_entry_t *entries, size_t capacity,
 	}
 }
 
-bool ht_get(hash_table_t *hash_table, string_t *key, value_t *value)
+bool HashTable_GetItem(HashTable *hash_table, StringObject *key, Value *value)
 {
 	if (hash_table->count == 0) {
 		return false;
 	}
 
-	ht_entry_t *entry =
+	HashTableEntry *entry =
 		find_entry(hash_table->entries, hash_table->capacity, key);
 
 	if (entry->key is NULL) {
@@ -66,9 +67,9 @@ bool ht_get(hash_table_t *hash_table, string_t *key, value_t *value)
 	return true;
 }
 
-static void adjust_capacity(hash_table_t *hash_table, size_t capacity)
+static void adjust_capacity(HashTable *hash_table, size_t capacity)
 {
-	ht_entry_t *entries = ALLOCATE(ht_entry_t, capacity);
+	HashTableEntry *entries = ALLOCATE(HashTableEntry, capacity);
 
 	for (size_t i = 0; i < capacity; i++) {
 		entries[i].key = NULL;
@@ -77,26 +78,27 @@ static void adjust_capacity(hash_table_t *hash_table, size_t capacity)
 
 	hash_table->count = 0;
 	for (size_t i = 0; i < hash_table->capacity; i++) {
-		ht_entry_t *entry = &hash_table->entries[i];
+		HashTableEntry *entry = &hash_table->entries[i];
 
 		if (entry->key is NULL) {
 			continue;
 		}
 
-		ht_entry_t *dest = find_entry(entries, capacity, entry->key);
+		HashTableEntry *dest =
+			find_entry(entries, capacity, entry->key);
 		dest->key = entry->key;
 		dest->value = entry->value;
 
 		hash_table->count++;
 	}
 
-	FREE_ARRAY(ht_entry_t, hash_table->entries, hash_table->capacity);
+	FREE_ARRAY(HashTableEntry, hash_table->entries, hash_table->capacity);
 
 	hash_table->entries = entries;
 	hash_table->capacity = capacity;
 }
 
-bool ht_insert(hash_table_t *hash_table, string_t *key, value_t value)
+bool HashTable_SetItem(HashTable *hash_table, StringObject *key, Value value)
 {
 	if (hash_table->count + 1 > (size_t)((double)hash_table->capacity *
 					     HASH_TABLE_MAX_LOAD_FACTOR)) {
@@ -104,12 +106,12 @@ bool ht_insert(hash_table_t *hash_table, string_t *key, value_t value)
 		adjust_capacity(hash_table, capacity);
 	}
 
-	ht_entry_t *entry =
+	HashTableEntry *entry =
 		find_entry(hash_table->entries, hash_table->capacity, key);
 
 	bool is_new_key = entry->key is NULL;
 
-	if (is_new_key && IS_NIL(entry->value)) {
+	if (is_new_key && Nil_Check(entry->value)) {
 		hash_table->count++;
 	}
 	entry->key = key;
@@ -118,13 +120,13 @@ bool ht_insert(hash_table_t *hash_table, string_t *key, value_t value)
 	return is_new_key;
 }
 
-bool ht_delete(hash_table_t *hash_table, string_t *key)
+bool HashTable_DelItem(HashTable *hash_table, StringObject *key)
 {
 	if (hash_table->count == 0) {
 		return false;
 	}
 
-	ht_entry_t *entry =
+	HashTableEntry *entry =
 		find_entry(hash_table->entries, hash_table->capacity, key);
 
 	if (entry->key is NULL) {
@@ -137,19 +139,19 @@ bool ht_delete(hash_table_t *hash_table, string_t *key)
 	return true;
 }
 
-void ht_add_all(hash_table_t *from, hash_table_t *to)
+void HashTable_AddAll(HashTable *from, HashTable *to)
 {
 	for (size_t i = 0; i < from->capacity; i++) {
-		ht_entry_t *entry = &from->entries[i];
+		HashTableEntry *entry = &from->entries[i];
 
 		if (entry->key != NULL) {
-			ht_insert(to, entry->key, entry->value);
+			HashTable_SetItem(to, entry->key, entry->value);
 		}
 	}
 }
 
-string_t *ht_find_string(hash_table_t *hash_table, const char *chars,
-			 size_t length, uint32_t hash)
+StringObject *HashTable_FindString(HashTable *hash_table, const char *chars,
+				   size_t length, uint32_t hash)
 {
 	if (hash_table->count == 0) {
 		return NULL;
@@ -158,10 +160,10 @@ string_t *ht_find_string(hash_table_t *hash_table, const char *chars,
 	uint32_t index = hash & (hash_table->capacity - 1);
 
 	while (true) {
-		ht_entry_t *entry = &hash_table->entries[index];
+		HashTableEntry *entry = &hash_table->entries[index];
 
 		if (entry->key is NULL) {
-			if (IS_NIL(entry->value)) {
+			if (Nil_Check(entry->value)) {
 				return NULL;
 			}
 		} else if (entry->key->length == length &&
@@ -174,22 +176,22 @@ string_t *ht_find_string(hash_table_t *hash_table, const char *chars,
 	}
 }
 
-void ht_remove_white(hash_table_t *hash_table)
+void HashTable_RemoveWhite(HashTable *hash_table)
 {
 	for (size_t i = 0; i < hash_table->capacity; i++) {
-		ht_entry_t *entry = &hash_table->entries[i];
+		HashTableEntry *entry = &hash_table->entries[i];
 
 		if (entry->key != NULL && !entry->key->obj.is_marked) {
-			ht_delete(hash_table, entry->key);
+			HashTable_DelItem(hash_table, entry->key);
 		}
 	}
 }
 
-void mark_table(hash_table_t *table)
+void HashTable_Mark(HashTable *table)
 {
 	for (size_t i = 0; i < table->capacity; i++) {
-		ht_entry_t *entry = &table->entries[i];
-		mark_object((obj_t *)entry->key);
-		mark_value(entry->value);
+		HashTableEntry *entry = &table->entries[i];
+		GC_MarkObject((Object *)entry->key);
+		GC_MarkValue(entry->value);
 	}
 }

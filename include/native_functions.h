@@ -1,21 +1,23 @@
-#ifndef NATIVE_FUNCTIONS_H
+#pragma once
+
+#include <stddef.h>
+
 #include "object.h"
 #include "value.h"
 
-value_t gustav_clock_native(int arg_count [[maybe_unused]],
-			    value_t *args [[maybe_unused]]);
+Value gustav_clock_native(int arg_count [[maybe_unused]],
+			  Value *args [[maybe_unused]]);
 
-value_t gustav_sleep_native(int arg_count [[maybe_unused]],
-			    value_t *args [[maybe_unused]]);
+Value gustav_sleep_native(int arg_count [[maybe_unused]],
+			  Value *args [[maybe_unused]]);
 
-value_t gustav_max_native(int arg_count [[maybe_unused]],
-			  value_t *args [[maybe_unused]]);
+Value gustav_max_native(int arg_count [[maybe_unused]],
+			Value *args [[maybe_unused]]);
 
 typedef struct {
-	native_fn function;
+	NativeFn function;
 	const char *name;
 } NativeFunctionPair;
 
-extern const NativeFunctionPair NATIVE_FUNCTIONS[3];
-
-#endif
+extern const NativeFunctionPair NATIVE_FUNCTIONS[];
+extern const size_t NATIVE_FUNCTION_COUNT;

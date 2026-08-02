@@ -14,9 +14,9 @@
 #define ALLOCATE_OBJ(type, object_type) \
 	(type *)allocate_object(sizeof(type), object_type)
 
-static obj_t *allocate_object(size_t size, ObjType type)
+static Object *allocate_object(size_t size, ObjectType type)
 {
-	obj_t *object = (obj_t *)reallocate(NULL, 0, size);
+	Object *object = (Object *)Mem_Realloc(NULL, 0, size);
 	object->type = type;
 	object->is_marked = false;
 	object->next = vm.objects;
@@ -27,40 +27,41 @@ static obj_t *allocate_object(size_t size, ObjType type)
 	return object;
 }
 
-ObjBoundMethod *new_bound_method(value_t receiver, ObjClosure *method)
+BoundMethodObject *BoundMethod_New(Value receiver, ClosureObject *method)
 {
-	ObjBoundMethod *bound = ALLOCATE_OBJ(ObjBoundMethod, OBJ_BOUND_METHOD);
+	BoundMethodObject *bound =
+		ALLOCATE_OBJ(BoundMethodObject, OBJ_BOUND_METHOD);
 	bound->receiver = receiver;
 	bound->method = method;
 	return bound;
 }
 
-ObjClass *new_class(string_t *name)
+ClassObject *Class_New(StringObject *name)
 {
-	ObjClass *klass = ALLOCATE_OBJ(ObjClass, OBJ_CLASS);
+	ClassObject *klass = ALLOCATE_OBJ(ClassObject, OBJ_CLASS);
 	klass->name = name;
-	init_hash_table(&klass->methods);
+	HashTable_Init(&klass->methods);
 	return klass;
 }
 
-ObjInstance *new_instance(ObjClass *klass)
+InstanceObject *Instance_New(ClassObject *klass)
 {
-	ObjInstance *instance = ALLOCATE_OBJ(ObjInstance, OBJ_INSTANCE);
+	InstanceObject *instance = ALLOCATE_OBJ(InstanceObject, OBJ_INSTANCE);
 	instance->klass = klass;
-	init_hash_table(&instance->fields);
+	HashTable_Init(&instance->fields);
 	return instance;
 }
 
-ObjClosure *new_closure(function_t *function)
+ClosureObject *Closure_New(FunctionObject *function)
 {
-	ObjUpvalue **upvalues =
-		ALLOCATE(ObjUpvalue *, (size_t)function->upvalue_count);
+	UpvalueObject **upvalues =
+		ALLOCATE(UpvalueObject *, (size_t)function->upvalue_count);
 
 	for (int i = 0; i < function->upvalue_count; i++) {
 		upvalues[i] = NULL;
 	}
 
-	ObjClosure *closure = ALLOCATE_OBJ(ObjClosure, OBJ_CLOSURE);
+	ClosureObject *closure = ALLOCATE_OBJ(ClosureObject, OBJ_CLOSURE);
 
 	closure->function = function;
 	closure->upvalues = upvalues;
@@ -69,45 +70,46 @@ ObjClosure *new_closure(function_t *function)
 	return closure;
 }
 
-function_t *new_function(void)
+FunctionObject *Function_New(void)
 {
-	function_t *function = ALLOCATE_OBJ(function_t, OBJ_FUNCTION);
+	FunctionObject *function = ALLOCATE_OBJ(FunctionObject, OBJ_FUNCTION);
 
 	function->arity = 0;
 	function->upvalue_count = 0;
 	function->name = NULL;
-	init_chunk(&function->chunk);
+	Chunk_Init(&function->chunk);
 
 	return function;
 }
 
-ObjNative *new_native(native_fn function)
+NativeObject *Native_New(NativeFn function)
 {
-	ObjNative *native = ALLOCATE_OBJ(ObjNative, OBJ_NATIVE);
+	NativeObject *native = ALLOCATE_OBJ(NativeObject, OBJ_NATIVE);
 	native->function = function;
 	return native;
 }
 
-static string_t *allocate_string(char *chars, size_t length, uint32_t hash)
+static StringObject *allocate_string(char *chars, size_t length, uint32_t hash)
 {
-	string_t *string = ALLOCATE_OBJ(string_t, OBJ_STRING);
+	StringObject *string = ALLOCATE_OBJ(StringObject, OBJ_STRING);
 
 	string->length = length;
 	string->chars = chars;
 	string->hash = hash;
 
-	push(OBJ_VAL(string));
-	ht_insert(&vm.strings, string, NIL_VAL);
-	pop();
+	VM_Push(OBJ_VAL(string));
+	HashTable_SetItem(&vm.strings, string, NIL_VAL);
+	VM_Pop();
 
 	return string;
 }
 
-string_t *copy_string(const char *chars, size_t length)
+StringObject *String_FromChars(const char *chars, size_t length)
 {
-	uint32_t hash = hash_string(chars, length);
+	uint32_t hash = String_Hash(chars, length);
 
-	string_t *interned = ht_find_string(&vm.strings, chars, length, hash);
+	StringObject *interned =
+		HashTable_FindString(&vm.strings, chars, length, hash);
 
 	if (interned != NULL) {
 		return interned;
@@ -121,16 +123,16 @@ string_t *copy_string(const char *chars, size_t length)
 	return allocate_string(heap_chars, length, hash);
 }
 
-ObjUpvalue *new_upvalue(value_t *slot)
+UpvalueObject *Upvalue_New(Value *slot)
 {
-	ObjUpvalue *upvalue = ALLOCATE_OBJ(ObjUpvalue, OBJ_UPVALUE);
+	UpvalueObject *upvalue = ALLOCATE_OBJ(UpvalueObject, OBJ_UPVALUE);
 	upvalue->location = slot;
 	upvalue->closed = NIL_VAL;
 	upvalue->next = NULL;
 	return upvalue;
 }
 
-static void print_function(function_t *function)
+static void print_function(FunctionObject *function)
 {
 	if (function->name == NULL) {
 		printf("<script>");
@@ -140,7 +142,7 @@ static void print_function(function_t *function)
 	printf("<fn %s/%zu>", function->name->chars, function->arity);
 }
 
-void print_object(value_t value)
+void Object_Print(Value value)
 {
 	switch (OBJ_TYPE(value)) {
 	case OBJ_STRING:
@@ -170,11 +172,12 @@ void print_object(value_t value)
 	}
 }
 
-string_t *take_string(char *chars, size_t length)
+StringObject *String_FromOwnedChars(char *chars, size_t length)
 {
-	uint32_t hash = hash_string(chars, length);
+	uint32_t hash = String_Hash(chars, length);
 
-	string_t *interned = ht_find_string(&vm.strings, chars, length, hash);
+	StringObject *interned =
+		HashTable_FindString(&vm.strings, chars, length, hash);
 
 	if (interned != NULL) {
 		FREE_ARRAY(char, chars, length + 1);
@@ -184,7 +187,7 @@ string_t *take_string(char *chars, size_t length)
 	return allocate_string(chars, length, hash);
 }
 
-uint32_t hash_string(const char *key, size_t length)
+uint32_t String_Hash(const char *key, size_t length)
 {
 	uint32_t hash = 2166136261U; // axuyet
 

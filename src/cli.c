@@ -36,14 +36,14 @@ void repl(void)
 			break; // = exit
 		}
 
-		interpret(line);
+		VM_Interpret(line);
 	}
 }
 
 void run_file(const char *path)
 {
 	char *source = read_file(path);
-	interpreter_result_t result = interpret(source);
+	InterpretResult result = VM_Interpret(source);
 	free(source);
 
 	switch (result) {
