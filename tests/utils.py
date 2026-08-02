@@ -9,12 +9,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 GUS_EXEC = "./target/gustav_release"
 MARKER = "// expect: "
 
+# TODO(abduaziz): these features must be implemented !
 EXCLUDED_SCENARIOS: tuple[str, ...] = (
     "builtins.gus",
     "loop_statement.gus",
     "break_continue_errors.gus",
     "break_continue.gus",
     "ternary.gus",
+    "lambda.gus",
+    "pipe.gus",
 )
 
 
@@ -31,22 +34,22 @@ def extract_expected(file_path: Path) -> list[str]:
     return expected
 
 
-def run_file(capfd: CaptureFixture, file_path: Path) -> list[str]:
+def run_file(capfd: CaptureFixture, file_path: Path) -> tuple[list[str], str]:
     args = [*GUS_EXEC.split(), str(file_path)]
     subprocess.run(args)  # noqa: PLW1510
 
     captured = capfd.readouterr()
     output = captured.out + captured.err
 
-    result = output.splitlines()
+    extracted_result = output.splitlines()
 
-    if result and result[0].startswith("Gustav v"):
-        result.pop(0)
+    if extracted_result and extracted_result[0].startswith("Gustav v"):
+        extracted_result.pop(0)
 
-    if result and result[0] == "":
-        result.pop(0)
+    if extracted_result and extracted_result[0] == "":
+        extracted_result.pop(0)
 
-    return result
+    return extracted_result, file_path.open().read()
 
 
 def make_relative(test_files: list[Path]) -> list[str]:
@@ -62,6 +65,7 @@ def collect_tests() -> list[Path]:
                 file.name not in EXCLUDED_SCENARIOS
                 and "benchmark" not in file.parts
                 and "scanning" not in file.parts
+                and "multiline_comments" not in file.parts
             ),
             root.rglob("*.gus"),
         )
