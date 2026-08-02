@@ -1,3 +1,3 @@
 class C {}
 var c = C();
-print c; // expect: C<Instance>
+stdout c; // expect: C<Instance>

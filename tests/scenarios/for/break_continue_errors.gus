@@ -3,7 +3,7 @@ fun do_break(x) {
 }
 for (var i = 0; i < 3; i = i + 1) {
   do_break(i);
-  print i;
+  stdout i;
 }
 
 
@@ -12,19 +12,19 @@ fun do_continue(x) {
 }
 for (var i = 0; i < 3; i = i + 1) {
   do_continue(i);
-  print i;
+  stdout i;
 }
 
 
 for (var i = 0; i < 3; i = i + 1) {
   lambda () { break; }; // expect: Can't use 'break' outside of a loop.
-  print i;
+  stdout i;
 }
 
 
 for (var i = 0; i < 3; i = i + 1) {
   lambda () { continue; }; // expect: Can't use 'continue' outside of a loop.
-  print i;
+  stdout i;
 }
 
 
@@ -33,7 +33,7 @@ for (var i = 0; i < 3; i = i + 1) {
     if (true) break; // expect: Can't use 'break' outside of a loop.
   }
   inner();
-  print i;
+  stdout i;
 }
 
 for (var i = 0; i < 3; i = i + 1) {
@@ -44,5 +44,5 @@ for (var i = 0; i < 3; i = i + 1) {
       }
     }();
   }
-  print i;
+  stdout i;
 }

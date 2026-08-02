@@ -1,20 +1,20 @@
-print true ? 1 : 2;              // expect: 1
-print false ? 1 : 2;             // expect: 2
-print true ? "yes" : "no";       // expect: yes
-print false ? "yes" : "no";      // expect: no
-print 0 ? "yes" : "no";          // expect: yes
-print 1 ? "yes" : "no";          // expect: yes
-print 42 ? "ok" : "bad";         // expect: ok
-print "" ? "yes" : "no";         // expect: yes
-print "nonempty" ? 100 : 200;    // expect: 100
-print nil ? 1 : 0;               // expect: 0
-print !nil ? 1 : 0;              // expect: 1
-print (false ? 1 : 0) + 3;       // expect: 3
-print true ? 1 + 2 : 3 + 4;      // expect: 3
-print false ? 1 + 2 : 3 + 4;     // expect: 7
-print (1 < 2) ? "lt" : "ge";     // expect: lt
-print (1 > 2) ? "gt" : "le";     // expect: le
-print (true ? true : false) ? 10 : 20;  // expect: 10
-print (false ? true : false) ? 10 : 20; // expect: 20
-print true ? false ? 1 : 2 : 3;         // expect: 2
-print false ? 1 : false ? 2 : 3;        // expect: 3
+stdout true ? 1 : 2;              // expect: 1
+stdout false ? 1 : 2;             // expect: 2
+stdout true ? "yes" : "no";       // expect: yes
+stdout false ? "yes" : "no";      // expect: no
+stdout 0 ? "yes" : "no";          // expect: yes
+stdout 1 ? "yes" : "no";          // expect: yes
+stdout 42 ? "ok" : "bad";         // expect: ok
+stdout "" ? "yes" : "no";         // expect: yes
+stdout "nonempty" ? 100 : 200;    // expect: 100
+stdout nil ? 1 : 0;               // expect: 0
+stdout !nil ? 1 : 0;              // expect: 1
+stdout (false ? 1 : 0) + 3;       // expect: 3
+stdout true ? 1 + 2 : 3 + 4;      // expect: 3
+stdout false ? 1 + 2 : 3 + 4;     // expect: 7
+stdout (1 < 2) ? "lt" : "ge";     // expect: lt
+stdout (1 > 2) ? "gt" : "le";     // expect: le
+stdout (true ? true : false) ? 10 : 20;  // expect: 10
+stdout (false ? true : false) ? 10 : 20; // expect: 20
+stdout true ? false ? 1 : 2 : 3;         // expect: 2
+stdout false ? 1 : false ? 2 : 3;        // expect: 3

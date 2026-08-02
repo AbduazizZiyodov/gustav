@@ -1,4 +1,4 @@
 fun f(x) {
-  print x; // expect: 1
+  stdout x; // expect: 1
 }
 f(1);

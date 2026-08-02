@@ -1,9 +1,9 @@
 {
   var a = "first";
-  print a; // expect: first
+  stdout a; // expect: first
 }
 
 {
   var a = "second";
-  print a; // expect: second
+  stdout a; // expect: second
 }

@@ -1,1 +1,1 @@
-print nil; // expect: nil
+stdout nil; // expect: nil

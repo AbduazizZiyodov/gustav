@@ -1,4 +1,4 @@
-fun f(x) { print x; }
+fun f(x) { stdout x; }
 var a;
 f(a);
 // expect: Can't use uninitialized variable 'a'.

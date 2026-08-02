@@ -6,8 +6,8 @@ fun returnFunCallWithArg(func, arg) {
   return returnArg(func)(arg);
 }
 
-fun printArg(arg) {
-  print arg;
+fun stdoutArg(arg) {
+  stdout arg;
 }
 
-returnFunCallWithArg(printArg, "hello world"); // expect: hello world
+returnFunCallWithArg(stdoutArg, "hello world"); // expect: hello world

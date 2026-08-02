@@ -1,7 +1,7 @@
 fun outer() {
   var a;
   fun inner() {
-    print a;
+    stdout a;
   }
   return inner;
 }

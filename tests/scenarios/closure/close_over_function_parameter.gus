@@ -2,7 +2,7 @@ var f;
 
 fun foo(param) {
   fun f_() {
-    print param;
+    stdout param;
   }
   f = f_;
 }

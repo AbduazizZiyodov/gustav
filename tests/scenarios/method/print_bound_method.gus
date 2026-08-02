@@ -2,4 +2,4 @@ class Foo {
   method() { }
 }
 var foo = Foo();
-print foo.method; // expect: <fn method/0>
+stdout foo.method; // expect: <fn method/0>

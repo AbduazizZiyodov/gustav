@@ -4,7 +4,7 @@ fun do_break(x) {
 var i = 0;
 while (i < 3) {
   do_break(i);
-  print i;
+  stdout i;
   i = i + 1;
 }
 
@@ -15,14 +15,14 @@ fun do_continue(x) {
 var j = 0;
 while (j < 3) {
   do_continue(j);
-  print j;
+  stdout j;
   j = j + 1;
 }
 
 var k = 0;
 while (k < 3) {
   lambda () { break; }; // expect: [at line 24] Error at ';': Can't use 'break' outside of a loop.
-  print k;
+  stdout k;
   k = k + 1;
 }
 
@@ -30,7 +30,7 @@ while (k < 3) {
 var l = 0;
 while (l < 3) {
   lambda () { continue; }; // expect: [at line 32] Error at ';': Can't use 'continue' outside of a loop.
-  print l;
+  stdout l;
   l = l + 1;
 }
 
@@ -41,7 +41,7 @@ while (m < 3) {
     if (true) break; // expect: [at line 41] Error at ';': Can't use 'break' outside of a loop.
   }
   inner();
-  print m;
+  stdout m;
   m = m + 1;
 }
 
@@ -55,7 +55,7 @@ while (n < 3) {
       }
     }();
   }
-  print n;
+  stdout n;
   n = n + 1;
 }
 

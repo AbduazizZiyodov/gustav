@@ -1,8 +1,8 @@
 class Foo {
   method() {
     return "ok";
-    print "bad";
+    stdout "bad";
   }
 }
 
-print Foo().method(); // expect: ok
+stdout Foo().method(); // expect: ok

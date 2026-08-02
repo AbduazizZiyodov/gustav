@@ -1,2 +1,2 @@
 fun f() {}
-print f(); // expect: nil
+stdout f(); // expect: nil

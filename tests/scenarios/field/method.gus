@@ -1,9 +1,9 @@
 class Foo {
   bar(arg) {
-    print arg;
+    stdout arg;
   }
 }
 
 var bar = Foo().bar;
-print "got method"; // expect: got method
+stdout "got method"; // expect: got method
 bar("arg");          // expect: arg

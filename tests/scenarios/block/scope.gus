@@ -2,7 +2,7 @@ var a = "outer";
 
 {
   var a = "inner";
-  print a; // expect: inner
+  stdout a; // expect: inner
 }
 
-print a; // expect: outer
+stdout a; // expect: outer
