@@ -40,7 +40,7 @@ void repl(void)
 	}
 }
 
-void run_file(const char *path)
+int run_file(const char *path)
 {
 	char *source = read_file(path);
 	InterpretResult result = VM_Interpret(source);
@@ -48,11 +48,13 @@ void run_file(const char *path)
 
 	switch (result) {
 	case INTERPRET_COMPILE_ERROR:
-		_Exit(65);
+		return 65;
 	case INTERPRET_RUNTIME_ERROR:
-		_Exit(64);
+		return 64;
+	case INTERPRET_EXIT:
+		return vm.exit_status;
 	default:
-		break;
+		return EXIT_SUCCESS;
 	}
 }
 

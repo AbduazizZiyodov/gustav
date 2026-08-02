@@ -8,6 +8,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 GUS_EXEC = "./target/gustav_release"
 MARKER = "// expect: "
+EXIT_MARKER = "// expect exit: "
 
 # TODO(abduaziz): these features must be implemented !
 EXCLUDED_SCENARIOS: tuple[str, ...] = (
@@ -21,8 +22,9 @@ EXCLUDED_SCENARIOS: tuple[str, ...] = (
 )
 
 
-def extract_expected(file_path: Path) -> list[str]:
+def extract_expected(file_path: Path) -> tuple[list[str], int | None]:
     expected: list[str] = []
+    expected_exit_code: int | None = None
 
     with file_path.open() as file:
         for line in file:
@@ -31,12 +33,17 @@ def extract_expected(file_path: Path) -> list[str]:
                 part = part.replace("\n", "")
                 expected.append(part)
 
-    return expected
+            if EXIT_MARKER in line and expected_exit_code is None:
+                _, _, part = line.partition(EXIT_MARKER)
+                part = part.strip()
+                expected_exit_code = int(part)
+
+    return expected, expected_exit_code
 
 
-def run_file(capfd: CaptureFixture, file_path: Path) -> tuple[list[str], str]:
+def run_file(capfd: CaptureFixture, file_path: Path) -> tuple[list[str], str, int]:
     args = [*GUS_EXEC.split(), str(file_path)]
-    subprocess.run(args)  # noqa: PLW1510
+    result = subprocess.run(args)  # noqa: PLW1510
 
     captured = capfd.readouterr()
     output = captured.out + captured.err
@@ -49,7 +56,7 @@ def run_file(capfd: CaptureFixture, file_path: Path) -> tuple[list[str], str]:
     if extracted_result and extracted_result[0] == "":
         extracted_result.pop(0)
 
-    return extracted_result, file_path.open().read()
+    return extracted_result, file_path.open().read(), result.returncode
 
 
 def make_relative(test_files: list[Path]) -> list[str]:

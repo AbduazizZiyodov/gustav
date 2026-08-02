@@ -1,0 +1,3 @@
+return 0/0;
+// expect: Exit status must be a finite number.
+// expect: [at line 1] in script

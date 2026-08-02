@@ -125,23 +125,24 @@ void statement_for(void)
 
 void statement_return(void)
 {
-	// NOTE(abduaziz): return via exit-code, from script (top-level code) ?
-	if (current->type == TYPE_SCRIPT) {
-		compiler_error("Can't return from top-level code.");
-	}
-
 	if (token_match(TOKEN_SEMICOLON)) {
 		emit_return();
 	} else {
 		if (current->type == TYPE_INITIALIZER) {
 			compiler_error(
-
 				"Can't return a value from an initializer.");
 		}
+
 		expression_parse();
 		token_consume(TOKEN_SEMICOLON,
 			      "Expect ';' after return value.");
-		emit_byte(OP_RETURN);
+
+		// top-level return <expr> is the script's exit status like in C
+		if (current->type == TYPE_SCRIPT) {
+			emit_byte(OP_RETURN_EXIT);
+		} else {
+			emit_byte(OP_RETURN);
+		}
 	}
 }
 

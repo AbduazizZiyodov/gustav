@@ -34,6 +34,6 @@
 
 void repl(void);
 void show_gustav_info(void);
-void run_file(const char *path);
+int run_file(const char *path);
 
 extern volatile sig_atomic_t shutdown_requested;

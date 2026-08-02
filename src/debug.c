@@ -37,6 +37,7 @@ int Debug_DisassembleInstruction(Chunk *chunk, int offset)
 
 	switch (current_instruction) {
 	case OP_RETURN:
+	case OP_RETURN_EXIT:
 	case OP_NIL:
 	case OP_FALSE:
 	case OP_EQUAL:

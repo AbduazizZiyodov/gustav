@@ -1,1 +1,3 @@
-return "wat"; // expect: [at line 1] Error at 'return': Can't return from top-level code.
+return "wat";
+// expect: Exit status must be a number.
+// expect: [at line 1] in script

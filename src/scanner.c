@@ -235,6 +235,7 @@ static TokenType check_keyword(size_t start, size_t length, const char *rest,
 	return TOKEN_IDENTIFIER;
 }
 
+// TODO(abduaziz): table based approach via memcmp
 static TokenType get_identifier_type(void)
 {
 	switch (scanner_state.start[0]) {
