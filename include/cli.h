@@ -4,10 +4,10 @@
 
 #if defined(__clang__)
 #define COMPILER_NAME "Clang"
-#define COMPILER_VERSION __clang_version__
+#define COMPILER_VERSION "Clang " __clang_version__
 #elif defined(__GNUC__)
 #define COMPILER_NAME "GCC"
-#define COMPILER_VERSION __VERSION__
+#define COMPILER_VERSION "GCC" __VERSION__
 #endif
 
 #ifdef __OPTIMIZE__
