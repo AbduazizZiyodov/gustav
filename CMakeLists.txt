@@ -18,9 +18,6 @@ if(NOT CMAKE_C_COMPILER_ID MATCHES "Clang")
   message(FATAL_ERROR "clang is required")
 endif()
 
-set(CMAKE_C_CLANG_TIDY
-    clang-tidy; --config-file=${CMAKE_SOURCE_DIR}/.clang-tidy; --use-color;)
-
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Debug)
 endif()
@@ -30,7 +27,11 @@ option(SANITIZE "Enable address sanitizer and ubsan" ON)
 option(DEBUG_STRESS_GC "Run GC on every allocation" OFF)
 option(DEBUG_LOG_GC "Log GC events" OFF)
 option(NAN_BOXING "Enable/disable NaN boxing optimization" ON)
-
+option(CLANG_TIDY "Run clang-tidy as part of the build" OFF)
+if(CLANG_TIDY)
+  set(CMAKE_C_CLANG_TIDY
+      clang-tidy; --config-file=${CMAKE_SOURCE_DIR}/.clang-tidy; --use-color;)
+endif()
 set(LINE_LENGTH
     1024
     CACHE STRING "Maximum line length for REPL")
@@ -51,6 +52,17 @@ set(SOURCES
     src/value.c
     src/vm.c
     src/gc.c
+    src/compiler/byte_code.c
+    src/compiler/class.c
+    src/compiler/error.c
+    src/compiler/function.c
+    src/compiler/if.c
+    src/compiler/loop.c
+    src/compiler/parse.c
+    src/compiler/print.c
+    src/compiler/scope.c
+    src/compiler/utils.c
+    src/compiler/var.c
     src/native_functions.c
     src/lib/gustav_time.c
     src/lib/gustav_math.c)
@@ -70,11 +82,22 @@ set(HEADERS
     include/value.h
     include/vm.h
     include/gc.h
+    include/compiler/byte_code.h
+    include/compiler/class.h
+    include/compiler/error.h
+    include/compiler/function.h
+    include/compiler/if.h
+    include/compiler/loop.h
+    include/compiler/parse.h
+    include/compiler/print.h
+    include/compiler/scope.h
+    include/compiler/utils.h
+    include/compiler/var.h
     include/native_functions.h)
 
-add_executable(gustav ${SOURCES})
+add_executable(gustav ${SOURCES} ${HEADERS})
 
-target_include_directories(gustav PUBLIC ${CMAKE_SOURCE_DIR}/include)
+target_include_directories(gustav PRIVATE ${CMAKE_SOURCE_DIR}/include)
 
 configure_file("${CMAKE_SOURCE_DIR}/include/version.h.in"
                "${CMAKE_BINARY_DIR}/include/version.h" @ONLY)
@@ -104,6 +127,7 @@ target_compile_options(
           -Wvla
           -Wstrict-prototypes
           -Wmissing-prototypes
+          -Wmissing-variable-declarations
           -Wnull-dereference
           -Wdouble-promotion
           -Wformat-security
@@ -113,15 +137,22 @@ target_compile_options(
           -fno-omit-frame-pointer
           -fno-optimize-sibling-calls>
           $<$<AND:$<CONFIG:Debug>,$<BOOL:${SANITIZE}>>:-fsanitize=address
-          -fsanitize=undefined>
+          -fsanitize=undefined
+          -fno-sanitize-recover=undefined>
           $<$<CONFIG:Release>:-O3
           -flto>)
 
 target_link_options(
-  gustav PRIVATE
+  gustav
+  PRIVATE
   $<$<AND:$<CONFIG:Debug>,$<BOOL:${SANITIZE}>>:-fsanitize=address
-  -fsanitize=undefined> $<$<CONFIG:Release>:-flto>)
+  -fsanitize=undefined
+  -fno-sanitize-recover=undefined>$<$<CONFIG:Release>:-flto>)
 
+find_program(LLD_LINKER NAMES ld.lld lld)
+if(LLD_LINKER)
+  target_link_options(gustav PRIVATE $<$<CONFIG:Release>:-fuse-ld=lld>)
+endif()
 target_link_libraries(gustav PRIVATE m)
 
 include(GNUInstallDirs)

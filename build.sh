@@ -13,6 +13,7 @@ mkdir -p target
 echo -e "\n== [build debug in build-debug] =="
 cmake -B builds/build-debug --fresh \
       -DCMAKE_BUILD_TYPE=Debug \
+      -DCLANG_TIDY=ON \
       -DSANITIZE=ON \
       -DDEBUG_STRESS_GC=ON \
       -DDEBUG_LOG_GC=ON \
