@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "gc.h"
 #include "hash_table.h"
 #include "log.h"
 #include "memory.h"
@@ -14,13 +15,30 @@
 #define ALLOCATE_OBJ(type, object_type) \
 	(type *)allocate_object(sizeof(type), object_type)
 
+static HashTable interned_strings;
+
+void String_InitInterned(void)
+{
+	HashTable_Init(&interned_strings);
+}
+
+void String_FreeInterned(void)
+{
+	HashTable_Free(&interned_strings);
+}
+
+void String_SweepInterned(void)
+{
+	HashTable_RemoveWhite(&interned_strings);
+}
+
 static Object *allocate_object(size_t size, ObjectType type)
 {
 	Object *object = (Object *)Mem_Realloc(NULL, 0, size);
 	object->type = type;
 	object->is_marked = false;
-	object->next = vm.objects;
-	vm.objects = object;
+	object->next = gc.objects;
+	gc.objects = object;
 
 	LOG_GC("%p allocate %zu for %d\n", (void *)object, size, type);
 
@@ -98,7 +116,7 @@ static StringObject *allocate_string(char *chars, size_t length, uint32_t hash)
 	string->hash = hash;
 
 	VM_Push(OBJ_VAL(string));
-	HashTable_SetItem(&vm.strings, string, NIL_VAL);
+	HashTable_SetItem(&interned_strings, string, NIL_VAL);
 	VM_Pop();
 
 	return string;
@@ -109,7 +127,7 @@ StringObject *String_FromChars(const char *chars, size_t length)
 	uint32_t hash = String_Hash(chars, length);
 
 	StringObject *interned =
-		HashTable_FindString(&vm.strings, chars, length, hash);
+		HashTable_FindString(&interned_strings, chars, length, hash);
 
 	if (interned != NULL) {
 		return interned;
@@ -179,7 +197,7 @@ StringObject *String_FromOwnedChars(char *chars, size_t length)
 	uint32_t hash = String_Hash(chars, length);
 
 	StringObject *interned =
-		HashTable_FindString(&vm.strings, chars, length, hash);
+		HashTable_FindString(&interned_strings, chars, length, hash);
 
 	if (interned != NULL) {
 		FREE_ARRAY(char, chars, length + 1);

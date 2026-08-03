@@ -7,7 +7,7 @@
 #include "hash_table.h"
 #include "memory.h"
 /* NOLINTNEXTLINE(misc-include-cleaner) */
-#include "object.h"
+#include "object.h" // IWYU pragma: keep
 #include "value.h"
 
 void HashTable_Init(HashTable *hash_table)

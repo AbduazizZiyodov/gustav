@@ -9,20 +9,19 @@
 #include "memory.h"
 #include "object.h"
 #include "value.h"
-#include "vm.h"
 
 void *Mem_Realloc(void *pointer, size_t old_size, size_t new_size)
 {
 	if (new_size > old_size) {
-		vm.bytes_allocated += new_size - old_size;
+		gc.bytes_allocated += new_size - old_size;
 #ifdef DEBUG_STRESS_GC
 		GC_Collect();
 #endif
-		if (vm.bytes_allocated > vm.next_gc) {
+		if (gc.bytes_allocated > gc.next_gc) {
 			GC_Collect();
 		}
 	} else {
-		vm.bytes_allocated -= old_size - new_size;
+		gc.bytes_allocated -= old_size - new_size;
 	}
 
 	if (new_size == 0) {
@@ -91,7 +90,7 @@ void Mem_FreeObject(Object *object)
 
 void Mem_FreeObjects(void)
 {
-	Object *object = vm.objects;
+	Object *object = gc.objects;
 
 	while (object != NULL) {
 		Object *next = object->next;
@@ -99,5 +98,5 @@ void Mem_FreeObjects(void)
 		object = next;
 	}
 
-	free((void *)vm.gray_stack);
+	free((void *)gc.gray_stack);
 }
