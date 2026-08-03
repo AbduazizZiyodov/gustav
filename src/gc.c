@@ -11,6 +11,20 @@
 #include "value.h"
 #include "vm.h"
 
+GC gc;
+
+void GC_Init(void)
+{
+	gc.objects = NULL;
+
+	gc.bytes_allocated = 0;
+	gc.next_gc = (size_t)(1 * 1024 * 1024); // 1 MiB
+
+	gc.gray_count = 0;
+	gc.gray_capacity = 0;
+	gc.gray_stack = NULL;
+}
+
 void GC_MarkObject(Object *object)
 {
 	if (object == NULL) {
@@ -29,22 +43,22 @@ void GC_MarkObject(Object *object)
 
 	object->is_marked = true;
 
-	if (vm.gray_capacity < vm.gray_count + 1) {
-		vm.gray_capacity = GROW_CAPACITY(vm.gray_capacity);
+	if (gc.gray_capacity < gc.gray_count + 1) {
+		gc.gray_capacity = GROW_CAPACITY(gc.gray_capacity);
 
 		Object **new_stack =
-			(Object **)realloc((void *)vm.gray_stack,
-					   sizeof(Object *) * vm.gray_capacity);
+			(Object **)realloc((void *)gc.gray_stack,
+					   sizeof(Object *) * gc.gray_capacity);
 
 		if (new_stack == NULL) {
-			free((void *)vm.gray_stack);
+			free((void *)gc.gray_stack);
 			_Exit(1);
 		}
 
-		vm.gray_stack = new_stack;
+		gc.gray_stack = new_stack;
 	}
 
-	vm.gray_stack[vm.gray_count++] = object;
+	gc.gray_stack[gc.gray_count++] = object;
 }
 
 void GC_MarkValue(Value value)
@@ -113,29 +127,14 @@ static void blackify(Object *object)
 
 static void mark_roots(void)
 {
-	for (Value *slot = vm.stack; slot < vm.stack_top; slot++) {
-		GC_MarkValue(*slot);
-	}
-
-	for (size_t i = 0; i < vm.frame_count; i++) {
-		GC_MarkObject((Object *)vm.frames[i].closure);
-	}
-
-	for (UpvalueObject *upvalue = vm.open_upvalues; upvalue != NULL;
-	     upvalue = upvalue->next) {
-		GC_MarkObject((Object *)upvalue);
-	}
-
-	HashTable_Mark(&vm.globals);
+	VM_MarkRoots();
 	Compiler_MarkRoots();
-
-	GC_MarkObject((Object *)vm.init_string);
 }
 
 static void trace_references(void)
 {
-	while (vm.gray_count > 0) {
-		Object *object = vm.gray_stack[--vm.gray_count];
+	while (gc.gray_count > 0) {
+		Object *object = gc.gray_stack[--gc.gray_count];
 		blackify(object);
 	}
 }
@@ -143,7 +142,7 @@ static void trace_references(void)
 static void sweep(void)
 {
 	Object *previous = NULL;
-	Object *object = vm.objects;
+	Object *object = gc.objects;
 
 	while (object != NULL) {
 		if (object->is_marked) {
@@ -157,7 +156,7 @@ static void sweep(void)
 			if (previous != NULL) {
 				previous->next = object;
 			} else {
-				vm.objects = object;
+				gc.objects = object;
 			}
 
 			Mem_FreeObject(unreached);
@@ -168,21 +167,21 @@ static void sweep(void)
 void GC_Collect(void)
 {
 #ifdef DEBUG_LOG_GC
-	size_t before = vm.bytes_allocated;
+	size_t before = gc.bytes_allocated;
 	LOG_GC("== [GC BEGIN] ==\n");
 #endif
 
 	mark_roots();
 	trace_references();
-	HashTable_RemoveWhite(&vm.strings);
+	String_SweepInterned();
 	sweep();
 
-	vm.next_gc = vm.bytes_allocated * GC_HEAP_GROW_FACTOR;
+	gc.next_gc = gc.bytes_allocated * GC_HEAP_GROW_FACTOR;
 
 #ifdef DEBUG_LOG_GC
 	LOG_GC("== [/GC BEGIN] ==\n");
 	LOG_GC("Collected %zu bytes (from %zu to %zu) next at %zu\n",
-	       before - vm.bytes_allocated, before, vm.bytes_allocated,
-	       vm.next_gc);
+	       before - gc.bytes_allocated, before, gc.bytes_allocated,
+	       gc.next_gc);
 #endif
 }

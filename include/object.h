@@ -108,6 +108,10 @@ NativeObject *Native_New(NativeFn function);
 StringObject *String_FromOwnedChars(char *chars, size_t length);
 StringObject *String_FromChars(const char *chars, size_t length);
 
+void String_InitInterned(void);
+void String_FreeInterned(void);
+void String_SweepInterned(void);
+
 UpvalueObject *Upvalue_New(Value *slot);
 
 void Object_Print(FILE *stream, Value value);
