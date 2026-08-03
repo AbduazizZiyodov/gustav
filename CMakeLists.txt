@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.24)
 
 project(
   gustav
-  VERSION 2.0
+  VERSION 1.0.0
   LANGUAGES C)
 
 if(NOT CMAKE_C_COMPILER_ID MATCHES "Clang")
@@ -82,8 +82,10 @@ add_executable(gustav ${SOURCES})
 
 target_include_directories(gustav PRIVATE ${CMAKE_SOURCE_DIR}/include)
 
-configure_file("${CMAKE_SOURCE_DIR}/include/version.h.in"
-               "${CMAKE_BINARY_DIR}/include/version.h" @ONLY)
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/version.h.in"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/version.h"
+)
 
 target_include_directories(gustav PRIVATE ${CMAKE_BINARY_DIR}/include)
 
