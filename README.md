@@ -1,9 +1,5 @@
 <div align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./.github/assets/logo_dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset="./.github/assets/logo_light.svg">
-    <img alt="Fallback image description" src="./.github/assets/logo_light.svg">
-  </picture>
+    <img alt="logo" src="./.github/assets/logo.svg">
 </div>
 
 <p align="center">
