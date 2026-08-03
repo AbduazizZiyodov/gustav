@@ -30,8 +30,7 @@ uint8_t argument_list(void)
 		do {
 			expression_parse();
 			if (arg_count == 255) {
-				compiler_error(
-					"Can't have more than 255 arguments.");
+				compiler_error("Can't have more than 255 arguments.");
 			}
 			arg_count++;
 		} while (token_match(TOKEN_COMMA));
@@ -53,11 +52,9 @@ void function_compile(FunctionType type)
 		do {
 			current->function->arity++;
 			if (current->function->arity > 255) { // god forgive me
-				error_at_current(
-					"Can't have more than 255 parameters.");
+				error_at_current("Can't have more than 255 parameters.");
 			}
-			uint8_t constant =
-				parse_variable("Expect parameters name.");
+			uint8_t constant = parse_variable("Expect parameters name.");
 			define_variable(constant);
 		} while (token_match(TOKEN_COMMA));
 	}
@@ -71,7 +68,6 @@ void function_compile(FunctionType type)
 	VM_Pop();
 
 	for (int i = 0; i < function->upvalue_count; i++) {
-		EMIT_BYTES(compiler.upvalues[i].is_local ? 1 : 0,
-			   compiler.upvalues[i].index)
+		EMIT_BYTES(compiler.upvalues[i].is_local ? 1 : 0, compiler.upvalues[i].index)
 	}
 }

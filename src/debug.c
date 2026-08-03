@@ -14,8 +14,7 @@ static uint8_t current_instruction;
 
 static int constant_instruction(const char *name, Chunk *chunk, int offset);
 static int byte_instruction(const char *name, Chunk *chunk, int offset);
-static int jump_instruction(const char *name, int sign, Chunk *chunk,
-			    int offset);
+static int jump_instruction(const char *name, int sign, Chunk *chunk, int offset);
 static int invoke_instruction(const char *name, Chunk *chunk, int offset);
 
 void Debug_DisassembleChunk(Chunk *chunk, const char *name)
@@ -88,8 +87,7 @@ int Debug_DisassembleInstruction(Chunk *chunk, int offset)
 		Value_Print(stdout, chunk->constants.values[constant]);
 		printf("\n");
 
-		FunctionObject *function =
-			AS_FUNCTION(chunk->constants.values[constant]);
+		FunctionObject *function = AS_FUNCTION(chunk->constants.values[constant]);
 
 		for (int i = 0; i < function->upvalue_count; i++) {
 			int is_local = chunk->code[offset++];
@@ -140,8 +138,7 @@ static int byte_instruction(const char *name, Chunk *chunk, int offset)
 	return offset + 2;
 }
 
-static int jump_instruction(const char *name, int sign, Chunk *chunk,
-			    int offset)
+static int jump_instruction(const char *name, int sign, Chunk *chunk, int offset)
 {
 	uint16_t jump = (uint16_t)(chunk->code[offset + 1] << 8);
 	jump |= chunk->code[offset + 2];
@@ -157,8 +154,7 @@ static int jump_instruction(const char *name, int sign, Chunk *chunk,
 #include "chunk.h"
 #include "debug.h"
 
-void Debug_DisassembleChunk(Chunk *chunk [[maybe_unused]],
-			    const char *name [[maybe_unused]])
+void Debug_DisassembleChunk(Chunk *chunk [[maybe_unused]], const char *name [[maybe_unused]])
 {
 }
 #endif // DEBUG

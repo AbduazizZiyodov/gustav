@@ -12,8 +12,7 @@
 #include "value.h"
 #include "vm.h"
 
-#define ALLOCATE_OBJ(type, object_type) \
-	(type *)allocate_object(sizeof(type), object_type)
+#define ALLOCATE_OBJ(type, object_type) (type *)allocate_object(sizeof(type), object_type)
 
 static HashTable interned_strings;
 
@@ -47,8 +46,7 @@ static Object *allocate_object(size_t size, ObjectType type)
 
 BoundMethodObject *BoundMethod_New(Value receiver, ClosureObject *method)
 {
-	BoundMethodObject *bound =
-		ALLOCATE_OBJ(BoundMethodObject, OBJ_BOUND_METHOD);
+	BoundMethodObject *bound = ALLOCATE_OBJ(BoundMethodObject, OBJ_BOUND_METHOD);
 	bound->receiver = receiver;
 	bound->method = method;
 	return bound;
@@ -72,8 +70,7 @@ InstanceObject *Instance_New(ClassObject *klass)
 
 ClosureObject *Closure_New(FunctionObject *function)
 {
-	UpvalueObject **upvalues =
-		ALLOCATE(UpvalueObject *, (size_t)function->upvalue_count);
+	UpvalueObject **upvalues = ALLOCATE(UpvalueObject *, (size_t)function->upvalue_count);
 
 	for (int i = 0; i < function->upvalue_count; i++) {
 		upvalues[i] = NULL;
@@ -126,8 +123,7 @@ StringObject *String_FromChars(const char *chars, size_t length)
 {
 	uint32_t hash = String_Hash(chars, length);
 
-	StringObject *interned =
-		HashTable_FindString(&interned_strings, chars, length, hash);
+	StringObject *interned = HashTable_FindString(&interned_strings, chars, length, hash);
 
 	if (interned != NULL) {
 		return interned;
@@ -182,12 +178,10 @@ void Object_Print(FILE *stream, Value value)
 		fprintf(stream, "%s", AS_CLASS(value)->name->chars);
 		break;
 	case OBJ_INSTANCE:
-		fprintf(stream, "%s<Instance>",
-			AS_INSTANCE(value)->klass->name->chars);
+		fprintf(stream, "%s<Instance>", AS_INSTANCE(value)->klass->name->chars);
 		break;
 	case OBJ_BOUND_METHOD:
-		print_function(stream,
-			       AS_BOUND_METHOD(value)->method->function);
+		print_function(stream, AS_BOUND_METHOD(value)->method->function);
 		break;
 	}
 }
@@ -196,8 +190,7 @@ StringObject *String_FromOwnedChars(char *chars, size_t length)
 {
 	uint32_t hash = String_Hash(chars, length);
 
-	StringObject *interned =
-		HashTable_FindString(&interned_strings, chars, length, hash);
+	StringObject *interned = HashTable_FindString(&interned_strings, chars, length, hash);
 
 	if (interned != NULL) {
 		FREE_ARRAY(char, chars, length + 1);

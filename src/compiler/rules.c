@@ -6,8 +6,7 @@
 #include "expression.h"
 
 static const ParseRule rules[] = {
-	[TOKEN_LEFT_PAREN] = { expression_grouping, expression_call,
-			       PREC_CALL },
+	[TOKEN_LEFT_PAREN] = { expression_grouping, expression_call, PREC_CALL },
 	[TOKEN_RIGHT_PAREN] = { NULL, NULL, PREC_NONE },
 	[TOKEN_LEFT_BRACE] = { NULL, NULL, PREC_NONE },
 	[TOKEN_RIGHT_BRACE] = { NULL, NULL, PREC_NONE },

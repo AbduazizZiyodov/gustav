@@ -95,8 +95,7 @@ void class_super(bool can_assign [[maybe_unused]])
 	if (current_class == NULL) {
 		compiler_error("Can't use 'super' outside of a class.");
 	} else if (!current_class->has_super_class) {
-		compiler_error(
-			"Can't use 'super' in a class with no superclass.");
+		compiler_error("Can't use 'super' in a class with no superclass.");
 	}
 
 	token_consume(TOKEN_DOT, "Expect '.' after 'super'.");

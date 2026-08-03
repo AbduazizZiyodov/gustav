@@ -83,13 +83,10 @@ static char *read_file(const char *path)
 
 	char *buffer = (char *)malloc((sizeof(char) * (size_t)file_size) + 1);
 	if (buffer is NULL) {
-		gustav_error(74,
-			     "Not enough memory to allocate buffer for %s\n",
-			     path);
+		gustav_error(74, "Not enough memory to allocate buffer for %s\n", path);
 	}
 
-	size_t bytes_read =
-		fread(buffer, sizeof(char), (size_t)file_size, file);
+	size_t bytes_read = fread(buffer, sizeof(char), (size_t)file_size, file);
 
 	if (bytes_read < (size_t)file_size) {
 		if (ferror(file)) {
@@ -111,9 +108,8 @@ static char *read_file(const char *path)
 
 void show_gustav_info(void)
 {
-	printf("Gustav v%s (%s %s) [ %s ] | %s %s build for \"%s %s\"\n\n",
-	       PROJECT_VERSION_STRING, __DATE__, __TIME__, COMPILER_VERSION,
-	       OPT_LEVEL, BUILD_TYPE, OS, ARCH);
+	printf("Gustav v%s (%s %s) [ %s ] | %s %s build for \"%s %s\"\n\n", PROJECT_VERSION_STRING,
+	       __DATE__, __TIME__, COMPILER_VERSION, OPT_LEVEL, BUILD_TYPE, OS, ARCH);
 
 #ifdef DEBUG_STRESS_GC
 	LOG_INFO("!!! DEBUG_STRESS_GC is enabled !!!\n\n");

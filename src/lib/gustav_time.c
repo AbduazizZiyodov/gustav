@@ -11,8 +11,7 @@
 #include "native_functions.h"
 #include "value.h"
 
-Value gustav_clock_native(int arg_count [[maybe_unused]],
-			  Value *args [[maybe_unused]])
+Value gustav_clock_native(int arg_count [[maybe_unused]], Value *args [[maybe_unused]])
 {
 	struct timespec ts;
 	/* NOLINTNEXTLINE(misc-include-cleaner) */
@@ -24,8 +23,7 @@ Value gustav_clock_native(int arg_count [[maybe_unused]],
 	return NUMBER_VAL(seconds);
 }
 
-Value gustav_sleep_native(int arg_count [[maybe_unused]],
-			  Value *args [[maybe_unused]])
+Value gustav_sleep_native(int arg_count [[maybe_unused]], Value *args [[maybe_unused]])
 {
 	// TODO(abduaziz): better error handling, <0, no arg ...
 	if (arg_count < 1) {
@@ -62,8 +60,7 @@ Value gustav_sleep_native(int arg_count [[maybe_unused]],
 
 	while (1) {
 		/* NOLINTNEXTLINE(misc-include-cleaner) */
-		int r = clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &target,
-					NULL);
+		int r = clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &target, NULL);
 		if (r == 0) {
 			break;
 		}

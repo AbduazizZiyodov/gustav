@@ -22,8 +22,7 @@ void end_scope(void)
 	current->scope_depth--;
 
 	while (current->local_count > 0 &&
-	       current->locals[current->local_count - 1].depth >
-		       current->scope_depth) {
+	       current->locals[current->local_count - 1].depth > current->scope_depth) {
 		if (current->locals[current->local_count - 1].is_captured) {
 			emit_byte(OP_CLOSE_UPVALUE);
 		} else {

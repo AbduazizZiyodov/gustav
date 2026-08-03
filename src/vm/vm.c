@@ -26,11 +26,9 @@ VM vm;
 
 #define READ_BYTE() (*frame->ip++)
 
-#define READ_SHORT() \
-	(frame->ip += 2, (uint16_t)((frame->ip[-2] << 8) | frame->ip[-1]))
+#define READ_SHORT() (frame->ip += 2, (uint16_t)((frame->ip[-2] << 8) | frame->ip[-1]))
 
-#define READ_CONSTANT() \
-	(frame->closure->function->chunk.constants.values[READ_BYTE()])
+#define READ_CONSTANT() (frame->closure->function->chunk.constants.values[READ_BYTE()])
 
 #define READ_STRING() AS_STRING(READ_CONSTANT())
 
@@ -91,8 +89,7 @@ static InterpretResult run(void)
 			Value slot_value = frame->slots[slot];
 
 			if (Uninitialized_Check(slot_value)) {
-				runtime_error(
-					"Can't use uninitialized variable.");
+				runtime_error("Can't use uninitialized variable.");
 				return INTERPRET_RUNTIME_ERROR;
 			}
 
@@ -110,15 +107,13 @@ static InterpretResult run(void)
 			Value value;
 
 			if (!HashTable_GetItem(&vm.globals, name, &value)) {
-				runtime_error("Undefined variable '%s'.",
-					      name->chars);
+				runtime_error("Undefined variable '%s'.", name->chars);
 				return INTERPRET_RUNTIME_ERROR;
 			}
 
 			if (Uninitialized_Check(value)) {
-				runtime_error(
-					"Can't use uninitialized variable '%s'.",
-					name->chars);
+				runtime_error("Can't use uninitialized variable '%s'.",
+					      name->chars);
 				return INTERPRET_RUNTIME_ERROR;
 			}
 
@@ -129,20 +124,17 @@ static InterpretResult run(void)
 			StringObject *name = READ_STRING();
 			if (HashTable_SetItem(&vm.globals, name, VM_Peek(0))) {
 				HashTable_DelItem(&vm.globals, name);
-				runtime_error("Undefined variable '%s'.",
-					      name->chars);
+				runtime_error("Undefined variable '%s'.", name->chars);
 				return INTERPRET_RUNTIME_ERROR;
 			}
 			break;
 		}
 		case OP_GET_UPVALUE: {
 			uint8_t slot = READ_BYTE();
-			Value slot_value =
-				*frame->closure->upvalues[slot]->location;
+			Value slot_value = *frame->closure->upvalues[slot]->location;
 
 			if (Uninitialized_Check(slot_value)) {
-				runtime_error(
-					"Can't use uninitialized variable.");
+				runtime_error("Can't use uninitialized variable.");
 				return INTERPRET_RUNTIME_ERROR;
 			}
 
@@ -156,8 +148,7 @@ static InterpretResult run(void)
 		}
 		case OP_GET_PROPERTY: {
 			if (!Instance_Check(VM_Peek(0))) {
-				runtime_error(
-					"Only instances have properties.");
+				runtime_error("Only instances have properties.");
 				return INTERPRET_RUNTIME_ERROR;
 			}
 
@@ -166,8 +157,7 @@ static InterpretResult run(void)
 
 			Value value;
 
-			if (HashTable_GetItem(&instance->fields, name,
-					      &value)) {
+			if (HashTable_GetItem(&instance->fields, name, &value)) {
 				VM_Pop();
 				VM_Push(value);
 				break;
@@ -185,8 +175,7 @@ static InterpretResult run(void)
 				return INTERPRET_RUNTIME_ERROR;
 			}
 			InstanceObject *instance = AS_INSTANCE(VM_Peek(1));
-			HashTable_SetItem(&instance->fields, READ_STRING(),
-					  VM_Peek(0));
+			HashTable_SetItem(&instance->fields, READ_STRING(), VM_Peek(0));
 			Value value = VM_Pop();
 			VM_Pop();
 			VM_Push(value);
@@ -209,12 +198,10 @@ static InterpretResult run(void)
 			BINARY_OP(NUMBER_VAL, +);
 			break;
 		case OP_CONCAT: {
-			if (String_Check(VM_Peek(0)) &&
-			    String_Check(VM_Peek(1))) {
+			if (String_Check(VM_Peek(0)) && String_Check(VM_Peek(1))) {
 				concatenate();
 			} else {
-				runtime_error(
-					"Operands must be two strings to concatenate.");
+				runtime_error("Operands must be two strings to concatenate.");
 				return INTERPRET_RUNTIME_ERROR;
 			}
 			break;
@@ -226,8 +213,7 @@ static InterpretResult run(void)
 			BINARY_OP(NUMBER_VAL, *);
 			break;
 		case OP_POW:
-			if (!Number_Check(VM_Peek(0)) ||
-			    !Number_Check(VM_Peek(1))) {
+			if (!Number_Check(VM_Peek(0)) || !Number_Check(VM_Peek(1))) {
 				runtime_error("Operands must be numbers.");
 				return INTERPRET_RUNTIME_ERROR;
 			}
@@ -249,12 +235,10 @@ static InterpretResult run(void)
 			} else {
 				// for OP_NEGATE
 				if (!Number_Check(top_value)) {
-					runtime_error(
-						"Operand must be a number.");
+					runtime_error("Operand must be a number.");
 					return INTERPRET_RUNTIME_ERROR;
 				}
-				result_value =
-					NUMBER_VAL(-AS_NUMBER(top_value));
+				result_value = NUMBER_VAL(-AS_NUMBER(top_value));
 			}
 
 			*(vm.stack_top - 1) = result_value;
@@ -321,11 +305,10 @@ static InterpretResult run(void)
 				uint8_t index = READ_BYTE();
 
 				if (is_local) {
-					closure->upvalues[i] = capture_upvalue(
-						frame->slots + index);
-				} else {
 					closure->upvalues[i] =
-						frame->closure->upvalues[index];
+						capture_upvalue(frame->slots + index);
+				} else {
+					closure->upvalues[i] = frame->closure->upvalues[index];
 				}
 			}
 			break;
@@ -359,8 +342,7 @@ static InterpretResult run(void)
 			double status = AS_NUMBER(result_value);
 
 			if (!isfinite(status)) {
-				runtime_error(
-					"Exit status must be a finite number.");
+				runtime_error("Exit status must be a finite number.");
 				return INTERPRET_RUNTIME_ERROR;
 			}
 
@@ -380,8 +362,7 @@ static InterpretResult run(void)
 			}
 
 			ClassObject *subclass = AS_CLASS(VM_Peek(0));
-			HashTable_AddAll(&AS_CLASS(superclass)->methods,
-					 &subclass->methods);
+			HashTable_AddAll(&AS_CLASS(superclass)->methods, &subclass->methods);
 			VM_Pop(); // subclass
 
 			break;

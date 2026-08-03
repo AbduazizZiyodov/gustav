@@ -19,8 +19,7 @@ void ValueArray_Write(ValueArray *array, Value value)
 	if (array->capacity < array->count + 1) {
 		size_t old_capacity = array->capacity;
 		array->capacity = GROW_CAPACITY(old_capacity);
-		array->values = GROW_ARRAY(Value, array->values, old_capacity,
-					   array->capacity);
+		array->values = GROW_ARRAY(Value, array->values, old_capacity, array->capacity);
 	}
 	array->values[array->count] = value;
 	array->count++;

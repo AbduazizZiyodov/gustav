@@ -24,8 +24,7 @@ void HashTable_Free(HashTable *hash_table)
 }
 
 // TODO(abduaziz): nesting
-static HashTableEntry *find_entry(HashTableEntry *entries, size_t capacity,
-				  StringObject *key)
+static HashTableEntry *find_entry(HashTableEntry *entries, size_t capacity, StringObject *key)
 {
 	/* NOLINTNEXTLINE(clang-analyzer-core.DivideZero) */
 	uint32_t index = key->hash & (capacity - 1); // capacity > 0
@@ -57,8 +56,7 @@ bool HashTable_GetItem(HashTable *hash_table, StringObject *key, Value *value)
 		return false;
 	}
 
-	HashTableEntry *entry =
-		find_entry(hash_table->entries, hash_table->capacity, key);
+	HashTableEntry *entry = find_entry(hash_table->entries, hash_table->capacity, key);
 
 	if (entry->key is NULL) {
 		return false;
@@ -84,8 +82,7 @@ static void adjust_capacity(HashTable *hash_table, size_t capacity)
 			continue;
 		}
 
-		HashTableEntry *dest =
-			find_entry(entries, capacity, entry->key);
+		HashTableEntry *dest = find_entry(entries, capacity, entry->key);
 		dest->key = entry->key;
 		dest->value = entry->value;
 
@@ -100,14 +97,13 @@ static void adjust_capacity(HashTable *hash_table, size_t capacity)
 
 bool HashTable_SetItem(HashTable *hash_table, StringObject *key, Value value)
 {
-	if (hash_table->count + 1 > (size_t)((double)hash_table->capacity *
-					     HASH_TABLE_MAX_LOAD_FACTOR)) {
+	if (hash_table->count + 1 >
+	    (size_t)((double)hash_table->capacity * HASH_TABLE_MAX_LOAD_FACTOR)) {
 		size_t capacity = GROW_CAPACITY(hash_table->capacity);
 		adjust_capacity(hash_table, capacity);
 	}
 
-	HashTableEntry *entry =
-		find_entry(hash_table->entries, hash_table->capacity, key);
+	HashTableEntry *entry = find_entry(hash_table->entries, hash_table->capacity, key);
 
 	bool is_new_key = entry->key is NULL;
 
@@ -126,8 +122,7 @@ bool HashTable_DelItem(HashTable *hash_table, StringObject *key)
 		return false;
 	}
 
-	HashTableEntry *entry =
-		find_entry(hash_table->entries, hash_table->capacity, key);
+	HashTableEntry *entry = find_entry(hash_table->entries, hash_table->capacity, key);
 
 	if (entry->key is NULL) {
 		return false;
@@ -150,8 +145,8 @@ void HashTable_AddAll(HashTable *from, HashTable *to)
 	}
 }
 
-StringObject *HashTable_FindString(HashTable *hash_table, const char *chars,
-				   size_t length, uint32_t hash)
+StringObject *HashTable_FindString(HashTable *hash_table, const char *chars, size_t length,
+				   uint32_t hash)
 {
 	if (hash_table->count == 0) {
 		return NULL;
@@ -166,8 +161,7 @@ StringObject *HashTable_FindString(HashTable *hash_table, const char *chars,
 			if (Nil_Check(entry->value)) {
 				return NULL;
 			}
-		} else if (entry->key->length == length &&
-			   entry->key->hash == hash &&
+		} else if (entry->key->length == length && entry->key->hash == hash &&
 			   memcmp(entry->key->chars, chars, length) == 0) {
 			return entry->key;
 		}
