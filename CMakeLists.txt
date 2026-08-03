@@ -56,9 +56,14 @@ set(SOURCES
     src/compiler/utils.c
     src/compiler/var.c
     # backend
-    src/vm.c
+    src/vm/vm.c
     src/chunk.c
     src/debug.c
+    src/vm/call.c
+    src/vm/error.c
+    src/vm/machinery.c
+    src/vm/trace.c
+    src/vm/upvalue.c
     # runtime data & memory
     src/value.c
     src/object.c
@@ -107,6 +112,7 @@ target_compile_options(
           -Wnull-dereference
           -Wdouble-promotion
           -Wformat-security
+          -Wimplicit-fallthrough
           -Werror
           $<$<CONFIG:Debug>:-g
           -O0
