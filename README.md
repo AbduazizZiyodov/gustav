@@ -95,7 +95,15 @@ true
 # Testing
 
 > [!NOTE]
-> Current state of tests (to be considered as "phase one complete"/legacy python compatible): 13 failed, 229 passed in 0.51s
+> Current state of tests - all passing.
+> There are features that should be implemented (they're excluded from test cases):
+>
+> * Loop Statement
+> * Break & Continue Statements
+> * Ternary Expressions
+> * Lambda functions/expressions
+> * Pipe operator
+> Since, they were not in original "plan" - they're in TODO (rather than being main feature)
 
 Install `pytest` via `uv` (or whataver):
 
