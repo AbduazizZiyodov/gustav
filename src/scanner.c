@@ -222,94 +222,16 @@ static bool is_alpha(char c)
 	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
 }
 
-static TokenType check_keyword(size_t start, size_t length, const char *rest, TokenType match_type)
-{
-	if (((size_t)(scanner_state.current - scanner_state.start)) == start + length &&
-	    memcmp(scanner_state.start + start, rest, length) == 0) {
-		return match_type;
-	}
-
-	return TOKEN_IDENTIFIER;
-}
-
-// TODO(abduaziz): table based approach via memcmp
 static TokenType get_identifier_type(void)
 {
-	switch (scanner_state.start[0]) {
-	case 'a':
-		return check_keyword(1, 2, "nd", TOKEN_AND);
-	case 'c':
-		return check_keyword(1, 4, "lass", TOKEN_CLASS);
-	case 'e':
-		return check_keyword(1, 3, "lse", TOKEN_ELSE);
-	case 'f':
-		if (scanner_state.current - scanner_state.start > 1) {
-			switch (scanner_state.start[1]) {
-			case 'a':
-				return check_keyword(2, 3, "lse", TOKEN_FALSE);
-			case 'o':
-				return check_keyword(2, 1, "r", TOKEN_FOR);
-			case 'u':
-				return check_keyword(2, 1, "n", TOKEN_FUN);
-			default:
-				break;
-			}
+	size_t identifier_length = (size_t)(scanner_state.current - scanner_state.start);
+
+	for (unsigned int idx = 0; idx < ARRAY_LENGTH(keywords_table); idx++) {
+		if (identifier_length == keywords_table[idx].length &&
+		    memcmp(scanner_state.start, keywords_table[idx].value,
+			   keywords_table[idx].length) == 0) {
+			return keywords_table[idx].type;
 		}
-		break;
-	case 'i':
-		return check_keyword(1, 1, "f", TOKEN_IF);
-	case 'l':
-		return check_keyword(1, 3, "oop", TOKEN_LOOP);
-	case 'n':
-		return check_keyword(1, 2, "il", TOKEN_NIL);
-	case 'o':
-		return check_keyword(1, 1, "r", TOKEN_OR);
-	case 'r':
-		return check_keyword(1, 5, "eturn", TOKEN_RETURN);
-	case 's':
-		// stdout, stderr, super
-		if (scanner_state.current - scanner_state.start > 1) {
-			switch (scanner_state.start[1]) {
-			case 'u':
-				return check_keyword(2, 3, "per", TOKEN_SUPER);
-			case 't':
-				if (scanner_state.current - scanner_state.start > 3 &&
-				    scanner_state.start[2] == 'd') {
-					switch (scanner_state.start[3]) {
-					case 'o':
-						return check_keyword(4, 2, "ut",
-								     TOKEN_PRINT_STDOUT);
-					case 'e':
-						return check_keyword(4, 2, "rr",
-								     TOKEN_PRINT_STDERR);
-					default:
-						break;
-					}
-				}
-				break;
-			default:
-				break;
-			}
-		}
-		break;
-	case 't':
-		if (scanner_state.current - scanner_state.start > 1) {
-			switch (scanner_state.start[1]) {
-			case 'h':
-				return check_keyword(2, 2, "is", TOKEN_THIS);
-			case 'r':
-				return check_keyword(2, 2, "ue", TOKEN_TRUE);
-			default:
-				break;
-			}
-		}
-		break;
-	case 'v':
-		return check_keyword(1, 2, "ar", TOKEN_VAR);
-	case 'w':
-		return check_keyword(1, 4, "hile", TOKEN_WHILE);
-	default:
-		break;
 	}
 
 	return TOKEN_IDENTIFIER;
