@@ -78,7 +78,7 @@ stdout binary_search(root, 5);
 
 ```shell
 [gustav] # ./target/gustav_release ./test.gus
-Gustav v2.0 (Aug  3 2026 22:34:21) [ Clang 19.1.7 (3+b1) ] | optimized RELEASE build for "Linux x86_64"
+Gustav v1.0.0 [ git_branch=master git_commit=fd864dd | Aug  4 2026 03:34:11] [ Clang 19.1.7 (3+b1) ] | optimized RELEASE build for "Linux x86_64"
 
 Tree
 Tree<Instance>
