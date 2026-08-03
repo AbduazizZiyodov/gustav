@@ -6,23 +6,14 @@
 #include "trace.h"
 #include "value.h"
 
-#if DEBUG
+#ifdef GUSTAV_DEBUG
 #include "debug.h"
-#endif
-
-#ifdef DEBUG // DEBUG
 
 void trace(CallFrame *frame)
-
-#else
-
-void trace(CallFrame *frame [[maybe_unused]])
-
-#endif // DEBUG - mark arg as unused on release/non-debug builds
 {
-// Prints the instruction that currently being executed
-// (if enabled) & content of the stack
-#ifdef DEBUG
+	// NOTE(Abduaziz): if enabled, prints the instruction that
+	// currently being executed & content of the stack
+
 	int offset = (int)(frame->ip - frame->closure->function->chunk.code);
 	Debug_DisassembleInstruction(&frame->closure->function->chunk, offset);
 
@@ -37,5 +28,11 @@ void trace(CallFrame *frame [[maybe_unused]])
 
 	LOG_DEBUG("== [/stack] ==\n");
 	printf("\n");
-#endif // DEBUG
 }
+
+#else
+void trace(CallFrame *frame [[maybe_unused]])
+{
+}
+
+#endif // GUSTAV_DEBUG

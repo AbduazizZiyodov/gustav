@@ -14,7 +14,7 @@
 #define UINT8_COUNT (UINT8_MAX + 1)
 #define ARRAY_LENGTH(arr) (sizeof(arr) / sizeof((arr)[0]))
 
-#ifdef DEBUG
+#ifdef GUSTAV_DEBUG
 #define UNREACHABLE()                                                                      \
 	do {                                                                               \
 		(void)fprintf(stderr, "[%s:%d] This code should not be reached in %s()\n", \
@@ -23,7 +23,7 @@
 	} while (false)
 #else
 #define UNREACHABLE()
-#endif // DEBUG
+#endif // GUSTAV_DEBUG
 
 __attribute__((format(printf, 2, 3), noreturn)) static inline void
 gustav_error(short code, const char *format, ...)

@@ -248,7 +248,7 @@ static InterpretResult run(void)
 			LOG_DEBUG("== [stdout] ==\n");
 			Value_Print(stdout, VM_Pop());
 			fputc('\n', stdout);
-			fflush(stdout); // NOTE(abduaziz): I had hard time to find out its buffered
+			fflush(stdout); // NOTE(Abduaziz): I had hard time to find out its buffered
 			LOG_DEBUG("== [/stdout] ==\n\n");
 			break;
 		}

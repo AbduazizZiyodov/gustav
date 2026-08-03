@@ -132,7 +132,7 @@ void expression_string(bool can_assign [[maybe_unused]])
 	StringObject *str =
 		String_FromChars(parser_state.previous.start + 1, parser_state.previous.length - 2);
 
-	// NOTE(abduaziz): temporary push the value, fixes GC bug
+	// NOTE(Abduaziz): temporary push the value, fixes GC bug
 	VM_Push(OBJ_VAL(str));
 	emit_constant(OBJ_VAL(str));
 	VM_Pop();
@@ -141,7 +141,7 @@ void expression_string(bool can_assign [[maybe_unused]])
 uint8_t identifier_constant(Token *name)
 {
 	StringObject *string_val = String_FromChars(name->start, name->length);
-	VM_Push(OBJ_VAL(string_val)); // NOTE(abduaziz): fixes same GC error above
+	VM_Push(OBJ_VAL(string_val)); // NOTE(Abduaziz): fixes same GC error above
 	uint8_t constant = make_constant(OBJ_VAL(string_val));
 	VM_Pop();
 	return constant;

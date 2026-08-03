@@ -26,7 +26,7 @@ Thanks to author.
 
 #include "log.h"
 
-#ifdef DEBUG
+#ifdef GUSTAV_DEBUG
 
 #include <stdarg.h>
 #include <stdbool.h>
@@ -187,4 +187,4 @@ void log_log(int level [[maybe_unused]], const char *file [[maybe_unused]],
 {
 }
 
-#endif
+#endif // GUSTAV_DEBUG
