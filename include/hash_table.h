@@ -24,7 +24,7 @@ bool HashTable_DelItem(HashTable *hash_table, StringObject *key);
 void HashTable_AddAll(HashTable *from, HashTable *to);
 void HashTable_RemoveWhite(HashTable *hash_table);
 
-StringObject *HashTable_FindString(HashTable *hash_table, const char *chars,
-				   size_t length, uint32_t hash);
+StringObject *HashTable_FindString(HashTable *hash_table, const char *chars, size_t length,
+				   uint32_t hash);
 
 void HashTable_Mark(HashTable *table);

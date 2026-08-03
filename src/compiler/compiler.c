@@ -40,8 +40,7 @@ void init_compiler(Compiler *compiler, FunctionType type)
 
 	if (type != TYPE_SCRIPT) {
 		current->function->name =
-			String_FromChars(parser_state.previous.start,
-					 parser_state.previous.length);
+			String_FromChars(parser_state.previous.start, parser_state.previous.length);
 	}
 
 	Local *local = &current->locals[current->local_count++];
@@ -65,9 +64,7 @@ FunctionObject *finish_compiling(void)
 #ifdef DEBUG
 	if (!parser_state.had_error) {
 		Debug_DisassembleChunk(current_chunk(),
-				       function->name != NULL ?
-					       function->name->chars :
-					       "<script>");
+				       function->name != NULL ? function->name->chars : "<script>");
 	}
 #endif // DEBUG
 	current = current->enclosing;

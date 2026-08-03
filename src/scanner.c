@@ -83,8 +83,7 @@ Token Scanner_ScanToken(void)
 	case '<':
 		return make_token(match('=') ? TOKEN_LESS_EQUAL : TOKEN_LESS);
 	case '>':
-		return make_token(match('=') ? TOKEN_GREATER_EQUAL :
-					       TOKEN_GREATER);
+		return make_token(match('=') ? TOKEN_GREATER_EQUAL : TOKEN_GREATER);
 	case '"':
 		return make_string_token();
 	default:
@@ -223,11 +222,9 @@ static bool is_alpha(char c)
 	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
 }
 
-static TokenType check_keyword(size_t start, size_t length, const char *rest,
-			       TokenType match_type)
+static TokenType check_keyword(size_t start, size_t length, const char *rest, TokenType match_type)
 {
-	if (((size_t)(scanner_state.current - scanner_state.start)) ==
-		    start + length &&
+	if (((size_t)(scanner_state.current - scanner_state.start)) == start + length &&
 	    memcmp(scanner_state.start + start, rest, length) == 0) {
 		return match_type;
 	}
@@ -274,19 +271,15 @@ static TokenType get_identifier_type(void)
 			case 'u':
 				return check_keyword(2, 3, "per", TOKEN_SUPER);
 			case 't':
-				if (scanner_state.current -
-						    scanner_state.start >
-					    3 &&
+				if (scanner_state.current - scanner_state.start > 3 &&
 				    scanner_state.start[2] == 'd') {
 					switch (scanner_state.start[3]) {
 					case 'o':
-						return check_keyword(
-							4, 2, "ut",
-							TOKEN_PRINT_STDOUT);
+						return check_keyword(4, 2, "ut",
+								     TOKEN_PRINT_STDOUT);
 					case 'e':
-						return check_keyword(
-							4, 2, "rr",
-							TOKEN_PRINT_STDERR);
+						return check_keyword(4, 2, "rr",
+								     TOKEN_PRINT_STDERR);
 					default:
 						break;
 					}

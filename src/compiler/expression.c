@@ -129,8 +129,8 @@ void expression_number(bool can_assign [[maybe_unused]])
 
 void expression_string(bool can_assign [[maybe_unused]])
 {
-	StringObject *str = String_FromChars(parser_state.previous.start + 1,
-					     parser_state.previous.length - 2);
+	StringObject *str =
+		String_FromChars(parser_state.previous.start + 1, parser_state.previous.length - 2);
 
 	// NOTE(abduaziz): temporary push the value, fixes GC bug
 	VM_Push(OBJ_VAL(str));
@@ -141,8 +141,7 @@ void expression_string(bool can_assign [[maybe_unused]])
 uint8_t identifier_constant(Token *name)
 {
 	StringObject *string_val = String_FromChars(name->start, name->length);
-	VM_Push(OBJ_VAL(
-		string_val)); // NOTE(abduaziz): fixes same GC error above
+	VM_Push(OBJ_VAL(string_val)); // NOTE(abduaziz): fixes same GC error above
 	uint8_t constant = make_constant(OBJ_VAL(string_val));
 	VM_Pop();
 	return constant;
@@ -216,8 +215,7 @@ void parse_precedence(Precedence precedence)
 
 	while (precedence <= get_rule(parser_state.current.type)->precedence) {
 		token_advance();
-		ParseFn infix_rule =
-			get_rule(parser_state.previous.type)->infix;
+		ParseFn infix_rule = get_rule(parser_state.previous.type)->infix;
 		infix_rule(can_assign);
 	}
 

@@ -20,7 +20,7 @@ void trace(CallFrame *frame [[maybe_unused]])
 
 #endif // DEBUG - mark arg as unused on release/non-debug builds
 {
-// Prints the instruction that currently being executed 
+// Prints the instruction that currently being executed
 // (if enabled) & content of the stack
 #ifdef DEBUG
 	int offset = (int)(frame->ip - frame->closure->function->chunk.code);

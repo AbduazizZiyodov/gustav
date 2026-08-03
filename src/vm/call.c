@@ -12,8 +12,8 @@
 bool call(ClosureObject *closure, int arg_count)
 {
 	if ((size_t)arg_count != closure->function->arity) {
-		runtime_error("Expected %d arguments but got %d.",
-			      (int)closure->function->arity, arg_count);
+		runtime_error("Expected %d arguments but got %d.", (int)closure->function->arity,
+			      arg_count);
 		return false;
 	}
 
@@ -41,18 +41,14 @@ bool call_value(Value callee, int arg_count)
 		}
 		case OBJ_CLASS: {
 			ClassObject *klass = AS_CLASS(callee);
-			vm.stack_top[-arg_count - 1] =
-				OBJ_VAL(Instance_New(klass));
+			vm.stack_top[-arg_count - 1] = OBJ_VAL(Instance_New(klass));
 
 			Value initializer;
-			if (HashTable_GetItem(&klass->methods, vm.init_string,
-					      &initializer)) {
+			if (HashTable_GetItem(&klass->methods, vm.init_string, &initializer)) {
 				return call(AS_CLOSURE(initializer), arg_count);
 			}
 			if (arg_count != 0) {
-				runtime_error(
-					"Expected 0 arguments but got %d.",
-					arg_count);
+				runtime_error("Expected 0 arguments but got %d.", arg_count);
 				return false;
 			}
 			return true;
@@ -62,8 +58,7 @@ bool call_value(Value callee, int arg_count)
 		case OBJ_NATIVE: {
 			// TODO(abduaziz): arity check, runtime errors ...
 			NativeFn native = AS_NATIVE(callee);
-			Value result =
-				native(arg_count, vm.stack_top - arg_count);
+			Value result = native(arg_count, vm.stack_top - arg_count);
 			vm.stack_top -= arg_count + 1;
 			VM_Push(result);
 			return true;
@@ -119,8 +114,7 @@ bool bind_method(ClassObject *klass, StringObject *name)
 		return false;
 	}
 
-	BoundMethodObject *bound =
-		BoundMethod_New(VM_Peek(0), AS_CLOSURE(method));
+	BoundMethodObject *bound = BoundMethod_New(VM_Peek(0), AS_CLOSURE(method));
 
 	VM_Pop();
 	VM_Push(OBJ_VAL(bound));

@@ -60,8 +60,7 @@ void Mem_FreeObject(Object *object)
 	}
 	case OBJ_STRING: {
 		StringObject *string = (StringObject *)object;
-		LOG_GC("Freeing string object: object=%p string_repr=%s\n",
-		       object, string->chars);
+		LOG_GC("Freeing string object: object=%p string_repr=%s\n", object, string->chars);
 		FREE_ARRAY(char, string->chars, string->length + 1);
 		FREE(StringObject, object);
 		break;
@@ -78,8 +77,7 @@ void Mem_FreeObject(Object *object)
 	case OBJ_CLOSURE:
 		closure = (ClosureObject *)object;
 		/*NOLINTNEXTLINE(bugprone-multi-level-implicit-pointer-conversion)*/
-		FREE_ARRAY(UpvalueObject *, closure->upvalues,
-			   closure->upvalue_count);
+		FREE_ARRAY(UpvalueObject *, closure->upvalues, closure->upvalue_count);
 		FREE(ClosureObject, object);
 		break;
 	case OBJ_UPVALUE:

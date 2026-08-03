@@ -15,13 +15,11 @@
 #define ARRAY_LENGTH(arr) (sizeof(arr) / sizeof((arr)[0]))
 
 #ifdef DEBUG
-#define UNREACHABLE()                                                        \
-	do {                                                                 \
-		(void)fprintf(                                               \
-			stderr,                                              \
-			"[%s:%d] This code should not be reached in %s()\n", \
-			__FILE__, __LINE__, __func__);                       \
-		abort();                                                     \
+#define UNREACHABLE()                                                                      \
+	do {                                                                               \
+		(void)fprintf(stderr, "[%s:%d] This code should not be reached in %s()\n", \
+			      __FILE__, __LINE__, __func__);                               \
+		abort();                                                                   \
 	} while (false)
 #else
 #define UNREACHABLE()

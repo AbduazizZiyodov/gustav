@@ -8,8 +8,8 @@
 #include "machinery.h"
 #include "object.h"
 
-__attribute__((format(printf, 1, 2))) void
-runtime_error(const char *format, ...) // TODO(abduaziz): better stack trace
+__attribute__((format(printf, 1, 2))) void runtime_error(const char *format,
+							 ...) // TODO(abduaziz): better stack trace
 {
 	va_list args;
 

@@ -9,12 +9,7 @@
 #include "object.h"
 #include "scanner.h"
 
-typedef enum {
-	TYPE_FUNCTION,
-	TYPE_SCRIPT,
-	TYPE_METHOD,
-	TYPE_INITIALIZER
-} FunctionType;
+typedef enum { TYPE_FUNCTION, TYPE_SCRIPT, TYPE_METHOD, TYPE_INITIALIZER } FunctionType;
 
 typedef struct {
 	Token name;

@@ -17,10 +17,8 @@ void token_advance(void)
 
 	while (true) {
 		parser_state.current = Scanner_ScanToken();
-		LOG_DEBUG("line=%04d %-20s <=> '%.*s'\n",
-			  parser_state.current.line,
-			  TOKEN_TYPE_STRING[parser_state.current.type],
-			  parser_state.current.length,
+		LOG_DEBUG("line=%04d %-20s <=> '%.*s'\n", parser_state.current.line,
+			  TOKEN_TYPE_STRING[parser_state.current.type], parser_state.current.length,
 			  parser_state.current.start);
 
 		if (parser_state.current.type != TOKEN_ERROR) {

@@ -94,8 +94,7 @@ void VM_MarkRoots(void)
 		GC_MarkObject((Object *)vm.frames[i].closure);
 	}
 
-	for (UpvalueObject *upvalue = vm.open_upvalues; upvalue != NULL;
-	     upvalue = upvalue->next) {
+	for (UpvalueObject *upvalue = vm.open_upvalues; upvalue != NULL; upvalue = upvalue->next) {
 		GC_MarkObject((Object *)upvalue);
 	}
 

@@ -19,8 +19,7 @@ void error_at(Token *token, const char *message)
 	} else if (token->type == TOKEN_ERROR) {
 		//
 	} else {
-		(void)fprintf(stderr, " at '%.*s'", (int)token->length,
-			      token->start);
+		(void)fprintf(stderr, " at '%.*s'", (int)token->length, token->start);
 	}
 
 	(void)fprintf(stderr, ": %s\n", message);

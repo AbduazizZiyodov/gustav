@@ -93,8 +93,7 @@ void statement_for(void)
 
 	if (!token_match(TOKEN_SEMICOLON)) {
 		expression_parse();
-		token_consume(TOKEN_SEMICOLON,
-			      "Expect ';' after loop condition.");
+		token_consume(TOKEN_SEMICOLON, "Expect ';' after loop condition.");
 		exit_jump = emit_jump(OP_JUMP_IF_FALSE);
 		emit_byte(OP_POP);
 	}
@@ -104,8 +103,7 @@ void statement_for(void)
 		size_t increment_start = current_chunk()->count;
 		expression_parse();
 		emit_byte(OP_POP);
-		token_consume(TOKEN_RIGHT_PAREN,
-			      "Expect ')' after for clauses.");
+		token_consume(TOKEN_RIGHT_PAREN, "Expect ')' after for clauses.");
 
 		emit_loop(loop_start);
 		loop_start = increment_start;
@@ -129,13 +127,11 @@ void statement_return(void)
 		emit_return();
 	} else {
 		if (current->type == TYPE_INITIALIZER) {
-			compiler_error(
-				"Can't return a value from an initializer.");
+			compiler_error("Can't return a value from an initializer.");
 		}
 
 		expression_parse();
-		token_consume(TOKEN_SEMICOLON,
-			      "Expect ';' after return value.");
+		token_consume(TOKEN_SEMICOLON, "Expect ';' after return value.");
 
 		// top-level return <expr> is the script's exit status like in C
 		if (current->type == TYPE_SCRIPT) {

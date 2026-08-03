@@ -57,8 +57,7 @@
 
 typedef enum { FOREACH_TOKEN_TYPE(GENERATE_ENUM) } TokenType;
 
-static const char *TOKEN_TYPE_STRING[] = { FOREACH_TOKEN_TYPE(
-	GENERATE_STRING) };
+static const char *TOKEN_TYPE_STRING[] = { FOREACH_TOKEN_TYPE(GENERATE_STRING) };
 
 typedef struct {
 	TokenType type;

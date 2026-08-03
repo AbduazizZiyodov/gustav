@@ -46,9 +46,8 @@ void GC_MarkObject(Object *object)
 	if (gc.gray_capacity < gc.gray_count + 1) {
 		gc.gray_capacity = GROW_CAPACITY(gc.gray_capacity);
 
-		Object **new_stack =
-			(Object **)realloc((void *)gc.gray_stack,
-					   sizeof(Object *) * gc.gray_capacity);
+		Object **new_stack = (Object **)realloc((void *)gc.gray_stack,
+							sizeof(Object *) * gc.gray_capacity);
 
 		if (new_stack == NULL) {
 			free((void *)gc.gray_stack);
@@ -180,8 +179,7 @@ void GC_Collect(void)
 
 #ifdef DEBUG_LOG_GC
 	LOG_GC("== [/GC BEGIN] ==\n");
-	LOG_GC("Collected %zu bytes (from %zu to %zu) next at %zu\n",
-	       before - gc.bytes_allocated, before, gc.bytes_allocated,
-	       gc.next_gc);
+	LOG_GC("Collected %zu bytes (from %zu to %zu) next at %zu\n", before - gc.bytes_allocated,
+	       before, gc.bytes_allocated, gc.next_gc);
 #endif
 }
