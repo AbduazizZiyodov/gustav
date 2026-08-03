@@ -69,3 +69,30 @@ typedef struct {
 
 void Scanner_Init(const char *source);
 Token Scanner_ScanToken(void);
+
+typedef struct {
+	const char *value;
+	size_t length;
+	TokenType type;
+} Keyword;
+
+static Keyword keywords_table[] = {
+	{ "and", 3, TOKEN_AND },
+	{ "class", 5, TOKEN_CLASS },
+	{ "else", 4, TOKEN_ELSE },
+	{ "false", 5, TOKEN_FALSE },
+	{ "for", 3, TOKEN_FOR },
+	{ "fun", 3, TOKEN_FUN },
+	{ "if", 2, TOKEN_IF },
+	{ "loop", 4, TOKEN_LOOP },
+	{ "nil", 3, TOKEN_NIL },
+	{ "or", 2, TOKEN_OR },
+	{ "return", 6, TOKEN_RETURN },
+	{ "stdout", 6, TOKEN_PRINT_STDOUT },
+	{ "stderr", 6, TOKEN_PRINT_STDERR },
+	{ "super", 5, TOKEN_SUPER },
+	{ "this", 4, TOKEN_THIS },
+	{ "true", 4, TOKEN_TRUE },
+	{ "var", 3, TOKEN_VAR },
+	{ "while", 5, TOKEN_WHILE },
+};
