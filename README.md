@@ -43,9 +43,7 @@ Sample program(BST), create file named `test.gus`:
 
 ```javascript
 class Tree {
-    init(value) {
-        this.value = value; this.left = this.right = nil;
-    }
+    init(value) { this.value = value; this.left = this.right = nil; }
 
     insert(value) {
         if (value < this.value) {
@@ -60,9 +58,7 @@ class Tree {
 
 fun binary_search(node, value) {
     if (node == nil) return false;
-
     if (node.value == value) return true;
-
     if (value < node.value) return binary_search(node.left, value);
 
     return binary_search(node.right, value);
@@ -72,17 +68,17 @@ var root = Tree(10);
 
 root.insert(5); root.insert(15); root.insert(3); root.insert(7);
 
-print Tree;
-print root;
-print binary_search(root, 7);
-print binary_search(root, 15);
-print binary_search(root, 12);
-print binary_search(root, 5);
+stdout Tree;
+stdout root;
+stdout binary_search(root, 7);
+stdout binary_search(root, 15);
+stdout binary_search(root, 12);
+stdout binary_search(root, 5);
 ```
 
 ```shell
-[gustav] # ./target/gustav_release test.gus
-Gustav v2.0 (May 17 2026 00:18:33) [ Debian Clang 19.1.7 (3+b1) ] | optimized RELEASE build for "Linux x86_64"
+[gustav] # ./target/gustav_release ./test.gus
+Gustav v2.0 (Aug  3 2026 22:34:21) [ Clang 19.1.7 (3+b1) ] | optimized RELEASE build for "Linux x86_64"
 
 Tree
 Tree<Instance>
