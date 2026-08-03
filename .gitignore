@@ -1,6 +1,8 @@
 ### Own
 test.gus
 target/**
+builds/
+.deps/
 
 ##### Windows
 # Windows thumbnail cache files

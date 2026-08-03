@@ -1,4 +1,4 @@
-#ifdef DEBUG
+#ifdef GUSTAV_DEBUG
 
 #include <stddef.h>
 #include <stdint.h>
@@ -157,4 +157,4 @@ static int jump_instruction(const char *name, int sign, Chunk *chunk, int offset
 void Debug_DisassembleChunk(Chunk *chunk [[maybe_unused]], const char *name [[maybe_unused]])
 {
 }
-#endif // DEBUG
+#endif // GUSTAV_DEBUG

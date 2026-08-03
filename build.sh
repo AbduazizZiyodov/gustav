@@ -1,58 +1,43 @@
 #!/bin/bash
 set -euo pipefail
-clear
+
 readonly PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$PROJECT_ROOT"
 
-echo "Formatting code..."
-find src include -name '*.[ch]' | xargs clang-format --verbose -i
+echo "Formatting via clang-format ..."
+find src include -type f -name '*.[ch]' -print0 2>/dev/null | xargs -0 -r clang-format -i
 
-mkdir -p target
+mkdir -p target builds
 
-# deeebug
-echo -e "\n== [build debug in build-debug] =="
-cmake -B builds/build-debug --fresh \
-      -DCMAKE_BUILD_TYPE=Debug \
-      -DCLANG_TIDY=ON \
-      -DSANITIZE=ON \
-      -DDEBUG_STRESS_GC=ON \
-      -DDEBUG_LOG_GC=ON \
-      -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-cmake --build builds/build-debug --parallel "$(nproc)"
-cp builds/build-debug/gustav target/gustav_debug
-echo -e "== [/build debug in build-debug] ==\n"
+readonly CONFIGS=(
+#  name          build_type     clang-tidy  sanitize  GC-stress  LOG_GC
+  "debug           Debug          ON          ON        OFF       ON"
+  "debug_stress    Debug          OFF         ON        ON        ON"
+  "release         Release        OFF         OFF       OFF       OFF"
+  "valgrind        Debug          OFF         OFF       OFF       OFF"
+  "valgrind_stress Debug          OFF         OFF       ON        OFF"
+)
 
-# regular release build
-echo -e "\n== [build release in build-release] =="
-cmake -B builds/build-release --fresh \
-      -DCMAKE_BUILD_TYPE=Release \
-      -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-cmake --build builds/build-release --parallel "$(nproc)"
-cp builds/build-release/gustav target/gustav_release
-echo -e "== [/build release in build-release] ==\n"
+build_gustav() {
+  read -r name type tidy san stress log <<<"$1"
 
-# valgrind with no sanitizers & no GC stress
-echo -e "\n== [build valgrind in build-valgrind] =="
-cmake -B builds/build-valgrind --fresh \
-      -DCMAKE_BUILD_TYPE=Debug \
-      -DSANITIZE=OFF \
-      -DDEBUG_STRESS_GC=OFF \
-      -DDEBUG_LOG_GC=OFF \
-      -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-cmake --build builds/build-valgrind --parallel "$(nproc)"
-cp builds/build-valgrind/gustav target/gustav_valgrind
-echo -e "== [/build valgrind in build-valgrind] ==\n"
+  local dir="builds/build-${name//_/-}"
 
-# valgrind with GC stress
-echo -e "\n== [build valgrind via GC stress in build-valgrind-stress] =="
-cmake -B builds/build-valgrind-stress --fresh \
-      -DCMAKE_BUILD_TYPE=Debug \
-      -DSANITIZE=OFF \
-      -DDEBUG_STRESS_GC=ON \
-      -DDEBUG_LOG_GC=OFF \
-      -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-cmake --build builds/build-valgrind-stress --parallel "$(nproc)"
-cp builds/build-valgrind-stress/gustav target/gustav_valgrind_stress
-echo -e "== [/build valgrind via GC stress in build-valgrind-stress] ==\n"
+  echo -e "\n== [$name -> $dir] =="
+  cmake -B "$dir" --fresh -G Ninja \
+        -DCMAKE_C_COMPILER=clang-19 \
+        -DCMAKE_BUILD_TYPE="$type" \
+        -DCLANG_TIDY="$tidy" \
+        -DSANITIZE="$san" \
+        -DDEBUG_STRESS_GC="$stress" \
+        -DDEBUG_LOG_GC="$log" \
+        -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
-ln -sf "builds/build-debug/compile_commands.json" compile_commands.json
+  cmake --build "$dir" --parallel "$(nproc)"
+  cp -f "$dir/gustav" "target/gustav_$name"
+  echo "== [/$name] =="
+}
+
+for c in "${CONFIGS[@]}"; do build_gustav "$c"; done
+
+ln -sfn builds/build-debug/compile_commands.json compile_commands.json

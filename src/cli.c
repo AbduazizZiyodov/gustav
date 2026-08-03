@@ -1,3 +1,4 @@
+#include <git.h>
 #include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -10,7 +11,7 @@
 #include "version.h"
 #include "vm.h"
 
-#ifdef DEBUG
+#ifdef GUSTAV_DEBUG
 #define BUILD_TYPE "DEBUG"
 #else
 #define BUILD_TYPE "RELEASE"
@@ -106,10 +107,25 @@ static char *read_file(const char *path)
 	return buffer;
 }
 
+static const char *git_build_tag(void)
+{
+	static char tag[128];
+
+	if (!git_IsPopulated()) {
+		return "unknown";
+	}
+
+	(void)snprintf(tag, sizeof(tag), "git_branch=%s(%s) git_commit=%.7s", git_Branch(),
+		       git_AnyUncommittedChanges() ? "dirty" : "", git_CommitSHA1());
+
+	return tag;
+}
+
 void show_gustav_info(void)
 {
-	printf("Gustav v%s (%s %s) [ %s ] | %s %s build for \"%s %s\"\n\n", PROJECT_VERSION_STRING,
-	       __DATE__, __TIME__, COMPILER_VERSION, OPT_LEVEL, BUILD_TYPE, OS, ARCH);
+	printf("Gustav v%s [ %s | %s %s] [ %s ] | %s %s build for \"%s %s\"\n\n",
+	       PROJECT_VERSION_STRING, git_build_tag(), __DATE__, __TIME__, COMPILER_VERSION,
+	       OPT_LEVEL, BUILD_TYPE, OS, ARCH);
 
 #ifdef DEBUG_STRESS_GC
 	LOG_INFO("!!! DEBUG_STRESS_GC is enabled !!!\n\n");

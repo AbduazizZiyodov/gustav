@@ -16,7 +16,7 @@
 #include "utils.h"
 #include "value.h"
 
-#ifdef DEBUG
+#ifdef GUSTAV_DEBUG
 #include "debug.h"
 #endif
 
@@ -61,12 +61,12 @@ FunctionObject *finish_compiling(void)
 	emit_return();
 	FunctionObject *function = current->function;
 
-#ifdef DEBUG
+#ifdef GUSTAV_DEBUG
 	if (!parser_state.had_error) {
 		Debug_DisassembleChunk(current_chunk(),
 				       function->name != NULL ? function->name->chars : "<script>");
 	}
-#endif // DEBUG
+#endif
 	current = current->enclosing;
 
 	return function;
