@@ -23,21 +23,21 @@ void statement_block(void)
 	token_consume(TOKEN_RIGHT_BRACE, "Expect '}' after block.");
 }
 
-void statement_expression(void)
+static void statement_expression(void)
 {
 	expression_parse();
 	token_consume(TOKEN_SEMICOLON, "Expect ';' after expression.");
 	emit_byte(OP_POP);
 }
 
-void statement_print(OpCode op)
+static void statement_print(OpCode op)
 {
 	expression_parse();
 	token_consume(TOKEN_SEMICOLON, "Expect ';' after value.");
 	emit_byte((uint8_t)op);
 }
 
-void statement_if(void)
+static void statement_if(void)
 {
 	token_consume(TOKEN_LEFT_PAREN, "Expect '(' after 'if'.");
 	expression_parse();
@@ -58,7 +58,7 @@ void statement_if(void)
 	patch_jump(else_jump);
 }
 
-void statement_while(void)
+static void statement_while(void)
 {
 	size_t loop_start = current_chunk()->count;
 
@@ -75,7 +75,21 @@ void statement_while(void)
 	emit_byte(OP_POP);
 }
 
-void statement_for(void)
+static void statement_loop(void)
+{
+	size_t loop_start = current_chunk()->count;
+
+	emit_byte(OP_TRUE); // while(true) -> loop
+	int exit_jump = emit_jump(OP_JUMP_IF_FALSE);
+	emit_byte(OP_POP);
+	statement_parse();
+	emit_loop(loop_start);
+
+	patch_jump(exit_jump);
+	emit_byte(OP_POP);
+}
+
+static void statement_for(void)
 {
 	begin_scope();
 	token_consume(TOKEN_LEFT_PAREN, "Expect '(' after 'for'");
@@ -121,7 +135,7 @@ void statement_for(void)
 	end_scope();
 }
 
-void statement_return(void)
+static void statement_return(void)
 {
 	if (token_match(TOKEN_SEMICOLON)) {
 		emit_return();
@@ -156,6 +170,8 @@ void statement_parse(void)
 		statement_for();
 	} else if (token_match(TOKEN_WHILE)) {
 		statement_while();
+	} else if (token_match(TOKEN_LOOP)) {
+		statement_loop();
 	} else if (token_match(TOKEN_LEFT_BRACE)) {
 		begin_scope();
 		statement_block();

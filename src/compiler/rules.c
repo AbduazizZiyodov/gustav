@@ -26,6 +26,7 @@ static const ParseRule rules[] = {
 	[TOKEN_GREATER_EQUAL] = { NULL, expression_binary, PREC_COMPARISON },
 	[TOKEN_LESS] = { NULL, expression_binary, PREC_COMPARISON },
 	[TOKEN_LESS_EQUAL] = { NULL, expression_binary, PREC_COMPARISON },
+	[TOKEN_LOOP] = { NULL, expression_binary, PREC_NONE },
 	[TOKEN_IDENTIFIER] = { expression_variable, NULL, PREC_NONE },
 	[TOKEN_STRING] = { expression_string, NULL, PREC_NONE },
 	[TOKEN_NUMBER] = { expression_number, NULL, PREC_NONE },
