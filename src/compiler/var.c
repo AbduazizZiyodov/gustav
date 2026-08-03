@@ -64,9 +64,7 @@ void declare_variable(void)
 		}
 
 		if (identifiers_equal(name, &local->name)) {
-			compiler_error(
-
-				"Already a variable with this name in this scope.");
+			compiler_error("Already a variable with this name in this scope.");
 		}
 	}
 
