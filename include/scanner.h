@@ -50,6 +50,7 @@
 	DO(TOKEN_ERROR)         \
 	DO(TOKEN_POW)           \
 	DO(TOKEN_PLUS_PLUS)     \
+	DO(TOKEN_LOOP)          \
 	DO(TOKEN_EOF)
 
 #define GENERATE_ENUM(ENUM) ENUM,
