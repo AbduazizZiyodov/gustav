@@ -115,8 +115,8 @@ static const char *git_build_tag(void)
 		return "unknown";
 	}
 
-	(void)snprintf(tag, sizeof(tag), "git_branch=%s(%s) git_commit=%.7s", git_Branch(),
-		       git_AnyUncommittedChanges() ? "dirty" : "", git_CommitSHA1());
+	(void)snprintf(tag, sizeof(tag), "git_branch=%s%s git_commit=%.7s", git_Branch(),
+		       git_AnyUncommittedChanges() ? "-dirty" : "", git_CommitSHA1());
 
 	return tag;
 }
