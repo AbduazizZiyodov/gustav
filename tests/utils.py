@@ -12,7 +12,6 @@ EXIT_MARKER = "// expect exit: "
 
 # TODO(abduaziz): these features must be implemented !
 EXCLUDED_SCENARIOS: tuple[str, ...] = (
-    "builtins.gus",
     "loop_statement.gus",
     "break_continue_errors.gus",
     "break_continue.gus",

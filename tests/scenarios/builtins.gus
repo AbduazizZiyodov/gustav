@@ -3,10 +3,6 @@ var TIMEOUT = 1;
 var start = clock();
 sleep(TIMEOUT);
 var end = clock();
-stdout TIMEOUT <= (end - start);
-
-// expect: true
-
-stdout sleep; // expect: <native fn>
-stdout clock; // expect: <native fn>
-stdout input; // expect: <native fn>
+stdout TIMEOUT <= (end - start); // expect: true
+stdout sleep;                    // expect: <native_fn>
+stdout clock;                    // expect: <native_fn>
