@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sysexits.h>
 
 #include "cli.h"
 #include "common.h"
@@ -65,26 +66,26 @@ static char *read_file(const char *path)
 	FILE *file = fopen(path, "rb");
 
 	if (file is NULL) {
-		gustav_error(74, "Could not open file: %s\n", path);
+		Gustav_Error(EX_IOERR, "Could not open file: %s\n", path);
 	}
 
 	if (fseek(file, 0L, SEEK_END) != 0) {
-		gustav_error(74, "Failed to seek to end: %s\n", path);
+		Gustav_Error(EX_IOERR, "Failed to seek to end: %s\n", path);
 	}
 
 	long file_size = ftell(file);
 
 	if (file_size == -1L) {
-		gustav_error(74, "Failed to get file size: %s\n", path);
+		Gustav_Error(EX_IOERR, "Failed to get file size: %s\n", path);
 	}
 
 	if (fseek(file, 0L, SEEK_SET) != 0) {
-		gustav_error(74, "Failed to rewind file: %s\n", path);
+		Gustav_Error(EX_IOERR, "Failed to rewind file: %s\n", path);
 	}
 
 	char *buffer = (char *)malloc((sizeof(char) * (size_t)file_size) + 1);
 	if (buffer is NULL) {
-		gustav_error(74, "Not enough memory to allocate buffer for %s\n", path);
+		Gustav_Error(EX_IOERR, "Not enough memory to allocate buffer for %s\n", path);
 	}
 
 	size_t bytes_read = fread(buffer, sizeof(char), (size_t)file_size, file);
@@ -93,7 +94,7 @@ static char *read_file(const char *path)
 		if (ferror(file)) {
 			(void)fclose(file);
 			free(buffer);
-			gustav_error(74, "Could not read the file %s\n", path);
+			Gustav_Error(EX_IOERR, "Could not read the file %s\n", path);
 		}
 	}
 
@@ -101,7 +102,7 @@ static char *read_file(const char *path)
 
 	if (fclose(file) != 0) {
 		free(buffer);
-		gustav_error(74, "Failed to close file: %s\n", path);
+		Gustav_Error(EX_IOERR, "Failed to close file: %s\n", path);
 	}
 
 	return buffer;

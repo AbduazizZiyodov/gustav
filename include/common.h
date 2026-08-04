@@ -1,11 +1,8 @@
 #pragma once
 
 #include <errno.h>
-#include <error.h>
 #include <stdarg.h>
-#include <stdbool.h>
 #include <stddef.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -26,7 +23,7 @@
 #endif // GUSTAV_DEBUG
 
 __attribute__((format(printf, 2, 3), noreturn)) static inline void
-gustav_error(short code, const char *format, ...)
+Gustav_Error(short code, const char *format, ...)
 {
 	va_list args;
 	va_start(args, format);

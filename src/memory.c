@@ -32,7 +32,7 @@ void *Mem_Realloc(void *pointer, size_t old_size, size_t new_size)
 	void *result = realloc(pointer, new_size);
 
 	if (result is NULL) {
-		gustav_error(EXIT_FAILURE, "Can't perform reallocate");
+		Gustav_Error(EXIT_FAILURE, "Can't perform reallocate");
 	}
 
 	return result;

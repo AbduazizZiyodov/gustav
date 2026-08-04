@@ -46,7 +46,7 @@ size_t Chunk_AddConstant(Chunk *chunk, Value value)
 	ValueArray_Write(&chunk->constants, value);
 
 	if (chunk->constants.count > UINT8_MAX) {
-		gustav_error(EXIT_FAILURE, "Too many constants in one chunk");
+		Gustav_Error(EXIT_FAILURE, "Too many constants in one chunk");
 	}
 	VM_Pop();
 	return chunk->constants.count - 1;

@@ -1,6 +1,6 @@
 #include <signal.h>
-#include <stdbool.h>
 #include <stdlib.h>
+#include <sysexits.h>
 
 #include "cli.h"
 #include "common.h"
@@ -16,7 +16,7 @@ static void gustav_shutdown(int signum)
 int main(int argc, char **argv)
 {
 	if (signal(SIGINT, gustav_shutdown) == SIG_ERR) {
-		gustav_error(EXIT_FAILURE, "Can't set signal handler");
+		Gustav_Error(EXIT_FAILURE, "Can't set signal handler");
 	}
 
 	show_gustav_info();
@@ -32,7 +32,7 @@ int main(int argc, char **argv)
 		LOG_TRACE("Running from run_file()\n");
 		status = run_file(argv[1]);
 	} else {
-		gustav_error(64, "Usage: gustav [path]\n");
+		Gustav_Error(EX_USAGE, "Usage: gustav [path]\n");
 	}
 
 	VM_Free();
