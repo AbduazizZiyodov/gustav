@@ -1,40 +1,37 @@
 name: CI
-
 on: [push]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v6
+      - uses: actions/checkout@v6
 
-      - name: List files in the repo
+      - name: Install LLVM/Clang 19
         run: |
-          ls ${{ github.workspace }}
-      - name: Prerequisites
-        run: |
-          sudo apt-get install ca-certificates gpg wget git
-
-      - name: Install LLVM/Clang stuff
-        run: |
-          wget https://apt.llvm.org/llvm.sh
-          chmod +x llvm.sh
-          sudo ./llvm.sh 19 all
-
-      - name: Install cmake
-        run: |
-          sudo apt-get install cmake
+          wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc > /dev/null
+          echo "deb http://apt.llvm.org/noble/ llvm-toolchain-noble-19 main" | sudo tee /etc/apt/sources.list.d/llvm19.list
+          sudo apt-get update && sudo apt-get install -y --no-install-recommends \
+            clang-19 clang-tidy-19 clang-format-19 lld-19 ninja-build
 
       - name: Verify installation
         run: |
           cmake --version
+          ninja --version
           clang-19 --version
           clang-tidy-19 --version
+          clang-format-19 --version
+          ls -l /usr/bin/ld.lld* /usr/bin/lld*
 
       - name: Build
-        run: |
-          ./build.sh
+        run: ./build.sh
 
       - name: Verify build
         run: |
@@ -45,3 +42,4 @@ jobs:
         with:
           name: gustav-build-targets
           path: ./target
+          if-no-files-found: error
