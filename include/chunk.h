@@ -5,9 +5,6 @@
 
 #include "value.h"
 
-// Source - https://stackoverflow.com/a/10966395
-// Posted by Terrence M, modified by community. See post 'Timeline' for change
-// history Retrieved 2026-01-08, License - CC BY-SA 3.0
 #define FOREACH_OP_CODE(DO)  \
 	DO(OP_CONSTANT)      \
 	DO(OP_NIL)           \
@@ -52,11 +49,7 @@
 	DO(OP_SUPER_INVOKE)  \
 	DO(OP_UNINITIALIZED)
 
-#define GENERATE_ENUM(ENUM) ENUM,
-#define GENERATE_STRING(STRING) #STRING,
-
 typedef enum { FOREACH_OP_CODE(GENERATE_ENUM) } OpCode;
-
 static const char *OP_CODE_STRING[] = { FOREACH_OP_CODE(GENERATE_STRING) };
 
 typedef struct {

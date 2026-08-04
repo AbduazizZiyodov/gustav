@@ -1,8 +1,8 @@
 #pragma once
 
-#include "chunk.h"
 #include <stdint.h>
 
+#include "chunk.h"
 #include "hash_table.h"
 #include "value.h"
 
@@ -25,16 +25,18 @@
 #define AS_INSTANCE(value) (((InstanceObject *)AS_OBJ(value)))
 #define AS_BOUND_METHOD(value) (((BoundMethodObject *)AS_OBJ(value)))
 
-typedef enum {
-	OBJ_CLOSURE,
-	OBJ_FUNCTION,
-	OBJ_NATIVE,
-	OBJ_STRING,
-	OBJ_UPVALUE,
-	OBJ_CLASS,
-	OBJ_INSTANCE,
-	OBJ_BOUND_METHOD
-} ObjectType;
+#define FOREACH_OBJECT_TYPE(DO) \
+	DO(OBJ_CLOSURE)         \
+	DO(OBJ_FUNCTION)        \
+	DO(OBJ_NATIVE)          \
+	DO(OBJ_STRING)          \
+	DO(OBJ_UPVALUE)         \
+	DO(OBJ_CLASS)           \
+	DO(OBJ_INSTANCE)        \
+	DO(OBJ_BOUND_METHOD)
+
+typedef enum { FOREACH_OBJECT_TYPE(GENERATE_ENUM) } ObjectType;
+static const char *OBJECT_TYPE_STRING[] = { FOREACH_OBJECT_TYPE(GENERATE_STRING) };
 
 struct Object {
 	ObjectType type;
