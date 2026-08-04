@@ -12,13 +12,13 @@
 bool call(ClosureObject *closure, int arg_count)
 {
 	if ((size_t)arg_count != closure->function->arity) {
-		runtime_error("Expected %d arguments but got %d.", (int)closure->function->arity,
-			      arg_count);
+		Gustav_Runtime_Error("Expected %d arguments but got %d.",
+				     (int)closure->function->arity, arg_count);
 		return false;
 	}
 
 	if (vm.frame_count == FRAMES_MAX) {
-		runtime_error("Stack overflow."); // yes
+		Gustav_Runtime_Error("Stack overflow."); // yes
 		return false;
 	}
 
@@ -48,7 +48,7 @@ bool call_value(Value callee, int arg_count)
 				return call(AS_CLOSURE(initializer), arg_count);
 			}
 			if (arg_count != 0) {
-				runtime_error("Expected 0 arguments but got %d.", arg_count);
+				Gustav_Runtime_Error("Expected 0 arguments but got %d.", arg_count);
 				return false;
 			}
 			return true;
@@ -68,7 +68,7 @@ bool call_value(Value callee, int arg_count)
 		}
 	}
 
-	runtime_error("Can only call functions and classes.");
+	Gustav_Runtime_Error("Can only call functions and classes.");
 	return false;
 }
 
@@ -77,7 +77,7 @@ bool invoke_from_class(ClassObject *klass, StringObject *name, int arg_count)
 	Value method;
 
 	if (!HashTable_GetItem(&klass->methods, name, &method)) {
-		runtime_error("Undefined property '%s'.", name->chars);
+		Gustav_Runtime_Error("Undefined property '%s'.", name->chars);
 		return false;
 	}
 
@@ -89,7 +89,7 @@ bool invoke(StringObject *name, int arg_count)
 	Value receiver = VM_Peek(arg_count);
 
 	if (!Instance_Check(receiver)) {
-		runtime_error("Only instance have methods.");
+		Gustav_Runtime_Error("Only instance have methods.");
 		return false;
 	}
 
@@ -110,7 +110,7 @@ bool bind_method(ClassObject *klass, StringObject *name)
 	Value method;
 
 	if (!HashTable_GetItem(&klass->methods, name, &method)) {
-		runtime_error("Undefined property '%s'.", name->chars);
+		Gustav_Runtime_Error("Undefined property '%s'.", name->chars);
 		return false;
 	}
 

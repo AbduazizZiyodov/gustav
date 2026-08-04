@@ -26,8 +26,7 @@ void trace(CallFrame *frame)
 		(void)putchar('\n');
 	}
 
-	LOG_DEBUG("== [/stack] ==\n");
-	printf("\n");
+	LOG_DEBUG("== [/stack] ==\n\n");
 }
 
 #else
