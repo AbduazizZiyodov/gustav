@@ -1,0 +1,56 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "Gustav",
+	"patterns": [
+		{
+			"include": "#keywords-control"
+		},
+		{
+			"include": "#keywords-constants"
+		},
+		{
+			"include": "#numbers"
+		},
+		{
+			"include": "#strings"
+		}
+	],
+	"repository": {
+		"keywords-control": {
+			"patterns": [
+				{
+					"name": "keyword.control.gustav",
+					"match": "\\b(if|while|for|loop|return|break|continue|class|else|fun|var|super|this|stdout|stderr)\\b"
+				}
+			]
+		},
+		"keywords-constants": {
+			"patterns": [
+				{
+					"name": "constant.language.gustav",
+					"match": "\\b(true|false|nil)\\b"
+				}
+			]
+		},
+		"numbers": {
+			"patterns": [
+				{
+					"name": "constant.numeric.gustav",
+					"match": "\\b\\d+(\\.\\d+)?\\b"
+				}
+			]
+		},
+		"strings": {
+			"name": "string.quoted.double.gustav",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [
+				{
+					"name": "constant.character.escape.gustav",
+					"match": "\\\\."
+				}
+			]
+		}
+	},
+	"scopeName": "source.gustav"
+}
