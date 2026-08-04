@@ -39,7 +39,8 @@ static Object *allocate_object(size_t size, ObjectType type)
 	object->next = gc.objects;
 	gc.objects = object;
 
-	LOG_GC("%p allocate %zu for %d\n", (void *)object, size, type);
+	LOG_GC("allocate_object at %p size=%zu type=%s\n", (void *)object, size,
+	       OBJECT_TYPE_STRING[type]);
 
 	return object;
 }

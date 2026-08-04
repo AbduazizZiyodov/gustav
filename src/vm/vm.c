@@ -404,7 +404,7 @@ static InterpretResult run(void)
 
 InterpretResult VM_Interpret(const char *source)
 {
-	LOG_DEBUG("\n== [source] ==\n%s\n== [/source] ==\n\n", source);
+	LOG_DEBUG("\n\n== [source] ==\n%s\n== [/source] ==\n\n", source);
 	LOG_INFO("Begin compiling\n");
 
 	FunctionObject *function = compile(source);

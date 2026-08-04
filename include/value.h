@@ -6,13 +6,17 @@
 #include <stdio.h>
 #include <string.h>
 
-typedef enum {
-	VAL_BOOL,
-	VAL_NIL,
-	VAL_NUMBER,
-	VAL_OBJ,
-	VAL_UNINITIALIZED,
-} ValueType;
+#include "common.h"
+
+#define FOREACH_VALUE_TYPE(DO) \
+	DO(VAL_BOOL)           \
+	DO(VAL_NIL)            \
+	DO(VAL_NUMBER)         \
+	DO(VAL_OBJ)            \
+	DO(VAL_UNINITIALIZED)
+
+typedef enum { FOREACH_VALUE_TYPE(GENERATE_ENUM) } ValueType;
+static const char *VALUE_TYPE_STRING[] = { FOREACH_VALUE_TYPE(GENERATE_STRING) };
 
 typedef struct Object Object;
 typedef struct StringObject StringObject;

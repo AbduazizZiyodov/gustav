@@ -11,6 +11,10 @@
 #define UINT8_COUNT (UINT8_MAX + 1)
 #define ARRAY_LENGTH(arr) (sizeof(arr) / sizeof((arr)[0]))
 
+// https://stackoverflow.com/a/10966395
+#define GENERATE_ENUM(ENUM) ENUM,
+#define GENERATE_STRING(STRING) #STRING,
+
 #ifdef GUSTAV_DEBUG
 #define UNREACHABLE()                                                                      \
 	do {                                                                               \
