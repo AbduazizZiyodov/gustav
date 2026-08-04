@@ -3,7 +3,9 @@
     "adapter": "CodeLLDB",
     "label": "Debug via LLDB",
     "program": "./target/gustav_debug",
-    "args": ["./test.gus"],
-    "request": "launch",
-  },
+    "args": [
+      "./test.gus"
+    ],
+    "request": "launch"
+  }
 ]

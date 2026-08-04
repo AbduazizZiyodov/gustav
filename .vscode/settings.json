@@ -3,6 +3,10 @@
     "--compile-commands-dir=${workspaceFolder}",
     "--background-index",
     "--clang-tidy",
-    "--header-insertion=never"
+    "--header-insertion=never",
+    "--completion-style=detailed",
+    "--all-scopes-completion",
+    "--pch-storage=memory",
+    "-j=4"
   ]
 }
