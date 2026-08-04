@@ -2,7 +2,6 @@
 #define _POSIX_C_SOURCE 200809L
 
 #include <errno.h>
-/* NOLINTNEXTLINE(misc-include-cleaner) */
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -14,7 +13,6 @@
 Value gustav_clock_native(int arg_count [[maybe_unused]], Value *args [[maybe_unused]])
 {
 	struct timespec ts;
-	/* NOLINTNEXTLINE(misc-include-cleaner) */
 	if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0) {
 		return NIL_VAL;
 	}

@@ -7,14 +7,14 @@
 #include "object.h"
 #include "value.h"
 
-void ValueArray_Init(ValueArray *array)
+void init_value_array(ValueArray *array)
 {
 	array->count = 0;
 	array->capacity = 0;
 	array->values = NULL;
 }
 
-void ValueArray_Write(ValueArray *array, Value value)
+void write_to_value_array(ValueArray *array, Value value)
 {
 	if (array->capacity < array->count + 1) {
 		size_t old_capacity = array->capacity;
@@ -25,13 +25,13 @@ void ValueArray_Write(ValueArray *array, Value value)
 	array->count++;
 }
 
-void ValueArray_Free(ValueArray *array)
+void free_value_array(ValueArray *array)
 {
 	FREE_ARRAY(Value, array->values, array->capacity);
-	ValueArray_Init(array);
+	init_value_array(array);
 }
 
-void Value_Print(FILE *stream, Value value)
+void print_value(FILE *stream, Value value)
 {
 	switch (value.type) {
 	case VAL_BOOL:
@@ -52,7 +52,7 @@ void Value_Print(FILE *stream, Value value)
 	}
 }
 
-bool Value_Equal(Value a, Value b)
+bool value_equal(Value a, Value b)
 {
 	if (a.type != b.type) {
 		return false;

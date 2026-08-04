@@ -67,8 +67,8 @@ typedef struct {
 	size_t line;
 } Token;
 
-void Scanner_Init(const char *source);
-Token Scanner_ScanToken(void);
+void init_scanner(const char *source);
+Token scan_token(void);
 
 typedef struct {
 	const char *value;

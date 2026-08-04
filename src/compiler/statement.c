@@ -79,7 +79,7 @@ static void statement_loop(void)
 {
 	size_t loop_start = current_chunk()->count;
 
-	emit_byte(OP_TRUE); // while(true) -> loop
+	emit_byte(OP_TRUE); // expr is while(true) -> loop
 	int exit_jump = emit_jump(OP_JUMP_IF_FALSE);
 	emit_byte(OP_POP);
 	statement_parse();

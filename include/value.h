@@ -49,10 +49,10 @@ typedef struct {
 	Value *values;
 } ValueArray;
 
-bool Value_Equal(Value a, Value b);
+bool value_equal(Value a, Value b);
 
-void ValueArray_Init(ValueArray *value_array);
-void ValueArray_Free(ValueArray *value_array);
-void ValueArray_Write(ValueArray *value_array, Value value);
+void init_value_array(ValueArray *value_array);
+void free_value_array(ValueArray *value_array);
+void write_to_value_array(ValueArray *value_array, Value value);
 
-void Value_Print(FILE *stream, Value value);
+void print_value(FILE *stream, Value value);

@@ -5,7 +5,7 @@
 #include "upvalue.h"
 #include "value.h"
 
-UpvalueObject *capture_upvalue(Value *local)
+UpvalueObject *vm_capture_upvalue(Value *local)
 {
 	UpvalueObject *prev_upvalue = NULL;
 	UpvalueObject *upvalue = vm.open_upvalues;
@@ -19,7 +19,7 @@ UpvalueObject *capture_upvalue(Value *local)
 		return upvalue;
 	}
 
-	UpvalueObject *created_upvalue = Upvalue_New(local);
+	UpvalueObject *created_upvalue = new_upvalue(local);
 
 	created_upvalue->next = upvalue;
 
@@ -32,7 +32,7 @@ UpvalueObject *capture_upvalue(Value *local)
 	return created_upvalue;
 }
 
-void close_upvalues(const Value *last)
+void vm_close_upvalues(const Value *last)
 {
 	while (vm.open_upvalues != NULL && vm.open_upvalues->location >= last) {
 		UpvalueObject *upvalue = vm.open_upvalues;

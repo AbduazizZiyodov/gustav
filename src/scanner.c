@@ -13,7 +13,7 @@ static bool is_alpha(char c);
 static Token make_identifier_token(void);
 static bool is_digit(char c);
 static Token make_number_token(void);
-static bool match(char expected);
+static bool scanner_match(char expected);
 static Token make_string_token(void);
 static Token make_error_token(const char *message);
 
@@ -25,14 +25,14 @@ typedef struct {
 
 static ScannerState scanner_state;
 
-void Scanner_Init(const char *source)
+void init_scanner(const char *source)
 {
 	scanner_state.start = source;
 	scanner_state.current = source;
 	scanner_state.line = 1;
 }
 
-Token Scanner_ScanToken(void)
+Token scan_token(void)
 {
 	skip_whitespace();
 
@@ -70,19 +70,19 @@ Token Scanner_ScanToken(void)
 	case '-':
 		return make_token(TOKEN_MINUS);
 	case '+':
-		return make_token(match('+') ? TOKEN_PLUS_PLUS : TOKEN_PLUS);
+		return make_token(scanner_match('+') ? TOKEN_PLUS_PLUS : TOKEN_PLUS);
 	case '/':
 		return make_token(TOKEN_SLASH);
 	case '*':
-		return make_token(match('*') ? TOKEN_POW : TOKEN_STAR);
+		return make_token(scanner_match('*') ? TOKEN_POW : TOKEN_STAR);
 	case '!':
-		return make_token(match('=') ? TOKEN_BANG_EQUAL : TOKEN_BANG);
+		return make_token(scanner_match('=') ? TOKEN_BANG_EQUAL : TOKEN_BANG);
 	case '=':
-		return make_token(match('=') ? TOKEN_EQUAL_EQUAL : TOKEN_EQUAL);
+		return make_token(scanner_match('=') ? TOKEN_EQUAL_EQUAL : TOKEN_EQUAL);
 	case '<':
-		return make_token(match('=') ? TOKEN_LESS_EQUAL : TOKEN_LESS);
+		return make_token(scanner_match('=') ? TOKEN_LESS_EQUAL : TOKEN_LESS);
 	case '>':
-		return make_token(match('=') ? TOKEN_GREATER_EQUAL : TOKEN_GREATER);
+		return make_token(scanner_match('=') ? TOKEN_GREATER_EQUAL : TOKEN_GREATER);
 	case '"':
 		return make_string_token();
 	default:
@@ -134,7 +134,7 @@ static char peek_next(void)
 	return scanner_state.current[1];
 }
 
-static bool match(char expected)
+static bool scanner_match(char expected)
 {
 	if (is_at_end()) {
 		return false;

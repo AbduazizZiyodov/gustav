@@ -17,18 +17,18 @@ static int byte_instruction(const char *name, Chunk *chunk, int offset);
 static int jump_instruction(const char *name, int sign, Chunk *chunk, int offset);
 static int invoke_instruction(const char *name, Chunk *chunk, int offset);
 
-void Debug_DisassembleChunk(Chunk *chunk, const char *name)
+void debug_disassemble_chunk(Chunk *chunk, const char *name)
 {
 	printf("\n");
 
 	LOG_DEBUG("== [%s] ==\n", name);
 	for (int offset = 0; offset < (int)chunk->count;) {
-		offset = Debug_DisassembleInstruction(chunk, offset);
+		offset = debug_disassemble_instruction(chunk, offset);
 	}
 	LOG_DEBUG("== [/%s] ==\n\n", name);
 }
 
-int Debug_DisassembleInstruction(Chunk *chunk, int offset)
+int debug_disassemble_instruction(Chunk *chunk, int offset)
 {
 	current_instruction = chunk->code[offset];
 
@@ -84,7 +84,7 @@ int Debug_DisassembleInstruction(Chunk *chunk, int offset)
 		offset++;
 		uint8_t constant = chunk->code[offset++];
 		LOG_DEBUG("%-16s %4d ", "OP_CLOSURE", constant);
-		Value_Print(stdout, chunk->constants.values[constant]);
+		print_value(stdout, chunk->constants.values[constant]);
 		printf("\n");
 
 		FunctionObject *function = AS_FUNCTION(chunk->constants.values[constant]);
@@ -113,7 +113,7 @@ static int invoke_instruction(const char *name, Chunk *chunk, int offset)
 	uint8_t constant = chunk->code[offset + 1];
 	uint8_t arg_count = chunk->code[offset + 2];
 	LOG_DEBUG("%-16s (%d args) %4d '", name, arg_count, constant);
-	Value_Print(stdout, chunk->constants.values[constant]);
+	print_value(stdout, chunk->constants.values[constant]);
 	printf("\n");
 
 	return offset + 3;
@@ -125,7 +125,7 @@ static int constant_instruction(const char *name, Chunk *chunk, int offset)
 	Value value = chunk->constants.values[constant];
 
 	LOG_DEBUG("%04d %s %04d value=", offset, name, constant);
-	Value_Print(stdout, value);
+	print_value(stdout, value);
 	printf("\n");
 
 	return offset + 2;
@@ -154,7 +154,7 @@ static int jump_instruction(const char *name, int sign, Chunk *chunk, int offset
 #include "chunk.h"
 #include "debug.h"
 
-void Debug_DisassembleChunk(Chunk *chunk [[maybe_unused]], const char *name [[maybe_unused]])
+void debug_disassemble_chunk(Chunk *chunk [[maybe_unused]], const char *name [[maybe_unused]])
 {
 }
 #endif // GUSTAV_DEBUG

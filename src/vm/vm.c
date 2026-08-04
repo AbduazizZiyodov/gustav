@@ -34,13 +34,13 @@ VM vm;
 
 #define BINARY_OP(TYPE, op)                                                   \
 	do {                                                                  \
-		if (!Number_Check(VM_Peek(0)) || !Number_Check(VM_Peek(1))) { \
-			Gustav_Runtime_Error("Operands must be numbers.");    \
+		if (!Number_Check(vm_peek(0)) || !Number_Check(vm_peek(1))) { \
+			gustav_runtime_error("Operands must be numbers.");    \
 			return INTERPRET_RUNTIME_ERROR;                       \
 		}                                                             \
-		b = AS_NUMBER(VM_Pop());                                      \
-		a = AS_NUMBER(VM_Pop());                                      \
-		VM_Push(TYPE(a op b));                                        \
+		b = AS_NUMBER(vm_pop());                                      \
+		a = AS_NUMBER(vm_pop());                                      \
+		vm_push(TYPE(a op b));                                        \
 	} while (false);
 
 /* NOLINTNEXTLINE(readability-function-size) */
@@ -57,31 +57,31 @@ static InterpretResult run(void)
 	CallFrame *frame = &vm.frames[vm.frame_count - 1];
 
 	while (true) {
-		trace(frame);
+		vm_trace(frame);
 
 		switch (instruction = READ_BYTE()) {
 		case OP_CONSTANT:
 			result_value = READ_CONSTANT();
-			VM_Push(result_value);
+			vm_push(result_value);
 			break;
 		case OP_NIL:
-			VM_Push(NIL_VAL);
+			vm_push(NIL_VAL);
 			break;
 		case OP_TRUE:
-			VM_Push(BOOL_VAL(true));
+			vm_push(BOOL_VAL(true));
 			break;
 		case OP_FALSE:
-			VM_Push(BOOL_VAL(false));
+			vm_push(BOOL_VAL(false));
 			break;
 		case OP_UNINITIALIZED:
-			VM_Push(UNINITIALIZED_VAL);
+			vm_push(UNINITIALIZED_VAL);
 			break;
 		case OP_POP:
-			VM_Pop();
+			vm_pop();
 			break;
 		case OP_SET_LOCAL: {
 			uint8_t slot = READ_BYTE();
-			frame->slots[slot] = VM_Peek(0);
+			frame->slots[slot] = vm_peek(0);
 			break;
 		}
 		case OP_GET_LOCAL: {
@@ -89,42 +89,42 @@ static InterpretResult run(void)
 			Value slot_value = frame->slots[slot];
 
 			if (Uninitialized_Check(slot_value)) {
-				Gustav_Runtime_Error("Can't use uninitialized variable.");
+				gustav_runtime_error("Can't use uninitialized variable.");
 				return INTERPRET_RUNTIME_ERROR;
 			}
 
-			VM_Push(slot_value);
+			vm_push(slot_value);
 			break;
 		}
 		case OP_DEFINE_GLOBAL: {
 			StringObject *name = READ_STRING();
-			HashTable_SetItem(&vm.globals, name, VM_Peek(0));
-			VM_Pop();
+			hash_table_set_item(&vm.globals, name, vm_peek(0));
+			vm_pop();
 			break;
 		}
 		case OP_GET_GLOBAL: {
 			StringObject *name = READ_STRING();
 			Value value;
 
-			if (!HashTable_GetItem(&vm.globals, name, &value)) {
-				Gustav_Runtime_Error("Undefined variable '%s'.", name->chars);
+			if (!hash_table_get_item(&vm.globals, name, &value)) {
+				gustav_runtime_error("Undefined variable '%s'.", name->chars);
 				return INTERPRET_RUNTIME_ERROR;
 			}
 
 			if (Uninitialized_Check(value)) {
-				Gustav_Runtime_Error("Can't use uninitialized variable '%s'.",
+				gustav_runtime_error("Can't use uninitialized variable '%s'.",
 						     name->chars);
 				return INTERPRET_RUNTIME_ERROR;
 			}
 
-			VM_Push(value);
+			vm_push(value);
 			break;
 		}
 		case OP_SET_GLOBAL: {
 			StringObject *name = READ_STRING();
-			if (HashTable_SetItem(&vm.globals, name, VM_Peek(0))) {
-				HashTable_DelItem(&vm.globals, name);
-				Gustav_Runtime_Error("Undefined variable '%s'.", name->chars);
+			if (hash_table_set_item(&vm.globals, name, vm_peek(0))) {
+				hash_table_delete_item(&vm.globals, name);
+				gustav_runtime_error("Undefined variable '%s'.", name->chars);
 				return INTERPRET_RUNTIME_ERROR;
 			}
 			break;
@@ -134,58 +134,58 @@ static InterpretResult run(void)
 			Value slot_value = *frame->closure->upvalues[slot]->location;
 
 			if (Uninitialized_Check(slot_value)) {
-				Gustav_Runtime_Error("Can't use uninitialized variable.");
+				gustav_runtime_error("Can't use uninitialized variable.");
 				return INTERPRET_RUNTIME_ERROR;
 			}
 
-			VM_Push(slot_value);
+			vm_push(slot_value);
 			break;
 		}
 		case OP_SET_UPVALUE: {
 			uint8_t slot = READ_BYTE();
-			*frame->closure->upvalues[slot]->location = VM_Peek(0);
+			*frame->closure->upvalues[slot]->location = vm_peek(0);
 			break;
 		}
 		case OP_GET_PROPERTY: {
-			if (!Instance_Check(VM_Peek(0))) {
-				Gustav_Runtime_Error("Only instances have properties.");
+			if (!Instance_Check(vm_peek(0))) {
+				gustav_runtime_error("Only instances have properties.");
 				return INTERPRET_RUNTIME_ERROR;
 			}
 
-			InstanceObject *instance = AS_INSTANCE(VM_Peek(0));
+			InstanceObject *instance = AS_INSTANCE(vm_peek(0));
 			StringObject *name = READ_STRING();
 
 			Value value;
 
-			if (HashTable_GetItem(&instance->fields, name, &value)) {
-				VM_Pop();
-				VM_Push(value);
+			if (hash_table_get_item(&instance->fields, name, &value)) {
+				vm_pop();
+				vm_push(value);
 				break;
 			}
 
-			if (!bind_method(instance->klass, name)) {
+			if (!vm_bind_method(instance->klass, name)) {
 				return INTERPRET_RUNTIME_ERROR;
 			}
 
 			break;
 		}
 		case OP_SET_PROPERTY: {
-			if (!Instance_Check(VM_Peek(1))) {
-				Gustav_Runtime_Error("Only instances have fields.");
+			if (!Instance_Check(vm_peek(1))) {
+				gustav_runtime_error("Only instances have fields.");
 				return INTERPRET_RUNTIME_ERROR;
 			}
-			InstanceObject *instance = AS_INSTANCE(VM_Peek(1));
-			HashTable_SetItem(&instance->fields, READ_STRING(), VM_Peek(0));
-			Value value = VM_Pop();
-			VM_Pop();
-			VM_Push(value);
+			InstanceObject *instance = AS_INSTANCE(vm_peek(1));
+			hash_table_set_item(&instance->fields, READ_STRING(), vm_peek(0));
+			Value value = vm_pop();
+			vm_pop();
+			vm_push(value);
 			break;
 		}
 		case OP_EQUAL: {
-			y = VM_Pop();
-			x = VM_Pop();
-			result_value = BOOL_VAL(Value_Equal(x, y));
-			VM_Push(result_value);
+			y = vm_pop();
+			x = vm_pop();
+			result_value = BOOL_VAL(value_equal(x, y));
+			vm_push(result_value);
 			break;
 		}
 		case OP_GREATER:
@@ -198,10 +198,10 @@ static InterpretResult run(void)
 			BINARY_OP(NUMBER_VAL, +);
 			break;
 		case OP_CONCAT: {
-			if (String_Check(VM_Peek(0)) && String_Check(VM_Peek(1))) {
-				VM_String_Concatenate();
+			if (String_Check(vm_peek(0)) && String_Check(vm_peek(1))) {
+				vm_string_concatenate();
 			} else {
-				Gustav_Runtime_Error(
+				gustav_runtime_error(
 					"Operands must be two strings to concatenate.");
 				return INTERPRET_RUNTIME_ERROR;
 			}
@@ -214,13 +214,13 @@ static InterpretResult run(void)
 			BINARY_OP(NUMBER_VAL, *);
 			break;
 		case OP_POW:
-			if (!Number_Check(VM_Peek(0)) || !Number_Check(VM_Peek(1))) {
-				Gustav_Runtime_Error("Operands must be numbers.");
+			if (!Number_Check(vm_peek(0)) || !Number_Check(vm_peek(1))) {
+				gustav_runtime_error("Operands must be numbers.");
 				return INTERPRET_RUNTIME_ERROR;
 			}
-			b = AS_NUMBER(VM_Pop());
-			a = AS_NUMBER(VM_Pop());
-			VM_Push(NUMBER_VAL(pow(a, b)));
+			b = AS_NUMBER(vm_pop());
+			a = AS_NUMBER(vm_pop());
+			vm_push(NUMBER_VAL(pow(a, b)));
 			break;
 		case OP_DIVIDE:
 			BINARY_OP(NUMBER_VAL, /);
@@ -236,7 +236,7 @@ static InterpretResult run(void)
 			} else {
 				// for OP_NEGATE
 				if (!Number_Check(top_value)) {
-					Gustav_Runtime_Error("Operand must be a number.");
+					gustav_runtime_error("Operand must be a number.");
 					return INTERPRET_RUNTIME_ERROR;
 				}
 				result_value = NUMBER_VAL(-AS_NUMBER(top_value));
@@ -247,7 +247,7 @@ static InterpretResult run(void)
 		}
 		case OP_PRINT_STDOUT: {
 			LOG_DEBUG("== [stdout] ==\n");
-			Value_Print(stdout, VM_Pop());
+			print_value(stdout, vm_pop());
 			fputc('\n', stdout);
 			fflush(stdout); // NOTE(Abduaziz): I had hard time to find out its buffered
 			LOG_DEBUG("== [/stdout] ==\n\n");
@@ -255,7 +255,7 @@ static InterpretResult run(void)
 		}
 		case OP_PRINT_STDERR: {
 			LOG_DEBUG("== [stderr] ==\n");
-			Value_Print(stderr, VM_Pop());
+			print_value(stderr, vm_pop());
 			(void)fputc('\n', stderr);
 			fflush(stderr);
 			LOG_DEBUG("== [/stderr] ==\n\n");
@@ -268,7 +268,7 @@ static InterpretResult run(void)
 		}
 		case OP_JUMP_IF_FALSE: {
 			uint16_t offset = READ_SHORT();
-			if (is_falsey(VM_Peek(0))) {
+			if (is_falsey(vm_peek(0))) {
 				frame->ip += offset;
 			}
 			break;
@@ -280,7 +280,7 @@ static InterpretResult run(void)
 		}
 		case OP_CALL: {
 			int arg_count = READ_BYTE();
-			if (!call_value(VM_Peek(arg_count), arg_count)) {
+			if (!vm_call_value(vm_peek(arg_count), arg_count)) {
 				return INTERPRET_RUNTIME_ERROR;
 			}
 			frame = &vm.frames[vm.frame_count - 1];
@@ -290,7 +290,7 @@ static InterpretResult run(void)
 			StringObject *method = READ_STRING();
 			int arg_count = READ_BYTE();
 
-			if (!invoke(method, arg_count)) {
+			if (!vm_invoke(method, arg_count)) {
 				return INTERPRET_RUNTIME_ERROR;
 			}
 			frame = &vm.frames[vm.frame_count - 1];
@@ -298,8 +298,8 @@ static InterpretResult run(void)
 		}
 		case OP_CLOSURE: {
 			FunctionObject *function = AS_FUNCTION(READ_CONSTANT());
-			ClosureObject *closure = Closure_New(function);
-			VM_Push(OBJ_VAL(closure));
+			ClosureObject *closure = new_closure(function);
+			vm_push(OBJ_VAL(closure));
 
 			for (int i = 0; i < closure->upvalue_count; i++) {
 				uint8_t is_local = READ_BYTE();
@@ -307,7 +307,7 @@ static InterpretResult run(void)
 
 				if (is_local) {
 					closure->upvalues[i] =
-						capture_upvalue(frame->slots + index);
+						vm_capture_upvalue(frame->slots + index);
 				} else {
 					closure->upvalues[i] = frame->closure->upvalues[index];
 				}
@@ -315,35 +315,35 @@ static InterpretResult run(void)
 			break;
 		}
 		case OP_CLOSE_UPVALUE: {
-			close_upvalues(vm.stack_top - 1);
-			VM_Pop();
+			vm_close_upvalues(vm.stack_top - 1);
+			vm_pop();
 			break;
 		}
 		case OP_RETURN: {
-			result_value = VM_Pop();
-			close_upvalues(frame->slots);
+			result_value = vm_pop();
+			vm_close_upvalues(frame->slots);
 			vm.frame_count--;
 			if (vm.frame_count == 0) {
-				VM_Pop();
+				vm_pop();
 				return INTERPRET_OK;
 			}
 			vm.stack_top = frame->slots;
-			VM_Push(result_value);
+			vm_push(result_value);
 			frame = &vm.frames[vm.frame_count - 1];
 			break;
 		}
 		case OP_RETURN_EXIT: {
-			result_value = VM_Pop();
+			result_value = vm_pop();
 
 			if (!Number_Check(result_value)) {
-				Gustav_Runtime_Error("Exit status must be a number.");
+				gustav_runtime_error("Exit status must be a number.");
 				return INTERPRET_RUNTIME_ERROR;
 			}
 
 			double status = AS_NUMBER(result_value);
 
 			if (!isfinite(status)) {
-				Gustav_Runtime_Error("Exit status must be a finite number.");
+				gustav_runtime_error("Exit status must be a finite number.");
 				return INTERPRET_RUNTIME_ERROR;
 			}
 
@@ -352,39 +352,39 @@ static InterpretResult run(void)
 			return INTERPRET_EXIT;
 		}
 		case OP_CLASS:
-			VM_Push(OBJ_VAL(Class_New(READ_STRING())));
+			vm_push(OBJ_VAL(new_class(READ_STRING())));
 			break;
 		case OP_INHERIT: {
-			Value superclass = VM_Peek(1);
+			Value superclass = vm_peek(1);
 
 			if (!Class_Check(superclass)) {
-				Gustav_Runtime_Error("Superclass must be a class.");
+				gustav_runtime_error("Superclass must be a class.");
 				return INTERPRET_RUNTIME_ERROR;
 			}
 
-			ClassObject *subclass = AS_CLASS(VM_Peek(0));
-			HashTable_AddAll(&AS_CLASS(superclass)->methods, &subclass->methods);
-			VM_Pop(); // subclass
+			ClassObject *subclass = AS_CLASS(vm_peek(0));
+			hash_table_add_all(&AS_CLASS(superclass)->methods, &subclass->methods);
+			vm_pop(); // subclass
 
 			break;
 		}
 		case OP_GET_SUPER: {
 			StringObject *name = READ_STRING();
-			ClassObject *superclass = AS_CLASS(VM_Pop());
+			ClassObject *superclass = AS_CLASS(vm_pop());
 
-			if (!bind_method(superclass, name)) {
+			if (!vm_bind_method(superclass, name)) {
 				return INTERPRET_RUNTIME_ERROR;
 			}
 			break;
 		}
 		case OP_METHOD:
-			define_method(READ_STRING());
+			vm_define_method(READ_STRING());
 			break;
 		case OP_SUPER_INVOKE: {
 			StringObject *method = READ_STRING();
 			int arg_count = READ_BYTE();
-			ClassObject *superclass = AS_CLASS(VM_Pop());
-			if (!invoke_from_class(superclass, method, arg_count)) {
+			ClassObject *superclass = AS_CLASS(vm_pop());
+			if (!vm_invoke_from_class(superclass, method, arg_count)) {
 				return INTERPRET_RUNTIME_ERROR;
 			}
 			frame = &vm.frames[vm.frame_count - 1];
@@ -407,17 +407,17 @@ InterpretResult VM_Interpret(const char *source)
 	LOG_DEBUG("\n== [source] ==\n%s\n== [/source] ==\n\n", source);
 	LOG_INFO("Begin compiling\n");
 
-	FunctionObject *function = Compiler_Compile(source);
+	FunctionObject *function = compile(source);
 	if (function == NULL) {
 		return INTERPRET_COMPILE_ERROR;
 	}
 
-	VM_Push(OBJ_VAL(function));
+	vm_push(OBJ_VAL(function));
 
-	ClosureObject *closure = Closure_New(function);
-	VM_Pop();
-	VM_Push(OBJ_VAL(closure));
-	call(closure, 0);
+	ClosureObject *closure = new_closure(function);
+	vm_pop();
+	vm_push(OBJ_VAL(closure));
+	vm_call(closure, 0);
 
 	return run();
 }

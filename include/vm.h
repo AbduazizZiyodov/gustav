@@ -11,12 +11,12 @@ typedef enum {
 	INTERPRET_EXIT
 } InterpretResult;
 
-void VM_Init(void);
-void VM_Free(void);
+void init_vm(void);
+void free_vm(void);
 InterpretResult VM_Interpret(const char *source);
 
-void VM_Push(Value value);
-Value VM_Pop(void);
+void vm_push(Value value);
+Value vm_pop(void);
 
-void VM_MarkRoots(void);
-int VM_ExitStatus(void);
+void vm_mark_roots(void);
+int vm_exit_status(void);

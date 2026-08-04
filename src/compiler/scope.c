@@ -59,9 +59,7 @@ int resolve_local(Compiler *compiler, Token *name)
 
 		if (identifiers_equal(name, &local->name)) {
 			if (local->depth == -1) {
-				compiler_error(
-
-					"Can't read local variable in its own initializer.");
+				compiler_error("Can't read local variable in its own initializer.");
 			}
 			return i;
 		}

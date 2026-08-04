@@ -2,5 +2,5 @@
 
 #include "chunk.h"
 
-void Debug_DisassembleChunk(Chunk *chunk, const char *name);
-int Debug_DisassembleInstruction(Chunk *chunk, int offset);
+void debug_disassemble_chunk(Chunk *chunk, const char *name);
+int debug_disassemble_instruction(Chunk *chunk, int offset);

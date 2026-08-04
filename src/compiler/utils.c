@@ -16,7 +16,8 @@ void token_advance(void)
 	parser_state.previous = parser_state.current;
 
 	while (true) {
-		parser_state.current = Scanner_ScanToken();
+		parser_state.current = scan_token();
+
 		LOG_DEBUG("line=%04d %-20s <=> '%.*s'\n", parser_state.current.line,
 			  TOKEN_TYPE_STRING[parser_state.current.type], parser_state.current.length,
 			  parser_state.current.start);
@@ -49,6 +50,7 @@ bool token_match(TokenType type)
 	if (!token_check(type)) {
 		return false;
 	}
+
 	token_advance();
 	return true;
 }

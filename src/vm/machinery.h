@@ -3,7 +3,7 @@
 #include "value.h"
 
 bool is_falsey(Value value);
-void VM_String_Concatenate(void);
+void vm_string_concatenate(void);
 
-Value VM_Peek(int distance);
-void VM_Reset_Stack(void);
+Value vm_peek(int distance);
+void vm_reset_stack(void);

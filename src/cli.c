@@ -54,7 +54,7 @@ int run_file(const char *path)
 	case INTERPRET_RUNTIME_ERROR:
 		return 64;
 	case INTERPRET_EXIT:
-		return VM_ExitStatus();
+		return vm_exit_status();
 	default:
 		return EXIT_SUCCESS;
 	}

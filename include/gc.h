@@ -18,8 +18,8 @@ typedef struct {
 
 extern GC gc;
 
-void GC_Init(void);
-void GC_Collect(void);
+void gc_init(void);
+void gc_collect(void);
 
-void GC_MarkObject(Object *object);
-void GC_MarkValue(Value value);
+void gc_mark_object(Object *object);
+void gc_mark_value(Value value);

@@ -6,5 +6,5 @@
 #include <stddef.h>
 #include <stdint.h>
 
-FunctionObject *Compiler_Compile(const char *source);
-void Compiler_MarkRoots(void);
+FunctionObject *compile(const char *source);
+void compiler_mark_roots(void);
