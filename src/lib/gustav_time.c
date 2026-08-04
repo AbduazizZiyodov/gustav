@@ -13,6 +13,7 @@
 Value gustav_clock_native(int arg_count [[maybe_unused]], Value *args [[maybe_unused]])
 {
 	struct timespec ts;
+	/* NOLINTNEXTLINE(misc-include-cleaner) */
 	if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0) {
 		return NIL_VAL;
 	}
