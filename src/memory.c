@@ -32,7 +32,7 @@ void *mem_realloc(void *pointer, size_t old_size, size_t new_size)
 	void *result = realloc(pointer, new_size);
 
 	if (result is NULL) {
-		Gustav_Error(EXIT_FAILURE, "Can't perform reallocate");
+		gustav_error(EXIT_FAILURE, "Can't perform reallocate");
 	}
 
 	return result;
@@ -60,7 +60,7 @@ void mem_free_object(Object *object)
 	}
 	case OBJ_STRING: {
 		StringObject *string = (StringObject *)object;
-		LOG_GC("Freeing string object: object=%p string_repr=%s\n", object, string->chars);
+		LOG_GC("freeing string object: object=%p string_repr=%s\n", object, string->chars);
 		FREE_ARRAY(char, string->chars, string->length + 1);
 		FREE(StringObject, object);
 		break;

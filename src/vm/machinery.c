@@ -52,7 +52,6 @@ static void define_native(const char *name, NativeFn function)
 
 void init_vm(void)
 {
-	LOG_INFO("VM initialized\n");
 	vm_reset_stack();
 
 	gc_init();
@@ -67,16 +66,17 @@ void init_vm(void)
 		NativeFunctionPair pair = NATIVE_FUNCTIONS[i];
 		define_native(pair.name, pair.function);
 	}
+	LOG_DEBUG("vm is initialized\n");
 }
 
 void free_vm(void)
 {
-	LOG_DEBUG("Running cleanup ...\n");
+	LOG_DEBUG("running cleanup(s) ...\n");
 	mem_free_objects();
 	free_interned_strings();
 	free_tash_table(&vm.globals);
 	vm.init_string = NULL;
-	LOG_INFO("VM freed\n");
+	LOG_DEBUG("vm is freed\n");
 }
 
 int vm_exit_status(void)

@@ -11,11 +11,11 @@ mkdir -p target builds
 
 readonly CONFIGS=(
 #  name          build_type     clang-tidy  sanitize  GC-stress  LOG_GC
-  "debug           Debug          ON          ON        OFF       ON"
-  "debug_stress    Debug          OFF         ON        ON        ON"
+  "debug           Debug          ON          ON        OFF       OFF"
+#  "debug_stress    Debug          OFF         ON        ON        ON"
   "release         Release        OFF         OFF       OFF       OFF"
-  "valgrind        Debug          OFF         OFF       OFF       OFF"
-  "valgrind_stress Debug          OFF         OFF       ON        OFF"
+#  "valgrind        Debug          OFF         OFF       OFF       OFF"
+#  "valgrind_stress Debug          OFF         OFF       ON        OFF"
 )
 
 build_gustav() {

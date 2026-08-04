@@ -27,7 +27,7 @@
 #endif // GUSTAV_DEBUG
 
 __attribute__((format(printf, 2, 3), noreturn)) static inline void
-Gustav_Error(short code, const char *format, ...)
+gustav_error(short code, const char *format, ...)
 {
 	va_list args;
 	va_start(args, format);

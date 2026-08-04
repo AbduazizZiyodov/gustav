@@ -2,11 +2,8 @@
 
 #include <stddef.h>
 
-// Source - https://stackoverflow.com/a/10966395
-// Posted by Terrence M, modified by community. See post 'Timeline' for change
-// history Retrieved 2026-01-08, License - CC BY-SA 3.0
-#define str(x) #x
-#define xstr(x) str(x)
+#include "common.h"
+
 #define FOREACH_TOKEN_TYPE(DO)  \
 	DO(TOKEN_LEFT_PAREN)    \
 	DO(TOKEN_RIGHT_PAREN)   \
@@ -51,13 +48,11 @@
 	DO(TOKEN_POW)           \
 	DO(TOKEN_PLUS_PLUS)     \
 	DO(TOKEN_LOOP)          \
+	DO(TOKEN_BREAK)         \
+	DO(TOKEN_CONTINUE)      \
 	DO(TOKEN_EOF)
 
-#define GENERATE_ENUM(ENUM) ENUM,
-#define GENERATE_STRING(STRING) #STRING,
-
 typedef enum { FOREACH_TOKEN_TYPE(GENERATE_ENUM) } TokenType;
-
 static const char *TOKEN_TYPE_STRING[] = { FOREACH_TOKEN_TYPE(GENERATE_STRING) };
 
 typedef struct {
@@ -78,6 +73,8 @@ typedef struct {
 
 static Keyword keywords_table[] = {
 	{ "and", 3, TOKEN_AND },
+	{ "break", 5, TOKEN_BREAK },
+	{ "continue", 8, TOKEN_CONTINUE },
 	{ "class", 5, TOKEN_CLASS },
 	{ "else", 4, TOKEN_ELSE },
 	{ "false", 5, TOKEN_FALSE },

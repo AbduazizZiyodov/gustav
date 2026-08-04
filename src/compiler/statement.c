@@ -9,6 +9,7 @@
 #include "error.h"
 #include "expression.h"
 #include "internal.h"
+#include "log.h"
 #include "scope.h"
 #include "statement.h"
 #include "utils.h"
@@ -75,6 +76,10 @@ static void statement_while(void)
 	emit_byte(OP_POP);
 }
 
+typedef struct {
+	
+} ExitJumps;
+
 static void statement_loop(void)
 {
 	size_t loop_start = current_chunk()->count;
@@ -135,6 +140,12 @@ static void statement_for(void)
 	end_scope();
 }
 
+static void statement_break(void)
+{
+	emit_byte(OP_BREAK);
+	token_consume(TOKEN_SEMICOLON, "Expect ';' after return value.");
+}
+
 static void statement_return(void)
 {
 	if (token_match(TOKEN_SEMICOLON)) {
@@ -172,6 +183,11 @@ void statement_parse(void)
 		statement_while();
 	} else if (token_match(TOKEN_LOOP)) {
 		statement_loop();
+	} else if (token_match(TOKEN_BREAK)) {
+		statement_break();
+	} else if (token_match(TOKEN_CONTINUE)) {
+		LOG_TRACE("detected continue statement\n");
+		token_consume(TOKEN_SEMICOLON, "Expect ';' after return value.");
 	} else if (token_match(TOKEN_LEFT_BRACE)) {
 		begin_scope();
 		statement_block();

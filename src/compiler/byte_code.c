@@ -20,7 +20,7 @@ void emit_loop(size_t loop_start)
 	size_t offset = current_chunk()->count - loop_start + 2;
 
 	if (offset > UINT16_MAX) {
-		compiler_error("Loop body too large");
+		compiler_error("Loop body is too large");
 	}
 
 	emit_byte((offset >> 8) & 0xff);

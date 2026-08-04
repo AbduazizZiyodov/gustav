@@ -82,7 +82,6 @@ FunctionObject *compile(const char *source)
 	parser_state.panic_mode = false;
 	parser_state.had_error = false;
 
-	LOG_INFO("Begin scanning\n");
 	LOG_DEBUG("== [scanner] ==\n");
 
 	token_advance();
@@ -90,6 +89,7 @@ FunctionObject *compile(const char *source)
 	while (!token_match(TOKEN_EOF)) {
 		declaration_parse();
 	}
+
 	LOG_DEBUG("== [/scanner] ==\n");
 
 	FunctionObject *function = finish_compiling();
