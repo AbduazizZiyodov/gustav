@@ -9,20 +9,20 @@
 #ifdef GUSTAV_DEBUG
 #include "debug.h"
 
-void trace(CallFrame *frame)
+void vm_trace(CallFrame *frame)
 {
 	// NOTE(Abduaziz): if enabled, prints the instruction that
 	// currently being executed & content of the stack
 
 	int offset = (int)(frame->ip - frame->closure->function->chunk.code);
-	Debug_DisassembleInstruction(&frame->closure->function->chunk, offset);
+	debug_disassemble_instruction(&frame->closure->function->chunk, offset);
 
 	LOG_DEBUG("== [stack] ==\n");
 	uint16_t i = 0;
 
 	for (Value *slot = vm.stack; slot < vm.stack_top; i++, slot++) {
 		printf("[%d] ", i);
-		Value_Print(stdout, *slot);
+		print_value(stdout, *slot);
 		(void)putchar('\n');
 	}
 
@@ -30,7 +30,7 @@ void trace(CallFrame *frame)
 }
 
 #else
-void trace(CallFrame *frame [[maybe_unused]])
+void vm_trace(CallFrame *frame [[maybe_unused]])
 {
 }
 

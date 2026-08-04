@@ -13,7 +13,7 @@
 
 GC gc;
 
-void GC_Init(void)
+void gc_init(void)
 {
 	gc.objects = NULL;
 
@@ -25,7 +25,7 @@ void GC_Init(void)
 	gc.gray_stack = NULL;
 }
 
-void GC_MarkObject(Object *object)
+void gc_mark_object(Object *object)
 {
 	if (object == NULL) {
 		return;
@@ -37,7 +37,7 @@ void GC_MarkObject(Object *object)
 
 #ifdef DEBUG_LOG_GC
 	LOG_GC("%p [mark] ", (void *)object);
-	Value_Print(stdout, OBJ_VAL(object));
+	print_value(stdout, OBJ_VAL(object));
 	printf("\n");
 #endif
 
@@ -60,63 +60,63 @@ void GC_MarkObject(Object *object)
 	gc.gray_stack[gc.gray_count++] = object;
 }
 
-void GC_MarkValue(Value value)
+void gc_mark_value(Value value)
 {
 	if (Object_Check(value)) {
-		GC_MarkObject(AS_OBJ(value));
+		gc_mark_object(AS_OBJ(value));
 	}
 }
 
-static void mark_array(ValueArray *array)
+static void gc_mark_array(ValueArray *array)
 {
 	for (size_t i = 0; i < array->count; i++) {
-		GC_MarkValue(array->values[i]);
+		gc_mark_value(array->values[i]);
 	}
 }
 
-static void blackify(Object *object)
+static void gc_blackify(Object *object)
 {
 #ifdef DEBUG_LOG_GC
-	LOG_GC("%p [blackify] ", (void *)object);
-	Value_Print(stdout, OBJ_VAL(object));
+	LOG_GC("%p [gc_blackify] ", (void *)object);
+	print_value(stdout, OBJ_VAL(object));
 	printf("\n");
 #endif
 
 	switch (object->type) {
 	case OBJ_BOUND_METHOD: {
 		BoundMethodObject *bound = (BoundMethodObject *)object;
-		GC_MarkValue(bound->receiver);
-		GC_MarkObject((Object *)bound->method);
+		gc_mark_value(bound->receiver);
+		gc_mark_object((Object *)bound->method);
 		break;
 	}
 	case OBJ_CLASS: {
 		ClassObject *klass = (ClassObject *)object;
-		GC_MarkObject((Object *)klass->name);
-		HashTable_Mark(&klass->methods);
+		gc_mark_object((Object *)klass->name);
+		hash_table_mark(&klass->methods);
 		break;
 	}
 	case OBJ_INSTANCE: {
 		InstanceObject *instance = (InstanceObject *)object;
-		GC_MarkObject((Object *)instance->klass);
-		HashTable_Mark(&instance->fields);
+		gc_mark_object((Object *)instance->klass);
+		hash_table_mark(&instance->fields);
 		break;
 	}
 	case OBJ_CLOSURE: {
 		ClosureObject *closure = (ClosureObject *)object;
-		GC_MarkObject((Object *)closure->function);
+		gc_mark_object((Object *)closure->function);
 		for (int i = 0; i < closure->upvalue_count; i++) {
-			GC_MarkObject((Object *)closure->upvalues[i]);
+			gc_mark_object((Object *)closure->upvalues[i]);
 		}
 		break;
 	}
 	case OBJ_FUNCTION: {
 		FunctionObject *function = (FunctionObject *)object;
-		GC_MarkObject((Object *)function->name);
-		mark_array(&function->chunk.constants);
+		gc_mark_object((Object *)function->name);
+		gc_mark_array(&function->chunk.constants);
 		break;
 	}
 	case OBJ_UPVALUE:
-		GC_MarkValue(((UpvalueObject *)object)->closed);
+		gc_mark_value(((UpvalueObject *)object)->closed);
 		break;
 	case OBJ_NATIVE:
 	case OBJ_STRING:
@@ -124,21 +124,21 @@ static void blackify(Object *object)
 	}
 }
 
-static void mark_roots(void)
+static void gc_mark_roots(void)
 {
-	VM_MarkRoots();
-	Compiler_MarkRoots();
+	vm_mark_roots();
+	compiler_mark_roots();
 }
 
-static void trace_references(void)
+static void gc_trace_references(void)
 {
 	while (gc.gray_count > 0) {
 		Object *object = gc.gray_stack[--gc.gray_count];
-		blackify(object);
+		gc_blackify(object);
 	}
 }
 
-static void sweep(void)
+static void gc_sweep(void)
 {
 	Object *previous = NULL;
 	Object *object = gc.objects;
@@ -158,22 +158,22 @@ static void sweep(void)
 				gc.objects = object;
 			}
 
-			Mem_FreeObject(unreached);
+			mem_free_object(unreached);
 		}
 	}
 }
 
-void GC_Collect(void)
+void gc_collect(void)
 {
 #ifdef DEBUG_LOG_GC
 	size_t before = gc.bytes_allocated;
 	LOG_GC("== [GC BEGIN] ==\n");
 #endif
 
-	mark_roots();
-	trace_references();
-	String_SweepInterned();
-	sweep();
+	gc_mark_roots();
+	gc_trace_references();
+	sweep_interned_strings();
+	gc_sweep();
 
 	gc.next_gc = gc.bytes_allocated * GC_HEAP_GROW_FACTOR;
 

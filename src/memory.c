@@ -10,15 +10,15 @@
 #include "object.h"
 #include "value.h"
 
-void *Mem_Realloc(void *pointer, size_t old_size, size_t new_size)
+void *mem_realloc(void *pointer, size_t old_size, size_t new_size)
 {
 	if (new_size > old_size) {
 		gc.bytes_allocated += new_size - old_size;
 #ifdef DEBUG_STRESS_GC
-		GC_Collect();
+		gc_collect();
 #endif
 		if (gc.bytes_allocated > gc.next_gc) {
-			GC_Collect();
+			gc_collect();
 		}
 	} else {
 		gc.bytes_allocated -= old_size - new_size;
@@ -38,7 +38,7 @@ void *Mem_Realloc(void *pointer, size_t old_size, size_t new_size)
 	return result;
 }
 
-void Mem_FreeObject(Object *object)
+void mem_free_object(Object *object)
 {
 	ClosureObject *closure;
 
@@ -48,13 +48,13 @@ void Mem_FreeObject(Object *object)
 		break;
 	case OBJ_CLASS: {
 		ClassObject *klass = (ClassObject *)object;
-		HashTable_Free(&klass->methods);
+		free_tash_table(&klass->methods);
 		FREE(ClassObject, object);
 		break;
 	}
 	case OBJ_INSTANCE: {
 		InstanceObject *instance = (InstanceObject *)object;
-		HashTable_Free(&instance->fields);
+		free_tash_table(&instance->fields);
 		FREE(InstanceObject, object);
 		break;
 	}
@@ -67,7 +67,7 @@ void Mem_FreeObject(Object *object)
 	}
 	case OBJ_FUNCTION: {
 		FunctionObject *function = (FunctionObject *)object;
-		Chunk_Free(&function->chunk);
+		chunk_free(&function->chunk);
 		FREE(FunctionObject, object);
 		break;
 	}
@@ -86,13 +86,13 @@ void Mem_FreeObject(Object *object)
 	}
 }
 
-void Mem_FreeObjects(void)
+void mem_free_objects(void)
 {
 	Object *object = gc.objects;
 
 	while (object != NULL) {
 		Object *next = object->next;
-		Mem_FreeObject(object);
+		mem_free_object(object);
 		object = next;
 	}
 

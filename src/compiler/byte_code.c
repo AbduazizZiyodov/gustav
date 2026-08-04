@@ -11,7 +11,7 @@
 
 void emit_byte(uint8_t byte)
 {
-	Chunk_Write(current_chunk(), byte, parser_state.previous.line);
+	chunk_write(current_chunk(), byte, parser_state.previous.line);
 }
 
 void emit_loop(size_t loop_start)
@@ -44,18 +44,6 @@ void emit_return(void)
 	emit_byte(OP_RETURN);
 }
 
-uint8_t make_constant(Value value)
-{
-	size_t constant = Chunk_AddConstant(current_chunk(), value);
-
-	if (constant > UINT8_MAX) {
-		compiler_error("Too many constants in one chunk");
-		return 0;
-	}
-
-	return (uint8_t)constant;
-}
-
 void emit_constant(Value value)
 {
 	EMIT_BYTES(OP_CONSTANT, make_constant(value));
@@ -71,4 +59,16 @@ void patch_jump(int offset)
 
 	current_chunk()->code[offset] = (jump >> 8) & 0xff;
 	current_chunk()->code[offset + 1] = jump & 0xff;
+}
+
+uint8_t make_constant(Value value)
+{
+	size_t constant = chunk_add_constant(current_chunk(), value);
+
+	if (constant > UINT8_MAX) {
+		compiler_error("Too many constants in one chunk");
+		return 0;
+	}
+
+	return (uint8_t)constant;
 }

@@ -34,13 +34,13 @@ void init_compiler(Compiler *compiler, FunctionType type)
 	compiler->local_count = 0;
 	compiler->scope_depth = 0;
 
-	compiler->function = Function_New();
+	compiler->function = new_function();
 
 	current = compiler;
 
 	if (type != TYPE_SCRIPT) {
-		current->function->name =
-			String_FromChars(parser_state.previous.start, parser_state.previous.length);
+		current->function->name = string_from_chars(parser_state.previous.start,
+							    parser_state.previous.length);
 	}
 
 	Local *local = &current->locals[current->local_count++];
@@ -63,8 +63,9 @@ FunctionObject *finish_compiling(void)
 
 #ifdef GUSTAV_DEBUG
 	if (!parser_state.had_error) {
-		Debug_DisassembleChunk(current_chunk(),
-				       function->name != NULL ? function->name->chars : "<script>");
+		debug_disassemble_chunk(current_chunk(), function->name != NULL ?
+								 function->name->chars :
+								 "<script>");
 	}
 #endif
 	current = current->enclosing;
@@ -72,9 +73,9 @@ FunctionObject *finish_compiling(void)
 	return function;
 }
 
-FunctionObject *Compiler_Compile(const char *source)
+FunctionObject *compile(const char *source)
 {
-	Scanner_Init(source);
+	init_scanner(source);
 	Compiler compiler;
 	init_compiler(&compiler, TYPE_SCRIPT);
 
@@ -99,12 +100,12 @@ FunctionObject *Compiler_Compile(const char *source)
 	return function;
 }
 
-void Compiler_MarkRoots(void)
+void compiler_mark_roots(void)
 {
 	Compiler *compiler = current;
 
 	while (compiler != NULL) {
-		GC_MarkObject((Object *)compiler->function);
+		gc_mark_object((Object *)compiler->function);
 		compiler = compiler->enclosing;
 	}
 }

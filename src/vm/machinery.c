@@ -12,9 +12,28 @@
 #include "value.h"
 #include "vm.h"
 
-Value VM_Peek(int distance)
+Value vm_peek(int distance)
 {
 	return vm.stack_top[-1 - distance];
+}
+
+void vm_push(Value value)
+{
+	*vm.stack_top = value;
+	vm.stack_top++;
+}
+
+Value vm_pop(void)
+{
+	vm.stack_top--;
+	return *vm.stack_top;
+}
+
+void vm_reset_stack(void)
+{
+	vm.stack_top = vm.stack;
+	vm.frame_count = 0;
+	vm.open_upvalues = NULL;
 }
 
 bool is_falsey(Value value)
@@ -22,46 +41,27 @@ bool is_falsey(Value value)
 	return Nil_Check(value) || (Bool_Check(value) && !AS_BOOL(value));
 }
 
-void VM_Push(Value value)
-{
-	*vm.stack_top = value;
-	vm.stack_top++;
-}
-
-Value VM_Pop(void)
-{
-	vm.stack_top--;
-	return *vm.stack_top;
-}
-
-void VM_Reset_Stack(void)
-{
-	vm.stack_top = vm.stack;
-	vm.frame_count = 0;
-	vm.open_upvalues = NULL;
-}
-
 static void define_native(const char *name, NativeFn function)
 {
-	VM_Push(OBJ_VAL(String_FromChars(name, strlen(name))));
-	VM_Push(OBJ_VAL(Native_New(function)));
-	HashTable_SetItem(&vm.globals, AS_STRING(vm.stack[0]), vm.stack[1]);
-	VM_Pop();
-	VM_Pop();
+	vm_push(OBJ_VAL(string_from_chars(name, strlen(name))));
+	vm_push(OBJ_VAL(new_native(function)));
+	hash_table_set_item(&vm.globals, AS_STRING(vm.stack[0]), vm.stack[1]);
+	vm_pop();
+	vm_pop();
 }
 
-void VM_Init(void)
+void init_vm(void)
 {
 	LOG_INFO("VM initialized\n");
-	VM_Reset_Stack();
+	vm_reset_stack();
 
-	GC_Init();
-	String_InitInterned();
+	gc_init();
+	init_interned_strings();
 
-	HashTable_Init(&vm.globals);
+	init_hash_table(&vm.globals);
 
 	vm.init_string = NULL;
-	vm.init_string = String_FromChars("init", 4);
+	vm.init_string = string_from_chars("init", 4);
 
 	for (size_t i = 0; i < NATIVE_FUNCTION_COUNT; i++) {
 		NativeFunctionPair pair = NATIVE_FUNCTIONS[i];
@@ -69,43 +69,43 @@ void VM_Init(void)
 	}
 }
 
-void VM_Free(void)
+void free_vm(void)
 {
 	LOG_DEBUG("Running cleanup ...\n");
-	Mem_FreeObjects();
-	String_FreeInterned();
-	HashTable_Free(&vm.globals);
+	mem_free_objects();
+	free_interned_strings();
+	free_tash_table(&vm.globals);
 	vm.init_string = NULL;
 	LOG_INFO("VM freed\n");
 }
 
-int VM_ExitStatus(void)
+int vm_exit_status(void)
 {
 	return vm.exit_status;
 }
 
-void VM_MarkRoots(void)
+void vm_mark_roots(void)
 {
 	for (Value *slot = vm.stack; slot < vm.stack_top; slot++) {
-		GC_MarkValue(*slot);
+		gc_mark_value(*slot);
 	}
 
 	for (size_t i = 0; i < vm.frame_count; i++) {
-		GC_MarkObject((Object *)vm.frames[i].closure);
+		gc_mark_object((Object *)vm.frames[i].closure);
 	}
 
 	for (UpvalueObject *upvalue = vm.open_upvalues; upvalue != NULL; upvalue = upvalue->next) {
-		GC_MarkObject((Object *)upvalue);
+		gc_mark_object((Object *)upvalue);
 	}
 
-	HashTable_Mark(&vm.globals);
-	GC_MarkObject((Object *)vm.init_string);
+	hash_table_mark(&vm.globals);
+	gc_mark_object((Object *)vm.init_string);
 }
 
-void VM_String_Concatenate(void)
+void vm_string_concatenate(void)
 {
-	StringObject *b = AS_STRING(VM_Peek(0));
-	StringObject *a = AS_STRING(VM_Peek(1));
+	StringObject *b = AS_STRING(vm_peek(0));
+	StringObject *a = AS_STRING(vm_peek(1));
 
 	size_t total_length = a->length + b->length;
 
@@ -116,9 +116,9 @@ void VM_String_Concatenate(void)
 
 	chars[total_length] = '\0';
 
-	StringObject *concatenated = String_FromOwnedChars(chars, total_length);
+	StringObject *concatenated = string_from_owned_chars(chars, total_length);
 
-	VM_Pop();
-	VM_Pop();
-	VM_Push(OBJ_VAL(concatenated));
+	vm_pop();
+	vm_pop();
+	vm_push(OBJ_VAL(concatenated));
 }

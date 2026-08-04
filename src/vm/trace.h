@@ -2,4 +2,4 @@
 
 #include "internal.h"
 
-void trace(CallFrame *frame);
+void vm_trace(CallFrame *frame);

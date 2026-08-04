@@ -15,16 +15,16 @@ typedef struct {
 	HashTableEntry *entries;
 } HashTable;
 
-void HashTable_Init(HashTable *hash_table);
-void HashTable_Free(HashTable *hash_table);
+void init_hash_table(HashTable *hash_table);
+void free_tash_table(HashTable *hash_table);
 
-bool HashTable_SetItem(HashTable *hash_table, StringObject *key, Value value);
-bool HashTable_GetItem(HashTable *hash_table, StringObject *key, Value *value);
-bool HashTable_DelItem(HashTable *hash_table, StringObject *key);
-void HashTable_AddAll(HashTable *from, HashTable *to);
-void HashTable_RemoveWhite(HashTable *hash_table);
+bool hash_table_set_item(HashTable *hash_table, StringObject *key, Value value);
+bool hash_table_get_item(HashTable *hash_table, StringObject *key, Value *value);
+bool hash_table_delete_item(HashTable *hash_table, StringObject *key);
+void hash_table_add_all(HashTable *from, HashTable *to);
+void hash_table_remove_white(HashTable *hash_table);
 
-StringObject *HashTable_FindString(HashTable *hash_table, const char *chars, size_t length,
-				   uint32_t hash);
+StringObject *hash_table_find_string(HashTable *hash_table, const char *chars, size_t length,
+				     uint32_t hash);
 
-void HashTable_Mark(HashTable *table);
+void hash_table_mark(HashTable *table);

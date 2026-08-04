@@ -16,24 +16,24 @@
 
 static HashTable interned_strings;
 
-void String_InitInterned(void)
+void init_interned_strings(void)
 {
-	HashTable_Init(&interned_strings);
+	init_hash_table(&interned_strings);
 }
 
-void String_FreeInterned(void)
+void free_interned_strings(void)
 {
-	HashTable_Free(&interned_strings);
+	free_tash_table(&interned_strings);
 }
 
-void String_SweepInterned(void)
+void sweep_interned_strings(void)
 {
-	HashTable_RemoveWhite(&interned_strings);
+	hash_table_remove_white(&interned_strings);
 }
 
 static Object *allocate_object(size_t size, ObjectType type)
 {
-	Object *object = (Object *)Mem_Realloc(NULL, 0, size);
+	Object *object = (Object *)mem_realloc(NULL, 0, size);
 	object->type = type;
 	object->is_marked = false;
 	object->next = gc.objects;
@@ -44,7 +44,7 @@ static Object *allocate_object(size_t size, ObjectType type)
 	return object;
 }
 
-BoundMethodObject *BoundMethod_New(Value receiver, ClosureObject *method)
+BoundMethodObject *new_bound_method(Value receiver, ClosureObject *method)
 {
 	BoundMethodObject *bound = ALLOCATE_OBJ(BoundMethodObject, OBJ_BOUND_METHOD);
 	bound->receiver = receiver;
@@ -52,23 +52,23 @@ BoundMethodObject *BoundMethod_New(Value receiver, ClosureObject *method)
 	return bound;
 }
 
-ClassObject *Class_New(StringObject *name)
+ClassObject *new_class(StringObject *name)
 {
 	ClassObject *klass = ALLOCATE_OBJ(ClassObject, OBJ_CLASS);
 	klass->name = name;
-	HashTable_Init(&klass->methods);
+	init_hash_table(&klass->methods);
 	return klass;
 }
 
-InstanceObject *Instance_New(ClassObject *klass)
+InstanceObject *new_instance(ClassObject *klass)
 {
 	InstanceObject *instance = ALLOCATE_OBJ(InstanceObject, OBJ_INSTANCE);
 	instance->klass = klass;
-	HashTable_Init(&instance->fields);
+	init_hash_table(&instance->fields);
 	return instance;
 }
 
-ClosureObject *Closure_New(FunctionObject *function)
+ClosureObject *new_closure(FunctionObject *function)
 {
 	UpvalueObject **upvalues = ALLOCATE(UpvalueObject *, (size_t)function->upvalue_count);
 
@@ -85,19 +85,19 @@ ClosureObject *Closure_New(FunctionObject *function)
 	return closure;
 }
 
-FunctionObject *Function_New(void)
+FunctionObject *new_function(void)
 {
 	FunctionObject *function = ALLOCATE_OBJ(FunctionObject, OBJ_FUNCTION);
 
 	function->arity = 0;
 	function->upvalue_count = 0;
 	function->name = NULL;
-	Chunk_Init(&function->chunk);
+	chunk_init(&function->chunk);
 
 	return function;
 }
 
-NativeObject *Native_New(NativeFn function)
+NativeObject *new_native(NativeFn function)
 {
 	NativeObject *native = ALLOCATE_OBJ(NativeObject, OBJ_NATIVE);
 	native->function = function;
@@ -112,18 +112,18 @@ static StringObject *allocate_string(char *chars, size_t length, uint32_t hash)
 	string->chars = chars;
 	string->hash = hash;
 
-	VM_Push(OBJ_VAL(string));
-	HashTable_SetItem(&interned_strings, string, NIL_VAL);
-	VM_Pop();
+	vm_push(OBJ_VAL(string));
+	hash_table_set_item(&interned_strings, string, NIL_VAL);
+	vm_pop();
 
 	return string;
 }
 
-StringObject *String_FromChars(const char *chars, size_t length)
+StringObject *string_from_chars(const char *chars, size_t length)
 {
-	uint32_t hash = String_Hash(chars, length);
+	uint32_t hash = hash_string(chars, length);
 
-	StringObject *interned = HashTable_FindString(&interned_strings, chars, length, hash);
+	StringObject *interned = hash_table_find_string(&interned_strings, chars, length, hash);
 
 	if (interned != NULL) {
 		return interned;
@@ -137,7 +137,7 @@ StringObject *String_FromChars(const char *chars, size_t length)
 	return allocate_string(heap_chars, length, hash);
 }
 
-UpvalueObject *Upvalue_New(Value *slot)
+UpvalueObject *new_upvalue(Value *slot)
 {
 	UpvalueObject *upvalue = ALLOCATE_OBJ(UpvalueObject, OBJ_UPVALUE);
 	upvalue->location = slot;
@@ -186,11 +186,11 @@ void Object_Print(FILE *stream, Value value)
 	}
 }
 
-StringObject *String_FromOwnedChars(char *chars, size_t length)
+StringObject *string_from_owned_chars(char *chars, size_t length)
 {
-	uint32_t hash = String_Hash(chars, length);
+	uint32_t hash = hash_string(chars, length);
 
-	StringObject *interned = HashTable_FindString(&interned_strings, chars, length, hash);
+	StringObject *interned = hash_table_find_string(&interned_strings, chars, length, hash);
 
 	if (interned != NULL) {
 		FREE_ARRAY(char, chars, length + 1);
@@ -200,7 +200,7 @@ StringObject *String_FromOwnedChars(char *chars, size_t length)
 	return allocate_string(chars, length, hash);
 }
 
-uint32_t String_Hash(const char *key, size_t length)
+uint32_t hash_string(const char *key, size_t length)
 {
 	uint32_t hash = 2166136261U; // axuyet
 

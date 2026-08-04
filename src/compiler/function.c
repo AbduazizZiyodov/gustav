@@ -63,9 +63,10 @@ void function_compile(FunctionType type)
 	statement_block();
 	FunctionObject *function = finish_compiling();
 	Value function_value = OBJ_VAL(function);
-	VM_Push(function_value);
+
+	vm_push(function_value);
 	EMIT_BYTES(OP_CLOSURE, make_constant(function_value));
-	VM_Pop();
+	vm_pop();
 
 	for (int i = 0; i < function->upvalue_count; i++) {
 		EMIT_BYTES(compiler.upvalues[i].is_local ? 1 : 0, compiler.upvalues[i].index)

@@ -21,7 +21,7 @@ int main(int argc, char **argv)
 
 	show_gustav_info();
 
-	VM_Init();
+	init_vm();
 
 	int status = EXIT_SUCCESS;
 
@@ -35,7 +35,7 @@ int main(int argc, char **argv)
 		Gustav_Error(EX_USAGE, "Usage: gustav [path]\n");
 	}
 
-	VM_Free();
+	free_vm();
 
 	return status;
 }

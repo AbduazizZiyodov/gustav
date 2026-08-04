@@ -67,9 +67,9 @@ typedef struct {
 	int *lines;
 } Chunk;
 
-void Chunk_Init(Chunk *chunk);
-void Chunk_Free(Chunk *chunk);
+void chunk_init(Chunk *chunk);
+void chunk_free(Chunk *chunk);
 
-void Chunk_Write(Chunk *chunk, uint8_t byte, size_t line);
+void chunk_write(Chunk *chunk, uint8_t byte, size_t line);
 
-size_t Chunk_AddConstant(Chunk *chunk, Value value);
+size_t chunk_add_constant(Chunk *chunk, Value value);

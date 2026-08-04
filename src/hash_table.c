@@ -9,17 +9,17 @@
 #include "object.h" // IWYU pragma: keep
 #include "value.h"
 
-void HashTable_Init(HashTable *hash_table)
+void init_hash_table(HashTable *hash_table)
 {
 	hash_table->count = 0;
 	hash_table->capacity = 0;
 	hash_table->entries = NULL;
 }
 
-void HashTable_Free(HashTable *hash_table)
+void free_tash_table(HashTable *hash_table)
 {
 	FREE_ARRAY(HashTableEntry, hash_table->entries, hash_table->capacity);
-	HashTable_Init(hash_table);
+	init_hash_table(hash_table);
 }
 
 // TODO(abduaziz): nesting
@@ -48,7 +48,7 @@ static HashTableEntry *find_entry(HashTableEntry *entries, size_t capacity, Stri
 	}
 }
 
-bool HashTable_GetItem(HashTable *hash_table, StringObject *key, Value *value)
+bool hash_table_get_item(HashTable *hash_table, StringObject *key, Value *value)
 {
 	if (hash_table->count == 0) {
 		return false;
@@ -93,7 +93,7 @@ static void adjust_capacity(HashTable *hash_table, size_t capacity)
 	hash_table->capacity = capacity;
 }
 
-bool HashTable_SetItem(HashTable *hash_table, StringObject *key, Value value)
+bool hash_table_set_item(HashTable *hash_table, StringObject *key, Value value)
 {
 	if (hash_table->count + 1 >
 	    (size_t)((double)hash_table->capacity * HASH_TABLE_MAX_LOAD_FACTOR)) {
@@ -114,7 +114,7 @@ bool HashTable_SetItem(HashTable *hash_table, StringObject *key, Value value)
 	return is_new_key;
 }
 
-bool HashTable_DelItem(HashTable *hash_table, StringObject *key)
+bool hash_table_delete_item(HashTable *hash_table, StringObject *key)
 {
 	if (hash_table->count == 0) {
 		return false;
@@ -132,19 +132,19 @@ bool HashTable_DelItem(HashTable *hash_table, StringObject *key)
 	return true;
 }
 
-void HashTable_AddAll(HashTable *from, HashTable *to)
+void hash_table_add_all(HashTable *from, HashTable *to)
 {
 	for (size_t i = 0; i < from->capacity; i++) {
 		HashTableEntry *entry = &from->entries[i];
 
 		if (entry->key != NULL) {
-			HashTable_SetItem(to, entry->key, entry->value);
+			hash_table_set_item(to, entry->key, entry->value);
 		}
 	}
 }
 
-StringObject *HashTable_FindString(HashTable *hash_table, const char *chars, size_t length,
-				   uint32_t hash)
+StringObject *hash_table_find_string(HashTable *hash_table, const char *chars, size_t length,
+				     uint32_t hash)
 {
 	if (hash_table->count == 0) {
 		return NULL;
@@ -168,22 +168,22 @@ StringObject *HashTable_FindString(HashTable *hash_table, const char *chars, siz
 	}
 }
 
-void HashTable_RemoveWhite(HashTable *hash_table)
+void hash_table_remove_white(HashTable *hash_table)
 {
 	for (size_t i = 0; i < hash_table->capacity; i++) {
 		HashTableEntry *entry = &hash_table->entries[i];
 
 		if (entry->key != NULL && !entry->key->obj.is_marked) {
-			HashTable_DelItem(hash_table, entry->key);
+			hash_table_delete_item(hash_table, entry->key);
 		}
 	}
 }
 
-void HashTable_Mark(HashTable *table)
+void hash_table_mark(HashTable *table)
 {
 	for (size_t i = 0; i < table->capacity; i++) {
 		HashTableEntry *entry = &table->entries[i];
-		GC_MarkObject((Object *)entry->key);
-		GC_MarkValue(entry->value);
+		gc_mark_object((Object *)entry->key);
+		gc_mark_value(entry->value);
 	}
 }

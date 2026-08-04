@@ -96,23 +96,23 @@ typedef struct {
 	ClosureObject *method;
 } BoundMethodObject;
 
-BoundMethodObject *BoundMethod_New(Value receiver, ClosureObject *method);
-ClassObject *Class_New(StringObject *name);
-InstanceObject *Instance_New(ClassObject *klass);
+BoundMethodObject *new_bound_method(Value receiver, ClosureObject *method);
+ClassObject *new_class(StringObject *name);
+InstanceObject *new_instance(ClassObject *klass);
 
-ClosureObject *Closure_New(FunctionObject *function);
+ClosureObject *new_closure(FunctionObject *function);
 
-FunctionObject *Function_New(void);
-NativeObject *Native_New(NativeFn function);
+FunctionObject *new_function(void);
+NativeObject *new_native(NativeFn function);
 
-StringObject *String_FromOwnedChars(char *chars, size_t length);
-StringObject *String_FromChars(const char *chars, size_t length);
+StringObject *string_from_owned_chars(char *chars, size_t length);
+StringObject *string_from_chars(const char *chars, size_t length);
 
-void String_InitInterned(void);
-void String_FreeInterned(void);
-void String_SweepInterned(void);
+void init_interned_strings(void);
+void free_interned_strings(void);
+void sweep_interned_strings(void);
 
-UpvalueObject *Upvalue_New(Value *slot);
+UpvalueObject *new_upvalue(Value *slot);
 
 void Object_Print(FILE *stream, Value value);
 
@@ -121,4 +121,4 @@ static inline bool Object_TypeCheck(Value value, ObjectType type)
 	return (Object_Check(value) && AS_OBJ(value)->type == type);
 }
 
-uint32_t String_Hash(const char *key, size_t length);
+uint32_t hash_string(const char *key, size_t length);
