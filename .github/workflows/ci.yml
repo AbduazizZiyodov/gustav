@@ -26,7 +26,17 @@ jobs:
               run: |
                   sudo apt-get install cmake
 
-            - name: Verify
+            - name: Verify installation
               run: |
+                  cmake --version
                   clang-19 --version
                   clang-tidy-19 --version
+
+            - name: Build
+              run: |
+                  ./build.sh
+
+            - name: Verify build
+              run: |
+                  ls -la builds/
+                  ls -la target/
