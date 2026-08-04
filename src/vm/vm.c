@@ -35,7 +35,7 @@ VM vm;
 #define BINARY_OP(TYPE, op)                                                   \
 	do {                                                                  \
 		if (!Number_Check(VM_Peek(0)) || !Number_Check(VM_Peek(1))) { \
-			runtime_error("Operands must be numbers.");           \
+			Gustav_Runtime_Error("Operands must be numbers.");    \
 			return INTERPRET_RUNTIME_ERROR;                       \
 		}                                                             \
 		b = AS_NUMBER(VM_Pop());                                      \
@@ -89,7 +89,7 @@ static InterpretResult run(void)
 			Value slot_value = frame->slots[slot];
 
 			if (Uninitialized_Check(slot_value)) {
-				runtime_error("Can't use uninitialized variable.");
+				Gustav_Runtime_Error("Can't use uninitialized variable.");
 				return INTERPRET_RUNTIME_ERROR;
 			}
 
@@ -107,13 +107,13 @@ static InterpretResult run(void)
 			Value value;
 
 			if (!HashTable_GetItem(&vm.globals, name, &value)) {
-				runtime_error("Undefined variable '%s'.", name->chars);
+				Gustav_Runtime_Error("Undefined variable '%s'.", name->chars);
 				return INTERPRET_RUNTIME_ERROR;
 			}
 
 			if (Uninitialized_Check(value)) {
-				runtime_error("Can't use uninitialized variable '%s'.",
-					      name->chars);
+				Gustav_Runtime_Error("Can't use uninitialized variable '%s'.",
+						     name->chars);
 				return INTERPRET_RUNTIME_ERROR;
 			}
 
@@ -124,7 +124,7 @@ static InterpretResult run(void)
 			StringObject *name = READ_STRING();
 			if (HashTable_SetItem(&vm.globals, name, VM_Peek(0))) {
 				HashTable_DelItem(&vm.globals, name);
-				runtime_error("Undefined variable '%s'.", name->chars);
+				Gustav_Runtime_Error("Undefined variable '%s'.", name->chars);
 				return INTERPRET_RUNTIME_ERROR;
 			}
 			break;
@@ -134,7 +134,7 @@ static InterpretResult run(void)
 			Value slot_value = *frame->closure->upvalues[slot]->location;
 
 			if (Uninitialized_Check(slot_value)) {
-				runtime_error("Can't use uninitialized variable.");
+				Gustav_Runtime_Error("Can't use uninitialized variable.");
 				return INTERPRET_RUNTIME_ERROR;
 			}
 
@@ -148,7 +148,7 @@ static InterpretResult run(void)
 		}
 		case OP_GET_PROPERTY: {
 			if (!Instance_Check(VM_Peek(0))) {
-				runtime_error("Only instances have properties.");
+				Gustav_Runtime_Error("Only instances have properties.");
 				return INTERPRET_RUNTIME_ERROR;
 			}
 
@@ -171,7 +171,7 @@ static InterpretResult run(void)
 		}
 		case OP_SET_PROPERTY: {
 			if (!Instance_Check(VM_Peek(1))) {
-				runtime_error("Only instances have fields.");
+				Gustav_Runtime_Error("Only instances have fields.");
 				return INTERPRET_RUNTIME_ERROR;
 			}
 			InstanceObject *instance = AS_INSTANCE(VM_Peek(1));
@@ -199,9 +199,10 @@ static InterpretResult run(void)
 			break;
 		case OP_CONCAT: {
 			if (String_Check(VM_Peek(0)) && String_Check(VM_Peek(1))) {
-				concatenate();
+				VM_String_Concatenate();
 			} else {
-				runtime_error("Operands must be two strings to concatenate.");
+				Gustav_Runtime_Error(
+					"Operands must be two strings to concatenate.");
 				return INTERPRET_RUNTIME_ERROR;
 			}
 			break;
@@ -214,7 +215,7 @@ static InterpretResult run(void)
 			break;
 		case OP_POW:
 			if (!Number_Check(VM_Peek(0)) || !Number_Check(VM_Peek(1))) {
-				runtime_error("Operands must be numbers.");
+				Gustav_Runtime_Error("Operands must be numbers.");
 				return INTERPRET_RUNTIME_ERROR;
 			}
 			b = AS_NUMBER(VM_Pop());
@@ -235,7 +236,7 @@ static InterpretResult run(void)
 			} else {
 				// for OP_NEGATE
 				if (!Number_Check(top_value)) {
-					runtime_error("Operand must be a number.");
+					Gustav_Runtime_Error("Operand must be a number.");
 					return INTERPRET_RUNTIME_ERROR;
 				}
 				result_value = NUMBER_VAL(-AS_NUMBER(top_value));
@@ -335,14 +336,14 @@ static InterpretResult run(void)
 			result_value = VM_Pop();
 
 			if (!Number_Check(result_value)) {
-				runtime_error("Exit status must be a number.");
+				Gustav_Runtime_Error("Exit status must be a number.");
 				return INTERPRET_RUNTIME_ERROR;
 			}
 
 			double status = AS_NUMBER(result_value);
 
 			if (!isfinite(status)) {
-				runtime_error("Exit status must be a finite number.");
+				Gustav_Runtime_Error("Exit status must be a finite number.");
 				return INTERPRET_RUNTIME_ERROR;
 			}
 
@@ -357,7 +358,7 @@ static InterpretResult run(void)
 			Value superclass = VM_Peek(1);
 
 			if (!Class_Check(superclass)) {
-				runtime_error("Superclass must be a class.");
+				Gustav_Runtime_Error("Superclass must be a class.");
 				return INTERPRET_RUNTIME_ERROR;
 			}
 

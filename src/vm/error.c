@@ -8,8 +8,8 @@
 #include "machinery.h"
 #include "object.h"
 
-__attribute__((format(printf, 1, 2))) void runtime_error(const char *format,
-							 ...) // TODO(abduaziz): better stack trace
+// TODO(abduaziz): better stack trace
+[[gnu::format(printf, 1, 2)]] void Gustav_Runtime_Error(const char *format, ...)
 {
 	va_list args;
 
@@ -44,5 +44,5 @@ __attribute__((format(printf, 1, 2))) void runtime_error(const char *format,
 		}
 	}
 
-	reset_stack();
+	VM_Reset_Stack();
 }

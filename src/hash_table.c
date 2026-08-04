@@ -6,7 +6,6 @@
 #include "gc.h"
 #include "hash_table.h"
 #include "memory.h"
-/* NOLINTNEXTLINE(misc-include-cleaner) */
 #include "object.h" // IWYU pragma: keep
 #include "value.h"
 
@@ -26,7 +25,6 @@ void HashTable_Free(HashTable *hash_table)
 // TODO(abduaziz): nesting
 static HashTableEntry *find_entry(HashTableEntry *entries, size_t capacity, StringObject *key)
 {
-	/* NOLINTNEXTLINE(clang-analyzer-core.DivideZero) */
 	uint32_t index = key->hash & (capacity - 1); // capacity > 0
 
 	HashTableEntry *tombstone = NULL;

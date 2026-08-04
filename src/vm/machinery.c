@@ -34,7 +34,7 @@ Value VM_Pop(void)
 	return *vm.stack_top;
 }
 
-void reset_stack(void)
+void VM_Reset_Stack(void)
 {
 	vm.stack_top = vm.stack;
 	vm.frame_count = 0;
@@ -53,7 +53,7 @@ static void define_native(const char *name, NativeFn function)
 void VM_Init(void)
 {
 	LOG_INFO("VM initialized\n");
-	reset_stack();
+	VM_Reset_Stack();
 
 	GC_Init();
 	String_InitInterned();
@@ -102,7 +102,7 @@ void VM_MarkRoots(void)
 	GC_MarkObject((Object *)vm.init_string);
 }
 
-void concatenate(void)
+void VM_String_Concatenate(void)
 {
 	StringObject *b = AS_STRING(VM_Peek(0));
 	StringObject *a = AS_STRING(VM_Peek(1));
