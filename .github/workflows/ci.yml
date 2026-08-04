@@ -62,7 +62,6 @@ jobs:
 
       - name: Set up Python and Pytest
         run: |
-          uv python install python3.13
           uv tool install pytest
 
       - name: Run tests
