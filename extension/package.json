@@ -1,0 +1,33 @@
+{
+  "name": "gustav-syntax-highlighting",
+  "displayName": "gustav-syntax-highlighting",
+  "description": "Basic syntax highlighting for Gustav keywords",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.125.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "gustav",
+        "aliases": [
+          "Gustav",
+          "gustav"
+        ],
+        "extensions": [
+          ".gus"
+        ]
+      }
+    ],
+    "grammars": [
+      {
+        "language": "gustav",
+        "scopeName": "source.gustav",
+        "path": "./syntaxes/gustav.tmLanguage.json"
+      }
+    ]
+  }
+}
