@@ -1,5 +1,24 @@
 name: CI
-on: [push]
+
+on:
+  push:
+    paths:
+      - "src/**"
+      - "include/**"
+      - "tests/**"
+      - "CMakeLists.txt"
+      - "build.sh"
+      - ".clang-*"
+      - ".github/workflows/ci.yml"
+  pull_request:
+    paths:
+      - "src/**"
+      - "include/**"
+      - "tests/**"
+      - "CMakeLists.txt"
+      - "build.sh"
+      - ".clang-*"
+      - ".github/workflows/ci.yml"
 
 permissions:
   contents: read
