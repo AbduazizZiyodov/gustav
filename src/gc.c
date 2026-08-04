@@ -5,11 +5,14 @@
 #include "compiler.h"
 #include "gc.h"
 #include "hash_table.h"
-#include "log.h"
 #include "memory.h"
 #include "object.h"
 #include "value.h"
 #include "vm.h"
+
+#ifdef DEBUG_LOG_GC
+#include "log.h"
+#endif
 
 GC gc;
 
@@ -167,7 +170,7 @@ void gc_collect(void)
 {
 #ifdef DEBUG_LOG_GC
 	size_t before = gc.bytes_allocated;
-	LOG_GC("== [GC BEGIN] ==\n");
+	LOG_GC("== [gc begin] ==\n");
 #endif
 
 	gc_mark_roots();
@@ -178,8 +181,8 @@ void gc_collect(void)
 	gc.next_gc = gc.bytes_allocated * GC_HEAP_GROW_FACTOR;
 
 #ifdef DEBUG_LOG_GC
-	LOG_GC("== [/GC BEGIN] ==\n");
-	LOG_GC("Collected %zu bytes (from %zu to %zu) next at %zu\n", before - gc.bytes_allocated,
+	LOG_GC("== [/gc begin] ==\n");
+	LOG_GC("collected %zu bytes (from %zu to %zu) next at %zu\n", before - gc.bytes_allocated,
 	       before, gc.bytes_allocated, gc.next_gc);
 #endif
 }

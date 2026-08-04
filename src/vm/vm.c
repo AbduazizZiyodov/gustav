@@ -56,6 +56,8 @@ static InterpretResult run(void)
 
 	CallFrame *frame = &vm.frames[vm.frame_count - 1];
 
+	LOG_TRACE("getting into VM switch loop\n");
+
 	while (true) {
 		vm_trace(frame);
 
@@ -278,6 +280,10 @@ static InterpretResult run(void)
 			frame->ip -= offset;
 			break;
 		}
+		case OP_BREAK: {
+			LOG_TRACE("op break is read\n");
+			break;
+		}
 		case OP_CALL: {
 			int arg_count = READ_BYTE();
 			if (!vm_call_value(vm_peek(arg_count), arg_count)) {
@@ -404,20 +410,23 @@ static InterpretResult run(void)
 
 InterpretResult VM_Interpret(const char *source)
 {
-	LOG_DEBUG("\n\n== [source] ==\n%s\n== [/source] ==\n\n", source);
-	LOG_INFO("Begin compiling\n");
+	LOG_DEBUG("\n\n== [source] ==\n%s\n== [/source] ==\n\n\n", source);
 
+	LOG_DEBUG("== [compile] ==\n\n");
 	FunctionObject *function = compile(source);
+	LOG_DEBUG("== [/compile] ==\n\n");
+
 	if (function == NULL) {
 		return INTERPRET_COMPILE_ERROR;
 	}
 
+	LOG_TRACE("== [vm setup] ==\n");
 	vm_push(OBJ_VAL(function));
-
 	ClosureObject *closure = new_closure(function);
 	vm_pop();
 	vm_push(OBJ_VAL(closure));
 	vm_call(closure, 0);
+	LOG_TRACE("== [/vm setup] ==\n\n");
 
 	return run();
 }

@@ -16,7 +16,7 @@ static void gustav_shutdown(int signum)
 int main(int argc, char **argv)
 {
 	if (signal(SIGINT, gustav_shutdown) == SIG_ERR) {
-		Gustav_Error(EXIT_FAILURE, "Can't set signal handler");
+		gustav_error(EXIT_FAILURE, "Can't set signal handler");
 	}
 
 	show_gustav_info();
@@ -26,13 +26,13 @@ int main(int argc, char **argv)
 	int status = EXIT_SUCCESS;
 
 	if (argc == 1) {
-		LOG_TRACE("Running from repl()\n");
+		LOG_TRACE("running from repl\n");
 		repl();
 	} else if (argc == 2) {
-		LOG_TRACE("Running from run_file()\n");
+		LOG_TRACE("running from run_file\n");
 		status = run_file(argv[1]);
 	} else {
-		Gustav_Error(EX_USAGE, "Usage: gustav [path]\n");
+		gustav_error(EX_USAGE, "Usage: gustav [path]\n");
 	}
 
 	free_vm();

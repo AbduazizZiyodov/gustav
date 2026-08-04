@@ -66,26 +66,26 @@ static char *read_file(const char *path)
 	FILE *file = fopen(path, "rb");
 
 	if (file is NULL) {
-		Gustav_Error(EX_IOERR, "Could not open file: %s\n", path);
+		gustav_error(EX_IOERR, "Could not open file: %s\n", path);
 	}
 
 	if (fseek(file, 0L, SEEK_END) != 0) {
-		Gustav_Error(EX_IOERR, "Failed to seek to end: %s\n", path);
+		gustav_error(EX_IOERR, "Failed to seek to end: %s\n", path);
 	}
 
 	long file_size = ftell(file);
 
 	if (file_size == -1L) {
-		Gustav_Error(EX_IOERR, "Failed to get file size: %s\n", path);
+		gustav_error(EX_IOERR, "Failed to get file size: %s\n", path);
 	}
 
 	if (fseek(file, 0L, SEEK_SET) != 0) {
-		Gustav_Error(EX_IOERR, "Failed to rewind file: %s\n", path);
+		gustav_error(EX_IOERR, "Failed to rewind file: %s\n", path);
 	}
 
 	char *buffer = (char *)malloc((sizeof(char) * (size_t)file_size) + 1);
 	if (buffer is NULL) {
-		Gustav_Error(EX_IOERR, "Not enough memory to allocate buffer for %s\n", path);
+		gustav_error(EX_IOERR, "Not enough memory to allocate buffer for %s\n", path);
 	}
 
 	size_t bytes_read = fread(buffer, sizeof(char), (size_t)file_size, file);
@@ -94,7 +94,7 @@ static char *read_file(const char *path)
 		if (ferror(file)) {
 			(void)fclose(file);
 			free(buffer);
-			Gustav_Error(EX_IOERR, "Could not read the file %s\n", path);
+			gustav_error(EX_IOERR, "Could not read the file %s\n", path);
 		}
 	}
 
@@ -102,7 +102,7 @@ static char *read_file(const char *path)
 
 	if (fclose(file) != 0) {
 		free(buffer);
-		Gustav_Error(EX_IOERR, "Failed to close file: %s\n", path);
+		gustav_error(EX_IOERR, "Failed to close file: %s\n", path);
 	}
 
 	return buffer;
@@ -129,8 +129,8 @@ void show_gustav_info(void)
 	       OPT_LEVEL, BUILD_TYPE, OS, ARCH);
 
 #ifdef DEBUG_STRESS_GC
-	LOG_INFO("!!! DEBUG_STRESS_GC is enabled !!!\n\n");
+	LOG_INFO("enabled  DEBUG_STRESS_GC\n\n");
 #else
-	LOG_INFO("!!! DEBUG_STRESS_GC is disabled !!!\n\n");
+	LOG_INFO("disabled DEBUG_STRESS_GC\n\n");
 #endif
 }

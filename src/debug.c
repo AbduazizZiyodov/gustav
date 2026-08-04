@@ -21,11 +21,11 @@ void debug_disassemble_chunk(Chunk *chunk, const char *name)
 {
 	printf("\n");
 
-	LOG_DEBUG("== [%s] ==\n", name);
+	LOG_DEBUG("== [ disassemble of %s] ==\n", name);
 	for (int offset = 0; offset < (int)chunk->count;) {
 		offset = debug_disassemble_instruction(chunk, offset);
 	}
-	LOG_DEBUG("== [/%s] ==\n\n", name);
+	LOG_DEBUG("== [ /disassemble of %s] ==\n\n", name);
 }
 
 int debug_disassemble_instruction(Chunk *chunk, int offset)
@@ -57,6 +57,8 @@ int debug_disassemble_instruction(Chunk *chunk, int offset)
 	case OP_CLOSE_UPVALUE:
 	case OP_INHERIT:
 	case OP_UNINITIALIZED:
+	case OP_BREAK:
+	case OP_CONTINUE:
 		LOG_DEBUG("%04d %s\n", offset, op_string);
 		return offset + 1;
 	case OP_CONSTANT:
@@ -83,6 +85,7 @@ int debug_disassemble_instruction(Chunk *chunk, int offset)
 	case OP_CLOSURE: {
 		offset++;
 		uint8_t constant = chunk->code[offset++];
+
 		LOG_DEBUG("%-16s %4d ", "OP_CLOSURE", constant);
 		print_value(stdout, chunk->constants.values[constant]);
 		printf("\n");
@@ -103,7 +106,7 @@ int debug_disassemble_instruction(Chunk *chunk, int offset)
 	case OP_SUPER_INVOKE:
 		return invoke_instruction(op_string, chunk, offset);
 	default:
-		LOG_ERROR("Unknown opcode %d\n", current_instruction);
+		LOG_ERROR("unknown opcode %d\n", current_instruction);
 		return offset + 1;
 	}
 }
@@ -145,7 +148,7 @@ static int jump_instruction(const char *name, int sign, Chunk *chunk, int offset
 
 	int target = offset + 3 + (sign * (int)jump);
 
-	printf("%-16s %4ld -> %ld\n", name, (long)offset, (long)target);
+	LOG_DEBUG("%04d %-16s %4ld -> %ld\n", offset, name, (long)offset, (long)target);
 	return offset + 3;
 }
 
