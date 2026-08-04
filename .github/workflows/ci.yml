@@ -9,7 +9,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6
@@ -37,6 +37,17 @@ jobs:
         run: |
           ls -la builds/
           ls -la target/
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b
+
+      - name: Set up Python and Pytest
+        run: |
+          uv python install python3.13
+          uv tool install pytest
+
+      - name: Run tests
+        run: pytest -vv
 
       - uses: actions/upload-artifact@v7
         with:
