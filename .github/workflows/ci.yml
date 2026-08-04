@@ -3,40 +3,45 @@ name: CI
 on: [push]
 
 jobs:
-    build:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout repo
-              uses: actions/checkout@v6
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
 
-            - name: List files in the repo
-              run: |
-                  ls ${{ github.workspace }}
-            - name: Prerequisites
-              run: |
-                  sudo apt-get install ca-certificates gpg wget git
+      - name: List files in the repo
+        run: |
+          ls ${{ github.workspace }}
+      - name: Prerequisites
+        run: |
+          sudo apt-get install ca-certificates gpg wget git
 
-            - name: Install LLVM/Clang stuff
-              run: |
-                  wget https://apt.llvm.org/llvm.sh
-                  chmod +x llvm.sh
-                  sudo ./llvm.sh 19 all
+      - name: Install LLVM/Clang stuff
+        run: |
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh 19 all
 
-            - name: Install cmake
-              run: |
-                  sudo apt-get install cmake
+      - name: Install cmake
+        run: |
+          sudo apt-get install cmake
 
-            - name: Verify installation
-              run: |
-                  cmake --version
-                  clang-19 --version
-                  clang-tidy-19 --version
+      - name: Verify installation
+        run: |
+          cmake --version
+          clang-19 --version
+          clang-tidy-19 --version
 
-            - name: Build
-              run: |
-                  ./build.sh
+      - name: Build
+        run: |
+          ./build.sh
 
-            - name: Verify build
-              run: |
-                  ls -la builds/
-                  ls -la target/
+      - name: Verify build
+        run: |
+          ls -la builds/
+          ls -la target/
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: gustav-build-targets
+          path: ./target
