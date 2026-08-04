@@ -6,13 +6,20 @@ jobs:
     build:
         runs-on: ubuntu-latest
         steps:
-            - name: Check out repository code
+            - name: Checkout repo
               uses: actions/checkout@v6
 
-            - name: List files in the repository
+            - name: List files in the repo
               run: |
                   ls ${{ github.workspace }}
 
-            - name: Install Clang
+            - name: Install LLVM/Clang stuff
               run: |
-                  clang --version
+                  wget https://apt.llvm.org/llvm.sh
+                  chmod +x llvm.sh
+                  ./llvm.sh 19 all
+
+            - name: Verify
+              run: |
+                  clang-19 --version
+                  clang-tidy-19 --version
