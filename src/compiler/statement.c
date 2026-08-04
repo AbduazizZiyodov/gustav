@@ -76,10 +76,6 @@ static void statement_while(void)
 	emit_byte(OP_POP);
 }
 
-typedef struct {
-	
-} ExitJumps;
-
 static void statement_loop(void)
 {
 	size_t loop_start = current_chunk()->count;
