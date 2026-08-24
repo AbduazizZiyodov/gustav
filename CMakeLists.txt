@@ -158,3 +158,56 @@ target_link_libraries(gustav PRIVATE m cmake_git_version_tracking)
 
 include(GNUInstallDirs)
 install(TARGETS gustav RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+option(BUILD_UNIT_TESTS "Build Criterion unit tests for pure C helpers" OFF)
+
+if(BUILD_UNIT_TESTS)
+  find_package(PkgConfig REQUIRED)
+  pkg_check_modules(CRITERION REQUIRED criterion)
+
+  enable_testing()
+
+  set(GUSTAV_UNIT_TEST_COMPILE_OPTIONS
+      -Wall
+      -Wextra
+      -pedantic
+      -Wshadow
+      -Wcast-align
+      -Wconversion
+      -Wsign-conversion
+      -Wformat=2
+      -Wvla
+      -Wstrict-prototypes
+      -Wmissing-prototypes
+      -Wnull-dereference
+      -Wdouble-promotion
+      -Wformat-security
+      -Wimplicit-fallthrough
+      -Werror
+      -g
+      -O0)
+
+  function(gustav_add_unit_test name)
+    add_executable(${name} ${ARGN})
+    target_include_directories(
+      ${name}
+      PRIVATE ${CMAKE_SOURCE_DIR}/include ${CRITERION_INCLUDE_DIRS})
+    target_compile_definitions(
+      ${name}
+      PRIVATE LOG_USE_COLOR
+              LINE_LENGTH=${LINE_LENGTH}
+              HASH_TABLE_MAX_LOAD_FACTOR=${HASH_TABLE_MAX_LOAD_FACTOR}
+              GUSTAV_DEBUG)
+    target_compile_options(${name} PRIVATE ${GUSTAV_UNIT_TEST_COMPILE_OPTIONS})
+    target_link_libraries(${name} PRIVATE ${CRITERION_LIBRARIES} m)
+    target_link_directories(${name} PRIVATE ${CRITERION_LIBRARY_DIRS})
+    target_compile_options(${name} PRIVATE ${CRITERION_CFLAGS_OTHER})
+    add_test(NAME ${name} COMMAND ${name} --verbose)
+  endfunction()
+
+  # Scanner is self-contained (no VM / GC).
+  gustav_add_unit_test(test_scanner tests/unit/test_scanner.c src/scanner.c)
+
+  # value.c needs memory + Object_Print stubs (provided in the test TU).
+  gustav_add_unit_test(test_value tests/unit/test_value.c src/value.c)
+endif()

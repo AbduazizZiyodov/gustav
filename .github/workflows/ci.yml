@@ -38,7 +38,7 @@ jobs:
           wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc > /dev/null
           echo "deb http://apt.llvm.org/noble/ llvm-toolchain-noble-19 main" | sudo tee /etc/apt/sources.list.d/llvm19.list
           sudo apt-get update && sudo apt-get install -y --no-install-recommends \
-            clang-19 clang-tidy-19 clang-format-19 lld-19 ninja-build libclang-rt-19-dev
+            clang-19 clang-tidy-19 clang-format-19 lld-19 ninja-build libclang-rt-19-dev libcriterion-dev pkg-config
 
       - name: Verify installation
         run: |
@@ -66,6 +66,9 @@ jobs:
 
       - name: Run tests
         run: pytest -vv
+
+      - name: Build and run Criterion unit tests
+        run: ./build.sh unit-tests
 
       - uses: actions/upload-artifact@v7
         with:

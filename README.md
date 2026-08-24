@@ -94,9 +94,47 @@ true
 > * Pipe operator
 > Since, they were not in original "plan" - they're in TODO (rather than being main feature)
 
+## Integration tests (CPython / pytest)
+
 Install `pytest` via `uv` (or whataver):
 
 ```shell
 uv tool install pytest
 pytest -vv tests
+```
+
+## Unit tests (C / Criterion)
+
+Pure C helpers (scanner, value array / equality) are covered with [Criterion](https://github.com/Snaipe/Criterion).
+
+Debian / Ubuntu:
+
+```shell
+sudo apt-get install -y libcriterion-dev pkg-config
+```
+
+Build and run:
+
+```shell
+./build.sh unit-tests
+```
+
+Or manually:
+
+```shell
+cmake -B builds/build-unit-tests -G Ninja \
+  -DCMAKE_C_COMPILER=clang-19 \
+  -DCMAKE_BUILD_TYPE=Debug \
+  -DBUILD_UNIT_TESTS=ON \
+  -DCLANG_TIDY=OFF \
+  -DSANITIZE=OFF
+cmake --build builds/build-unit-tests --target test_scanner test_value
+ctest --test-dir builds/build-unit-tests --output-on-failure
+```
+
+You can also run the binaries directly:
+
+```shell
+./builds/build-unit-tests/test_scanner --verbose
+./builds/build-unit-tests/test_value --verbose
 ```
