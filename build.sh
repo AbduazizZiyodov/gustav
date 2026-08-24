@@ -5,7 +5,7 @@ readonly PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$PROJECT_ROOT"
 
 echo "Formatting via clang-format ..."
-find src include -type f -name '*.[ch]' -print0 2>/dev/null | xargs -0 -r clang-format -i
+find src include tests/unit -type f -name '*.[ch]' -print0 2>/dev/null | xargs -0 -r clang-format -i
 
 mkdir -p target builds
 
@@ -35,6 +35,9 @@ build_gustav() {
 
   cmake --build "$dir" --parallel "$(nproc)"
   cp -f "$dir/gustav" "target/gustav_$name"
+  if [[ -x "$dir/gustav_unit_tests" ]]; then
+    cp -f "$dir/gustav_unit_tests" "target/gustav_unit_tests_$name"
+  fi
   echo "== [/$name] =="
 }
 

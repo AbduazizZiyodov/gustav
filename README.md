@@ -94,6 +94,20 @@ true
 > * Pipe operator
 > Since, they were not in original "plan" - they're in TODO (rather than being main feature)
 
+## C unit tests (Criterion)
+
+Direct unit tests for scanner, values, chunks, and hash tables live under `tests/unit/` and link against a `gustav_core` static library. Requires [Criterion](https://github.com/Snaipe/Criterion) (`libcriterion-dev` on Debian/Ubuntu).
+
+```shell
+sudo apt-get install -y libcriterion-dev pkg-config
+./build.sh
+ctest --test-dir builds/build-debug --output-on-failure
+# or:
+./builds/build-debug/gustav_unit_tests --verbose
+```
+
+## Scenario tests (pytest)
+
 Install `pytest` via `uv` (or whataver):
 
 ```shell

@@ -38,7 +38,8 @@ jobs:
           wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc > /dev/null
           echo "deb http://apt.llvm.org/noble/ llvm-toolchain-noble-19 main" | sudo tee /etc/apt/sources.list.d/llvm19.list
           sudo apt-get update && sudo apt-get install -y --no-install-recommends \
-            clang-19 clang-tidy-19 clang-format-19 lld-19 ninja-build libclang-rt-19-dev
+            clang-19 clang-tidy-19 clang-format-19 lld-19 ninja-build libclang-rt-19-dev \
+            libcriterion-dev pkg-config
 
       - name: Verify installation
         run: |
@@ -47,6 +48,7 @@ jobs:
           clang-19 --version
           clang-tidy-19 --version
           clang-format-19 --version
+          pkg-config --modversion criterion
           ls -l /usr/bin/ld.lld* /usr/bin/lld*
 
       - name: Build
@@ -56,6 +58,11 @@ jobs:
         run: |
           ls -la builds/
           ls -la target/
+
+      - name: Run Criterion unit tests
+        run: |
+          ctest --test-dir builds/build-debug --output-on-failure
+          ./builds/build-debug/gustav_unit_tests --verbose
 
       - name: Install uv
         uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b
