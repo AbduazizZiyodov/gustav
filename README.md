@@ -30,6 +30,9 @@ This creates 4 binaries: debug, release, valgrind & valgrind (with GC stress ena
 > [!NOTE]
 > You can also refer to legacy tree walk interpreter [implementation](<https://github.com/AbduazizZiyodov/gustav/tree/legacy/python>) in CPython.
 
+> [!NOTE]
+> Mirror of https://codeberg.org/abduaziz/gustav.
+
 # Usage
 
 Sample program(BST), create file named `test.gus`:
