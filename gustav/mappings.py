@@ -2,16 +2,11 @@ import typing as t
 
 from gustav.enums import TokenType as TT
 
-__all__ = "RESERVED_KEYWORDS", "SINGLE_TOKEN_MAPPING"
+__all__ = ("RESERVED_KEYWORDS", "SINGLE_TOKEN_MAPPING",)
 
 RESERVED_KEYWORDS: t.Final[dict[str, TT]] = {
-    "class": TT.CLASS,
-    "super": TT.SUPER,
-    "this": TT.THIS,
-    "fun": TT.FUN,
-    "return": TT.RETURN,
-    "yes": TT.TRUE,  # no
-    "no": TT.FALSE,  # yes
+    # "fun": TT.FUN,
+    # "return": TT.RETURN,
     "false": TT.FALSE,
     "true": TT.TRUE,
     "nil": TT.NIL,
@@ -24,8 +19,6 @@ RESERVED_KEYWORDS: t.Final[dict[str, TT]] = {
     "or": TT.OR,
     "print": TT.PRINT,
     "var": TT.VAR,
-    "\u03bb": TT.LAMBDA,  # Lambda symbol
-    "lambda": TT.LAMBDA,
     "break": TT.BREAK,
     "continue": TT.CONTINUE,
 }
@@ -41,8 +34,6 @@ SINGLE_TOKEN_MAPPING: t.Final[dict[str, TT]] = {
     "-": TT.MINUS,
     ";": TT.SEMICOLON,
     "*": TT.STAR,
-    "^": TT.CARET,
     "?": TT.QUESTION_MARK,
     ":": TT.COLON,
-    "\u03bb": TT.LAMBDA,  # Lambda symbol
 }

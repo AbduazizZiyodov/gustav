@@ -14,11 +14,7 @@ from gustav.ast import expression as E, statement as S
 __all__ = ("Parser", "UNINITIALIZED")
 
 
-@object.__new__
-class UNINITIALIZED:
-    def __repr__(self) -> str:
-        return self.__class__.__name__  # pragma: no cover
-
+UNINITIALIZED = sentinel("UNINITIALIZED")
 
 P = t.ParamSpec("P")
 T = t.TypeVar("T")
@@ -57,12 +53,6 @@ class Parser:
 
     def parse_declaration(self) -> S.Statement | None:
         try:
-            if self.match(TT.CLASS):
-                return self.parse_class_declaration()
-
-            if self.match(TT.FUN):
-                return self.parse_function("function")
-
             if self.match(TT.VAR):
                 return self.parse_var_declaration()
 
@@ -72,52 +62,6 @@ class Parser:
             self.synchronize()
 
         return None
-
-    def parse_class_declaration(self) -> S.Class:
-        name: Token = self.consume(TT.IDENTIFIER, "Expect class name")
-
-        superclass: E.Variable | None = None
-
-        if self.match(TT.LESS):
-            self.consume(TT.IDENTIFIER, "Expect superclass name")
-            superclass = E.Variable(self.get_previous())
-
-        self.consume(TT.LEFT_BRACE, "Expect '{' before class body")
-
-        methods: list[S.Function] = []
-
-        while not self.check(TT.RIGHT_BRACE) and not self.is_end:
-            methods.append(self.parse_function("method"))
-
-        self.consume(TT.RIGHT_BRACE, "Expect '}' after class body")
-
-        return S.Class(name, superclass, methods)
-
-    def parse_function(self, kind: str) -> S.Function:
-        name: Token = self.consume(TT.IDENTIFIER, f"Expect {kind} name")
-
-        self.consume(TT.LEFT_PAREN, f"Expect '(' after {kind} name")
-
-        parameters: list[Token] = self.parse_parameters()
-
-        self.consume(TT.RIGHT_PAREN, "Expect ')' after parameters")
-        self.consume(TT.LEFT_BRACE, f"Expect '{{' before {kind} body")
-
-        body: list[S.Statement] = self.parse_block()
-
-        return S.Function(name, parameters, body)
-
-    def parse_parameters(self) -> list[Token]:
-        parameters: list[Token] = list()
-
-        if not self.check(TT.RIGHT_PAREN):
-            while True:
-                parameters.append(self.consume(TT.IDENTIFIER, "Expect parameter name"))
-
-                if not self.match(TT.COMMA):
-                    break
-
-        return parameters
 
     def parse_var_declaration(self) -> S.Var:
         name: Token = self.consume(TT.IDENTIFIER, "Expect variable name")
@@ -139,9 +83,6 @@ class Parser:
 
         if self.match(TT.PRINT):
             return self.parse_print_statement()
-
-        if self.match(TT.RETURN):
-            return self.parse_return_statement()
 
         if self.match(TT.LEFT_BRACE):
             return S.Block(self.parse_block())
@@ -279,10 +220,6 @@ class Parser:
 
     def parse_expression(self) -> E.Expression:
         assignment_expr = self.parse_assignment()
-
-        if self.match(TT.PIPE):
-            return self.parse_call(assignment_expr)
-
         return assignment_expr
 
     def parse_assignment(self) -> E.Expression:
@@ -296,15 +233,11 @@ class Parser:
                 name: Token = expr.name
                 return E.Assign(name, value)
 
-            elif isinstance(expr, E.Get):
-                get_expr: E.Get = expr
-                return E.Set(get_expr.object, get_expr.name, value)
-
             self.error(equals, "Invalid assignment target")
 
         return expr
 
-    def parse_or(self) -> E.Expression:  # yes
+    def parse_or(self) -> E.Expression:
         expr: E.Expression = self.parse_and()
 
         while self.match(TT.OR):
@@ -314,7 +247,7 @@ class Parser:
 
         return expr
 
-    def parse_and(self) -> E.Expression:  # yes
+    def parse_and(self) -> E.Expression:
         expr: E.Expression = self.parse_equality()
 
         while self.match(TT.AND):
@@ -367,7 +300,7 @@ class Parser:
     def parse_term(self) -> E.Expression:
         expr = self.parse_factor()
 
-        while self.match(TT.MINUS, TT.PLUS, TT.PLUS_PLUS, TT.CARET):
+        while self.match(TT.MINUS, TT.PLUS):
             operator: Token = self.get_previous()
             right: E.Expression = self.parse_factor()
             expr = E.Binary(expr, operator, right)
@@ -390,66 +323,9 @@ class Parser:
             right: E.Expression = self.parse_unary()
             return E.Unary(operator, right)
 
-        return self.parse_call()
-
-    def parse_call(
-        self, pipe_arg: E.Expression | None = None
-    ) -> E.Call | E.Get | E.Expression:
-        expr: E.Expression = self.parse_primary()
-
-        while True:
-            if self.match(TT.LEFT_PAREN):
-                expr = self.finish_call(expr, pipe_arg)
-            elif self.match(TT.DOT):
-                name: Token = self.consume(
-                    TT.IDENTIFIER, "Expect property name after '.'"
-                )
-                expr = E.Get(expr, name)
-            else:
-                break
-
-        return expr
-
-    def finish_call(
-        self, callee: E.Expression, pipe_arg: E.Expression | None = None
-    ) -> E.Call | E.Expression:
-        """Parses arguments, closes call with RIGH_PAREN.
-
-        Then, looks for pipe operator. Ex: g(x) |> f(y)
-        Till |>, we have call expr = g(x), pipe encountered.
-
-        Instead of finishing call, we recursively parse_call expr again
-        to get f(y). In this moment, parse_call little more different than prev.
-
-        We introduced new pipe_arg param, which will be appended in arguments list of f().
-        So, given expression will be interpreted as: f(y,g(x))
-        """
-        arguments: list[E.Expression | E.Call] = list()
-
-        if not self.check(TT.RIGHT_PAREN):
-            arguments.append(self.parse_expression())
-
-            while self.match(TT.COMMA):
-                arguments.append(self.parse_expression())
-
-        if pipe_arg:
-            arguments.append(pipe_arg)
-
-        paren: Token = self.consume(TT.RIGHT_PAREN, "Expect ')' after arguments")
-
-        call_expr: E.Call | E.Expression
-
-        call_expr = E.Call(callee, paren, arguments)
-
-        if self.match(TT.PIPE):
-            call_expr = self.parse_call(call_expr)
-
-        return call_expr
+        return self.parse_primary()
 
     def parse_primary(self) -> E.Expression:
-        if self.match(TT.LAMBDA):
-            return self.parse_lambda()
-
         if self.match(TT.FALSE):
             return E.Literal(False)
 
@@ -462,16 +338,6 @@ class Parser:
         if self.match(TT.NUMBER, TT.STRING):
             return E.Literal(self.get_previous().literal)
 
-        if self.match(TT.SUPER):
-            keyword: Token = self.get_previous()
-            self.consume(TT.DOT, "Expect '.' after 'super'")
-            method: Token = self.consume(TT.IDENTIFIER, "Expect superclass method name")
-
-            return E.Super(keyword, method)
-
-        if self.match(TT.THIS):
-            return E.This(self.get_previous())
-
         if self.match(TT.IDENTIFIER):
             return E.Variable(self.get_previous())
 
@@ -483,27 +349,14 @@ class Parser:
 
         raise self.error(self.peek(), "Expect expression")
 
-    def parse_lambda(self) -> E.Lambda:
-        self.consume(TT.LEFT_PAREN, "Expect '(' after lambda")
-        parameters: list[Token] = self.parse_parameters()
-
-        self.consume(TT.RIGHT_PAREN, "Expect ')' after parameters")
-        self.consume(TT.LEFT_BRACE, "Expect '{' before lambda body")
-
-        body: list[S.Statement] = self.parse_block()
-
-        return E.Lambda(parameters, body)
 
     ###
     # Machinery
     ###
     SYNC_BLOCKS: t.ClassVar[tuple[TT, ...]] = (
-        TT.CLASS,
         TT.FOR,
-        TT.FUN,
         TT.IF,
         TT.PRINT,
-        TT.RETURN,
         TT.VAR,
         TT.WHILE,
     )

@@ -3,9 +3,6 @@ SCRIPT_DIR := "./scripts"
 
 default: clean check test
 
-repl:
-	DEBUG={{DEBUG}} {{SCRIPT_DIR}}/gus
-
 check:
 	uv run ruff format .
 	uv run ruff check .

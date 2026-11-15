@@ -1,6 +1,6 @@
 from enum import StrEnum, auto
 
-__all__ = "FunctionType", "ClassType", "TokenType"
+__all__ = "FunctionType", "VariableState", "TokenType"
 
 
 class FunctionType(StrEnum):
@@ -9,12 +9,6 @@ class FunctionType(StrEnum):
     METHOD = auto()
     INITIALIZER = auto()
     LAMBDA = auto()
-
-
-class ClassType(StrEnum):
-    NONE = auto()
-    CLASS = auto()
-    SUBCLASS = auto()
 
 
 class VariableState(StrEnum):
@@ -33,7 +27,6 @@ class TokenType(StrEnum):
     DOT = auto()
     MINUS = auto()
     PLUS = auto()
-    PLUS_PLUS = auto()  # NOTE(abduazizziyodov): not now
     SEMICOLON = auto()
     SLASH = auto()
     STAR = auto()
@@ -52,11 +45,8 @@ class TokenType(StrEnum):
     NUMBER = auto()
 
     AND = auto()
-    CLASS = auto()
     ELSE = auto()
     FALSE = auto()
-    FUN = auto()
-    LAMBDA = auto()
     FOR = auto()
     IF = auto()
     NIL = auto()
@@ -67,17 +57,11 @@ class TokenType(StrEnum):
 
     PRINT = auto()
 
-    RETURN = auto()
-    SUPER = auto()
-    THIS = auto()
     TRUE = auto()
     VAR = auto()
     WHILE = auto()
 
     LOOP = auto()
-
-    PIPE = auto()
-    CARET = auto()
 
     COLON = auto()
     QUESTION_MARK = auto()

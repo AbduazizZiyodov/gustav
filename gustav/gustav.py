@@ -3,42 +3,31 @@ import sys
 import typing as t  # noqa: F401
 
 from pprint import pformat
+from rich import print as printr
 
 from gustav.token import Token
 from gustav.parser import Parser
 from gustav.scanner import Scanner
-from gustav.resolver import Resolver
 from gustav.logging import LOG, DEBUG
 from gustav.enums import TokenType as TT
-from gustav.interpreter import Interpreter
+from gustav.compiler import Compiler
 from gustav.ast.statement import Statement
 from gustav.exceptions import GusRuntimeError
 
-rich_installed = False
+from rich import print as printr
 
-try:
-    from rich import print as printr
-
-    rich_installed = True
-except ImportError:  # pragma: no cover
-    LOG.debug("Rich is not installed, to install run 'uv add --dev rich'")
-
-
-__all__ = "report", "error", "panic", "main", "Scanner"
+__all__ = "report", "error", "panic", "main",
 
 had_error: bool = False
 had_runtime_error: bool = False
 
 
 def main() -> int:
-    if len(sys.argv) > 2:  # pragma: no cover
+    if len(sys.argv) != 2:  # pragma: no cover
         sys.stdout.write(f"Usage: {sys.executable} -m gustav [script]")
         return os.EX_USAGE
 
-    if len(sys.argv) == 2:
-        return run_from_file(sys.argv[1])
-
-    return run_from_repl()  # pragma: no cover
+    return run_from_file(sys.argv[1])
 
 
 def run(source: str) -> None:
@@ -69,32 +58,22 @@ def run(source: str) -> None:
 
     LOG.debug("Parsing finished")
 
-    if DEBUG:  # pragma: no cover
-        for index, statement in enumerate(statements):
-            if rich_installed:
-                printr(f"[bold green]Statement[/bold green] {index}:")
-                printr(statement)
-                sys.stdout.write("\n")
-            else:
-                formatted_statement = pformat(statement)
-                LOG.debug(f"{index} => {formatted_statement}")
 
-    interpreter = Interpreter()
-    resolver = Resolver(interpreter)
+    for index, statement in enumerate(statements):
+            printr(f"[bold green]Statement[/bold green] {index}:")
+            printr(statement)
+            sys.stdout.write("\n")
 
-    LOG.debug("Beginning semantic analysis (resolving) ...")
 
-    resolver.resolve(statements)
+    compiler = Compiler()
 
-    LOG.debug("Semantic analysis (resolving) finished")
 
     if had_error:
         LOG.debug("Resolving failed")
         return
 
-    LOG.debug("Interpreting ...")
-    interpreter.interpret(statements)
-    LOG.debug("Interpretation finished")
+    LOG.debug("compiling ...")
+    compiler.do_compile(statements)
 
 
 def run_from_file(file_name: str) -> int:
@@ -117,33 +96,6 @@ def run_from_file(file_name: str) -> int:
 
     if had_runtime_error:
         return 70
-
-    return os.EX_OK
-
-
-def run_from_repl() -> int:  # pragma: no cover
-    PROMPT = "=>"
-
-    while True:
-        try:
-            line = input(f"{PROMPT} ")
-        except (KeyboardInterrupt, EOFError) as exc:
-            sys.stdout.write("\n")
-            LOG.debug(f"Received keyboard interrupt/eof: {exc=}")
-            break
-
-        if not (line.strip()):
-            LOG.debug("Ignoring empty line")
-            continue
-
-        if not line.endswith(";"):
-            line += ";"  # only for repl
-            sys.stderr.write("Warning: do not forget about semicolon(';') at the end\n")
-
-        run(line)
-
-        global had_error
-        had_error = False
 
     return os.EX_OK
 
