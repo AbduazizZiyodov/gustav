@@ -17,7 +17,6 @@ STATEMENT_TYPES = {
     "Expr": "expression: Expression",
     "If": "condition: Expression, then_branch: Statement, else_branch: Statement | None",
     "Print": "expression: Expression",
-    "Return": "keyword: Token, value: Expression | None",
     "While": "condition: Expression, body: Statement",
     "Var": "name: Token, initializer: Expression",
     "For": "initializer: Var | Expr | None, condition: Expression | E.Literal, increment: Expr | None, body: Statement",

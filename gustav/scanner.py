@@ -1,12 +1,9 @@
 import typing as t
 
-from gustav import gustav
 from gustav.enums import TokenType as TT
-from gustav.logging import LOG  # noqa: F401
+from gustav.errors import panic
 from gustav.mappings import RESERVED_KEYWORDS, SINGLE_TOKEN_MAPPING
 from gustav.token import Token
-
-__all__ = ("Scanner",)
 
 
 class Scanner:
@@ -79,7 +76,7 @@ class Scanner:
                     self.identifier()
 
                 else:
-                    gustav.panic(self.line, "Unexpected character")
+                    panic(self.line, "Unexpected character")
 
     def peek(self) -> str:
         return "\0" if self.is_end else self.current_char
@@ -135,16 +132,20 @@ class Scanner:
         part = self.source[self.start : self.current]
         self.add_token(type=TT.NUMBER, literal=float(part))
 
+    def comment(self) -> None:
+        while self.peek() != "\n" and not self.is_end:
+            self.move_current()
+
     def multiline_comment(self) -> None:
         while True:
             if self.peek() == "\0":
-                gustav.panic(self.line, "Multiline comment is not terminated")
+                panic(self.line, "Multiline comment is not terminated")
                 return
 
             # opening, we've already consumed /*,
             # if we encounter one again, it means nesting.
             if self.peek() == "/" and self.peek_next() == "*":
-                gustav.panic(self.line, "Nesting multiline comments are not allowed")
+                panic(self.line, "Nesting multiline comments are not allowed")
                 return
 
             # looking for terminating points
@@ -152,10 +153,6 @@ class Scanner:
                 self.move_current(), self.move_current()
                 break
 
-            self.move_current()
-
-    def comment(self) -> None:
-        while self.peek() != "\n" and not self.is_end:
             self.move_current()
 
     def string(self) -> None:
@@ -166,7 +163,7 @@ class Scanner:
             self.move_current()
 
         if self.is_end:
-            gustav.panic(self.line, "Unterminated string")
+            panic(self.line, "Unterminated string")
             return
 
         self.move_current()

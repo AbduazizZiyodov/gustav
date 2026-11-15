@@ -2,12 +2,7 @@ import typing as t
 
 from gustav.enums import TokenType as TT
 
-__all__ = (
-    "RESERVED_KEYWORDS",
-    "SINGLE_TOKEN_MAPPING",
-)
-
-RESERVED_KEYWORDS: t.Final[dict[str, TT]] = {
+RESERVED_KEYWORDS: t.Final = {
     # "fun": TT.FUN,
     # "return": TT.RETURN,
     "false": TT.FALSE,
@@ -27,7 +22,7 @@ RESERVED_KEYWORDS: t.Final[dict[str, TT]] = {
 }
 
 
-SINGLE_TOKEN_MAPPING: t.Final[dict[str, TT]] = {
+SINGLE_TOKEN_MAPPING: t.Final = {
     "(": TT.LEFT_PAREN,
     ")": TT.RIGHT_PAREN,
     "{": TT.LEFT_BRACE,

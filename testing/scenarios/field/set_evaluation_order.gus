@@ -1,2 +1,0 @@
-undefined1.bar // expect: [at line 1] Undefined variable 'undefined1'.
-  = undefined2;

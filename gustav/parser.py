@@ -1,16 +1,12 @@
 import typing as t
 from dataclasses import dataclass, field
 
-from gustav import gustav
 from gustav.ast import expression as E
 from gustav.ast import statement as S
 from gustav.enums import TokenType as TT
-from gustav.exceptions import GusParseError
+from gustav.errors import GusParseError, error
 from gustav.logging import LOG
 from gustav.token import Token
-
-__all__ = ("UNINITIALIZED", "Parser")
-
 
 UNINITIALIZED = sentinel("UNINITIALIZED")
 
@@ -20,8 +16,6 @@ T = t.TypeVar("T")
 
 @dataclass(slots=True)
 class Parser:
-    """Recursive descent parser"""
-
     tokens: list[Token]
     current: int = field(default=0)
 
@@ -359,7 +353,7 @@ class Parser:
         raise self.error(self.peek(), message)
 
     def error(self, token: Token, message: str) -> GusParseError:
-        gustav.error(token, message)
+        error(token, message)
         return GusParseError()
 
     def peek(self) -> Token:

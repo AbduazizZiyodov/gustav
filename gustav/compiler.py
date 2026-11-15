@@ -2,16 +2,13 @@ import math
 import sys
 import typing as t
 
-from gustav import gustav
 from gustav.ast import Expression, Statement
 from gustav.ast import expression as E
 from gustav.ast import statement as S
 from gustav.enums import TokenType as TT
-from gustav.exceptions import GusRuntimeError
+from gustav.errors import GusParseError, GusRuntimeError, runtime_error
 from gustav.logging import LOG  # noqa: F401
 from gustav.token import Token
-
-__all__ = ("Compiler",)
 
 
 class Compiler(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
@@ -21,14 +18,15 @@ class Compiler(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
                 self.execute(statement)
 
         except GusRuntimeError as exc:
-            gustav.runtime_error(exc)
+            runtime_error(exc)
 
     ###
     # Statements
     ###
 
     @t.override
-    def visit_break_statement(self, statement: S.Break) -> t.Never: ...
+    def visit_break_statement(self, statement: S.Break) -> t.Never:
+        raise GusParseError()
 
     @t.override
     def visit_continue_statement(self, statement: S.Continue) -> None: ...
@@ -73,8 +71,9 @@ class Compiler(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
 
     @t.override
     def visit_var_statement(self, statement: S.Var) -> None:
-        value = self.evaluate(statement.initializer)
-        self.environment.define(statement.name.lexeme, value)
+        self.evaluate(statement.initializer)
+        # value = self.evaluate(statement.initializer)
+        # self.environment.define(statement.name.lexeme, value)
 
     @t.override
     def visit_block_statement(self, statement: S.Block) -> None: ...

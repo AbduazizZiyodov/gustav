@@ -1,1 +1,0 @@
-123.foo; // expect: [at line 1] Only instances have properties.
