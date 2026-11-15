@@ -176,7 +176,7 @@ class Compiler(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
             case TT.PLUS:
                 if any(
                     isinstance(left, T) and isinstance(right, T)
-                    for T in (str, int, float)
+                    for T in (int, float)
                 ):
                     return left + right
 
