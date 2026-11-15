@@ -1,9 +1,8 @@
-import pytest
-
 from pathlib import Path
 
-from .utils import extract_expected, run_scanner, collect_tests, make_relative
+import pytest
 
+from .utils import collect_tests, extract_expected, make_relative, run_scanner
 
 scanner_tests = collect_tests(test_scanner=True)
 

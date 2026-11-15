@@ -2,21 +2,23 @@ import os
 import sys
 import typing as t  # noqa: F401
 
-from pprint import pformat
 from rich import print as printr
 
-from gustav.token import Token
+from gustav.ast.statement import Statement
+from gustav.compiler import Compiler
+from gustav.enums import TokenType as TT
+from gustav.exceptions import GusRuntimeError
+from gustav.logging import LOG
 from gustav.parser import Parser
 from gustav.scanner import Scanner
-from gustav.logging import LOG, DEBUG
-from gustav.enums import TokenType as TT
-from gustav.compiler import Compiler
-from gustav.ast.statement import Statement
-from gustav.exceptions import GusRuntimeError
+from gustav.token import Token
 
-from rich import print as printr
-
-__all__ = "report", "error", "panic", "main",
+__all__ = (
+    "error",
+    "main",
+    "panic",
+    "report",
+)
 
 had_error: bool = False
 had_runtime_error: bool = False
@@ -58,15 +60,12 @@ def run(source: str) -> None:
 
     LOG.debug("Parsing finished")
 
-
     for index, statement in enumerate(statements):
-            printr(f"[bold green]Statement[/bold green] {index}:")
-            printr(statement)
-            sys.stdout.write("\n")
-
+        printr(f"[bold green]Statement[/bold green] {index}:")
+        printr(statement)
+        sys.stdout.write("\n")
 
     compiler = Compiler()
-
 
     if had_error:
         LOG.debug("Resolving failed")
@@ -79,7 +78,7 @@ def run(source: str) -> None:
 def run_from_file(file_name: str) -> int:
     LOG.debug(f"Running from file: {file_name=}")
 
-    source: str = str()
+    source: str = ""
 
     try:
         with open(file_name, "r", encoding="utf-8") as file:

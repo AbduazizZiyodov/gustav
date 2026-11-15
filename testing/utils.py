@@ -1,5 +1,5 @@
-import sys
 import subprocess
+import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -26,7 +26,7 @@ def extract_expected(file_path: Path) -> list[str]:
 
 def run_file(file_path: Path, output_as_str: bool = False) -> str | list[str]:
     args = [*GUS_EXEC.split(), str(file_path)]
-    proc = subprocess.run(args, capture_output=True, text=True)
+    proc = subprocess.run(args, check=False, capture_output=True, text=True)
 
     output = proc.stdout + proc.stderr
 
@@ -34,16 +34,11 @@ def run_file(file_path: Path, output_as_str: bool = False) -> str | list[str]:
 
 
 def run_scanner(source: str) -> list[str]:
-    return list(map(lambda token: token.__test_repr__(), Scanner(source).get_tokens()))
+    return [token.__test_repr__() for token in Scanner(source).get_tokens()]
 
 
 def make_relative(test_files: list[Path]) -> list[str]:
-    return list(
-        map(
-            lambda file: file.relative_to(Path(__file__).parent).as_posix(),
-            test_files,
-        )
-    )
+    return [file.relative_to(Path(__file__).parent).as_posix() for file in test_files]
 
 
 def collect_tests(test_scanner: bool = False) -> list[Path]:

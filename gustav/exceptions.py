@@ -1,8 +1,9 @@
-import typing as t
-
 from gustav.token import Token
 
-__all__ = "GusParseError", "GusRuntimeError", "GusReturn"
+__all__ = (
+    "GusParseError",
+    "GusRuntimeError",
+)
 
 
 class GusParseError(BaseException):
@@ -10,7 +11,7 @@ class GusParseError(BaseException):
 
 
 class GusRuntimeError(RuntimeError):
-    __slots__ = ("token", "error_message")
+    __slots__ = ("error_message", "token")
 
     def __init__(self, token: Token, message: str) -> None:
         self.token = token

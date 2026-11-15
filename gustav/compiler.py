@@ -1,21 +1,15 @@
-import sys
 import math
+import sys
 import typing as t
 
 from gustav import gustav
-from gustav.ast import (
-    Expression,
-    Statement,
-    expression as E,
-    statement as S,
-)
-from gustav.exceptions import (
-    GusRuntimeError
-)
+from gustav.ast import Expression, Statement
+from gustav.ast import expression as E
+from gustav.ast import statement as S
+from gustav.enums import TokenType as TT
+from gustav.exceptions import GusRuntimeError
 from gustav.logging import LOG  # noqa: F401
 from gustav.token import Token
-from gustav.parser import UNINITIALIZED
-from gustav.enums import TokenType as TT
 
 __all__ = ("Compiler",)
 
@@ -34,21 +28,16 @@ class Compiler(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
     ###
 
     @t.override
-    def visit_break_statement(self, statement: S.Break) -> t.Never:
-        ...
+    def visit_break_statement(self, statement: S.Break) -> t.Never: ...
 
     @t.override
-    def visit_continue_statement(self, statement: S.Continue) -> None:
-        ...
-
+    def visit_continue_statement(self, statement: S.Continue) -> None: ...
 
     @t.override
-    def visit_while_statement(self, statement: S.While) -> None:
-        ...
+    def visit_while_statement(self, statement: S.While) -> None: ...
 
     @t.override
-    def visit_for_statement(self, statement: S.For) -> None:
-        ...
+    def visit_for_statement(self, statement: S.For) -> None: ...
 
     @t.override
     def visit_logical_expression(self, expression: E.Logical) -> t.Any:
@@ -88,8 +77,7 @@ class Compiler(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
         self.environment.define(statement.name.lexeme, value)
 
     @t.override
-    def visit_block_statement(self, statement: S.Block) -> None:
-        ...
+    def visit_block_statement(self, statement: S.Block) -> None: ...
 
     ###
     # Expressions
@@ -103,8 +91,6 @@ class Compiler(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
             return self.evaluate(expression.then_branch)
 
         return self.evaluate(expression.else_branch)
-
-
 
     @t.override
     def visit_assign_expression(self, expression: E.Assign) -> t.Any:
@@ -229,36 +215,15 @@ class Compiler(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
     def evaluate(self, expression: Expression) -> t.Any:
         return expression.accept(self)
 
-    def execute_block(
-        self, statements: list[Statement], environment: Environment
-    ) -> None:
-        previous_environment: Environment = self.environment
-
-        try:
-            self.environment = environment
-
-            for statement in statements:
-                self.execute(statement)
-
-        finally:
-            self.environment = previous_environment
-
-    def check_number_operand(
-        self, operator: Token, operand: t.Any
-    ) -> t.NoReturn | None:
-        if isinstance(operand, int) or isinstance(operand, float):
-            return None
+    def check_number_operand(self, operator: Token, operand: t.Any) -> None:
+        if isinstance(operand, (int, float)):
+            return
 
         raise GusRuntimeError(operator, "Operand must be a number")
 
-    def check_number_operands(
-        self, operator: Token, *operands: t.Any
-    ) -> t.NoReturn | None:
-        if all(
-            isinstance(operand, int) or isinstance(operand, float)
-            for operand in operands
-        ):
-            return None
+    def check_number_operands(self, operator: Token, *operands: t.Any) -> None:
+        if all(isinstance(operand, (int, float)) for operand in operands):
+            return
 
         raise GusRuntimeError(operator, "Operands must be numbers")
 
@@ -268,9 +233,7 @@ class Compiler(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
         return False
 
     def is_truthy(self, value: t.Any) -> bool:
-        if (value is None) or (value is False):
-            return False
-        return True
+        return not (value is None or value is False)
 
     def stringify(self, value: t.Any) -> str:
         if value is None:

@@ -1,17 +1,15 @@
-import typing as t  # noqa: F401
-
-from functools import wraps
-
+import typing as t
 from dataclasses import dataclass, field
 
 from gustav import gustav
-from gustav.logging import LOG  # noqa: F401
-from gustav.token import Token
+from gustav.ast import expression as E
+from gustav.ast import statement as S
 from gustav.enums import TokenType as TT
 from gustav.exceptions import GusParseError
-from gustav.ast import expression as E, statement as S
+from gustav.logging import LOG
+from gustav.token import Token
 
-__all__ = ("Parser", "UNINITIALIZED")
+__all__ = ("UNINITIALIZED", "Parser")
 
 
 UNINITIALIZED = sentinel("UNINITIALIZED")
@@ -20,30 +18,15 @@ P = t.ParamSpec("P")
 T = t.TypeVar("T")
 
 
-def control_loop_depth(
-    f: t.Callable[t.Concatenate["Parser", P], T],
-) -> t.Callable[t.Concatenate["Parser", P], T]:
-    @wraps(f)
-    def wrapper(parser: "Parser", *args: P.args, **kwargs: P.kwargs) -> T:
-        try:
-            parser.loop_depth += 1
-            return f(parser, *args, **kwargs)
-        finally:
-            parser.loop_depth -= 1
-
-    return t.cast(t.Callable[t.Concatenate["Parser", P], T], wrapper)
-
-
 @dataclass(slots=True)
 class Parser:
     """Recursive descent parser"""
 
     tokens: list[Token]
     current: int = field(default=0)
-    loop_depth: int = field(default=0)
 
     def parse(self) -> list[S.Statement]:
-        statements: list[S.Statement] = list()
+        statements: list[S.Statement] = []
 
         while not self.is_end:
             if declaration := self.parse_declaration():
@@ -109,18 +92,58 @@ class Parser:
         self.consume(TT.SEMICOLON, "Expect ';' after continue statement")
         return S.Continue(self.get_previous())
 
-    def parse_return_statement(self) -> S.Return:
-        keyword: Token = self.get_previous()
-        value: E.Expression | None = None
+    def parse_print_statement(self) -> S.Print:
+        value: E.Expression = self.parse_expression()
+        self.consume(TT.SEMICOLON, "Expect ';' after value")
 
-        if not self.check(TT.SEMICOLON):
-            value = self.parse_expression()
+        return S.Print(value)
 
-        self.consume(TT.SEMICOLON, "Expect ';' after return value")
+    def parse_block(self) -> list[S.Statement]:
+        statements: list[S.Statement] = []
 
-        return S.Return(keyword, value)
+        while not self.check(TT.RIGHT_BRACE) and not self.is_end:
+            if declaration := self.parse_declaration():
+                statements.append(declaration)
 
-    @control_loop_depth
+        self.consume(TT.RIGHT_BRACE, "Expect '}' after block")
+
+        return statements
+
+    def parse_if_statement(self) -> S.If:
+        self.consume(TT.LEFT_PAREN, "Expect '(' after 'if'")
+        condition: E.Expression = self.parse_expression()
+        self.consume(TT.RIGHT_PAREN, "Expect ')' after 'condition'")
+
+        then_branch: S.Statement = self.parse_statement()
+        else_branch: S.Statement | None = None
+
+        if self.match(TT.ELSE):
+            else_branch = self.parse_statement()
+
+        return S.If(condition, then_branch, else_branch)
+
+    def parse_while_statement(self) -> S.While:
+        self.consume(TT.LEFT_PAREN, "Expect '(' after 'while'")
+        condition: E.Expression = self.parse_expression()
+        self.consume(TT.RIGHT_PAREN, "Expect ')' after 'condition'")
+
+        body: S.Statement = self.parse_statement()
+
+        return S.While(condition, body)
+
+    def parse_loop_statement(self) -> S.While:
+        """Same as while loop, but infinite.
+
+        `loop {...}` (actually its `loop <statement>`) is equivalent to `while (true) {...}`
+
+        This method desugars loop statement into while
+        with only one addition - setting condition to true (literal)
+        """
+        condition = E.Literal(value=True)
+        body: S.Statement = self.parse_statement()
+
+        return S.While(condition, body=body)
+
     def parse_for_statement(self) -> S.For:
         self.consume(TT.LEFT_PAREN, "Expect '(' after 'for'")
 
@@ -142,12 +165,11 @@ class Parser:
 
         increment: S.Expr | None = None
 
-        if not self.check(TT.RIGHT_PAREN):
-            # partial coverage
-            if (
-                increment_expr := self.parse_expression()
-            ) is not None:  # pragma: no cover
-                increment = S.Expr(increment_expr)
+        if (
+            not self.check(TT.RIGHT_PAREN)
+            and (increment_expr := self.parse_expression()) is not None
+        ):  # pragma: no cover
+            increment = S.Expr(increment_expr)
 
         self.consume(TT.RIGHT_PAREN, "Expect ')' after for clauses")
 
@@ -158,60 +180,6 @@ class Parser:
 
         return S.For(initializer, condition, increment, body)
 
-    @control_loop_depth
-    def parse_loop_statement(self) -> S.While:
-        """Same as while loop, but infinite.
-
-        `loop {...}` (actually its `loop <statement>`) is equivalent to `while (true) {...}`
-
-        This method desugars loop statement into while
-        with only one addition - setting condition to true (literal)
-        """
-        condition = E.Literal(value=True)
-        body: S.Statement = self.parse_statement()
-
-        return S.While(condition, body=body)
-
-    @control_loop_depth
-    def parse_while_statement(self) -> S.While:
-        self.consume(TT.LEFT_PAREN, "Expect '(' after 'while'")
-        condition: E.Expression = self.parse_expression()
-        self.consume(TT.RIGHT_PAREN, "Expect ')' after 'condition'")
-
-        body: S.Statement = self.parse_statement()
-
-        return S.While(condition, body)
-
-    def parse_if_statement(self) -> S.If:
-        self.consume(TT.LEFT_PAREN, "Expect '(' after 'if'")
-        condition: E.Expression = self.parse_expression()
-        self.consume(TT.RIGHT_PAREN, "Expect ')' after 'condition'")
-
-        then_branch: S.Statement = self.parse_statement()
-        else_branch: S.Statement | None = None
-
-        if self.match(TT.ELSE):
-            else_branch = self.parse_statement()
-
-        return S.If(condition, then_branch, else_branch)
-
-    def parse_block(self) -> list[S.Statement]:
-        statements: list[S.Statement] = list()
-
-        while not self.check(TT.RIGHT_BRACE) and not self.is_end:
-            if declaration := self.parse_declaration():
-                statements.append(declaration)
-
-        self.consume(TT.RIGHT_BRACE, "Expect '}' after block")
-
-        return statements
-
-    def parse_print_statement(self) -> S.Print:
-        value: E.Expression = self.parse_expression()
-        self.consume(TT.SEMICOLON, "Expect ';' after value")
-
-        return S.Print(value)
-
     def parse_expression_statement(self) -> S.Expr:
         expression = self.parse_expression()
         self.consume(TT.SEMICOLON, "Expect ';' after expression")
@@ -219,8 +187,7 @@ class Parser:
         return S.Expr(expression)
 
     def parse_expression(self) -> E.Expression:
-        assignment_expr = self.parse_assignment()
-        return assignment_expr
+        return self.parse_assignment()
 
     def parse_assignment(self) -> E.Expression:
         expr: E.Expression = self.parse_or()
@@ -276,21 +243,12 @@ class Parser:
         self.consume(TT.COLON, "Expect ':' after '?' in ternary expr")
         false_expr: E.Expression = self.parse_assignment()
 
-        return E.Ternary(
-            condition,
-            true_expr,
-            false_expr,
-        )
+        return E.Ternary(condition, true_expr, false_expr)
 
     def parse_comparision(self) -> E.Expression:
         expr: E.Expression = self.parse_term()
 
-        while self.match(
-            TT.GREATER,
-            TT.GREATER_EQUAL,
-            TT.LESS,
-            TT.LESS_EQUAL,
-        ):
+        while self.match(TT.GREATER, TT.GREATER_EQUAL, TT.LESS, TT.LESS_EQUAL):
             operator: Token = self.get_previous()
             right: E.Expression = self.parse_term()
             expr = E.Binary(expr, operator, right)
@@ -349,7 +307,6 @@ class Parser:
 
         raise self.error(self.peek(), "Expect expression")
 
-
     ###
     # Machinery
     ###
@@ -380,6 +337,7 @@ class Parser:
             if self.check(token_type):
                 self.advance()
                 return True
+
         return False
 
     def check(self, token_type: TT) -> bool:

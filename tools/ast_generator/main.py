@@ -1,8 +1,8 @@
-import os
 import logging
+import os
 import typing as t
-from io import TextIOWrapper
 from datetime import datetime
+from io import TextIOWrapper
 
 from .definitions import EXPRESSION_TYPES, STATEMENT_TYPES
 
@@ -17,8 +17,8 @@ __all__ = ("main",)
 EXPRESSION_BASE_NAME = "Expression"
 STATEMENT_BASE_NAME = "Statement"
 
-INIT_IMPORTS = """from .statement import Statement, StatementVisitor
-from .expression import Expression, ExpressionVisitor
+INIT_IMPORTS = """from .expression import Expression, ExpressionVisitor
+from .statement import Statement, StatementVisitor
 
 __all__ = ("Expression", "Statement", "ExpressionVisitor", "StatementVisitor")
 """
@@ -44,15 +44,15 @@ NodeDefinitionMapping = dict[str, NodeDefinitions]
 
 
 def as_node_definition_mapping(types: dict[str, str]) -> NodeDefinitionMapping:
-    result: NodeDefinitionMapping = dict()
+    result: NodeDefinitionMapping = {}
 
     for node, definition in types.items():
         fields: list[str] = list(map(str.strip, definition.split(",")))
 
         result[node] = [
             {"type": field_type, "name": field_name}
-            for field_name, field_type in map(
-                lambda field: list(map(str.strip, field.split(":"))), fields
+            for field_name, field_type in (
+                list(map(str.strip, field.split(":"))) for field in fields
             )
         ]
 
@@ -62,14 +62,16 @@ def as_node_definition_mapping(types: dict[str, str]) -> NodeDefinitionMapping:
 def define_base_ast(file: TextIOWrapper) -> None:
     IMPORTS = (
         HEAD
-        + "import typing as t\nfrom dataclasses import dataclass\nfrom abc import ABC, abstractmethod\n\n"
+        + "import typing as t\nfrom abc import ABC, abstractmethod\nfrom dataclasses import dataclass\n\n"
     )
 
     file.write(IMPORTS)
     file.write(f"__all__ = ('{EXPRESSION_BASE_NAME}', '{STATEMENT_BASE_NAME}')\n\n")
 
-    for base_name in (EXPRESSION_BASE_NAME, STATEMENT_BASE_NAME):
-        file.write(BASE_ABSTRACT_CLASS.format(CLASS_NAME=base_name) + "\n")
+    file.writelines(
+        BASE_ABSTRACT_CLASS.format(CLASS_NAME=base_name) + "\n"
+        for base_name in (EXPRESSION_BASE_NAME, STATEMENT_BASE_NAME)
+    )
 
 
 def define_ast(
@@ -133,7 +135,7 @@ def define_visitor(
 
     file.write(f"class {base_name}Visitor[T](t.Protocol):\n\t")
 
-    for class_name, _ in types.items():
+    for class_name in types:
         l_class_name, l_base_name = class_name.lower(), base_name.lower()
         file.write(
             f'def visit_{l_class_name}_{l_base_name}(self, {l_base_name}: "{class_name}") -> T:\n\t\tpass # pragma: no cover\n\n\t'
@@ -147,27 +149,20 @@ def main() -> int:
 
     os.makedirs("gustav/ast", exist_ok=True)
 
-    try:
-        with open("gustav/ast/__init__.py", "wt") as file:
-            LOG.debug("Writing imports for __init__.py")
-            file.write(INIT_IMPORTS)
+    with open("gustav/ast/__init__.py", "wt") as file:
+        LOG.debug("Writing imports for __init__.py")
+        file.write(INIT_IMPORTS)
 
-        with open("gustav/ast/base.py", "wt") as file:
-            define_base_ast(file)
+    with open("gustav/ast/base.py", "wt") as file:
+        define_base_ast(file)
 
-        for base_name, types in (
-            (EXPRESSION_BASE_NAME, as_node_definition_mapping(EXPRESSION_TYPES)),
-            (STATEMENT_BASE_NAME, as_node_definition_mapping(STATEMENT_TYPES)),
-        ):
-            with open(f"gustav/ast/{base_name.lower()}.py", "wt") as file:
-                LOG.debug(f"Defining ast for types => {tuple(types.keys())}")
-                define_ast(file, base_name, types)
+    for base_name, types in (
+        (EXPRESSION_BASE_NAME, as_node_definition_mapping(EXPRESSION_TYPES)),
+        (STATEMENT_BASE_NAME, as_node_definition_mapping(STATEMENT_TYPES)),
+    ):
+        with open(f"gustav/ast/{base_name.lower()}.py", "wt") as file:
+            LOG.debug(f"Defining ast for types => {tuple(types.keys())}")
+            define_ast(file, base_name, types)
 
-    except Exception as exc:
-        raise exc
-        # return os.EX_DATAERR
-    else:
-        LOG.debug("Generate AST - Finished")
-        return os.EX_OK
-    finally:
-        file.close()
+    LOG.debug("Generate AST - Finished")
+    return os.EX_OK

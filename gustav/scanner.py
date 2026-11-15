@@ -1,10 +1,10 @@
 import typing as t
 
 from gustav import gustav
-from gustav.token import Token
-from gustav.logging import LOG  # noqa: F401
 from gustav.enums import TokenType as TT
+from gustav.logging import LOG  # noqa: F401
 from gustav.mappings import RESERVED_KEYWORDS, SINGLE_TOKEN_MAPPING
+from gustav.token import Token
 
 __all__ = ("Scanner",)
 
@@ -96,7 +96,7 @@ class Scanner:
 
         return char
 
-    def add_token(self, type: TT, literal: t.Optional[t.Any] = None) -> None:
+    def add_token(self, type: TT, literal: t.Any | None = None) -> None:
         text = self.source[self.start : self.current]
 
         new_token = Token(type, text, literal, self.line)

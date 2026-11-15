@@ -1,9 +1,8 @@
-import pytest
-
 from pathlib import Path
 
-from .utils import extract_expected, run_file, collect_tests, make_relative
+import pytest
 
+from .utils import collect_tests, extract_expected, make_relative, run_file
 
 interpreter_tests = collect_tests()
 

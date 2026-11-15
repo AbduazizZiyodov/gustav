@@ -2,7 +2,10 @@ import typing as t
 
 from gustav.enums import TokenType as TT
 
-__all__ = ("RESERVED_KEYWORDS", "SINGLE_TOKEN_MAPPING",)
+__all__ = (
+    "RESERVED_KEYWORDS",
+    "SINGLE_TOKEN_MAPPING",
+)
 
 RESERVED_KEYWORDS: t.Final[dict[str, TT]] = {
     # "fun": TT.FUN,

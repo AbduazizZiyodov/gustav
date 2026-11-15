@@ -94,4 +94,4 @@ class Token:
         else:
             literal_str = ""
 
-        return " ".join([self.type.name, self.lexeme, literal_str])
+        return f"{self.type.name} {self.lexeme} {literal_str}"
