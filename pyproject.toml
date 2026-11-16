@@ -6,10 +6,9 @@ dependencies = []
 
 [dependency-groups]
 dev = [
-    "mypy>=1.15.0",
-    "pre-commit>=4.1.0",
-    "pytest>=8.4.1",
-    "pytest-cov>=6.2.1",
-    "rich>=14.0.0",
-    "ruff>=0.11.12",
+    "mypy>=2.4.1",
+    "pre-commit>=4.7.0",
+    "pytest>=9.2.0",
+    "rich>=15.0.0",
+    "ruff>=0.17.5",
 ]
