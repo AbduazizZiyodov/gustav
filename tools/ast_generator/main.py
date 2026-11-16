@@ -1,16 +1,9 @@
-import logging
 import os
 import typing as t
 from datetime import datetime
 from io import TextIOWrapper
 
 from .definitions import EXPRESSION_TYPES, STATEMENT_TYPES
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="[%(levelname)s | %(funcName)s():%(lineno)d] %(message)s",
-)
-LOG = logging.getLogger(__name__)
 
 __all__ = ("main",)
 
@@ -20,7 +13,7 @@ STATEMENT_BASE_NAME = "Statement"
 INIT_IMPORTS = """from .expression import Expression, ExpressionVisitor
 from .statement import Statement, StatementVisitor
 
-__all__ = ("Expression", "Statement", "ExpressionVisitor", "StatementVisitor")
+__all__ = ("Expression", "ExpressionVisitor", "Statement", "StatementVisitor")
 """
 
 BASE_ABSTRACT_CLASS = """
@@ -66,7 +59,7 @@ def define_base_ast(file: TextIOWrapper) -> None:
     )
 
     file.write(IMPORTS)
-    file.write(f"__all__ = ('{EXPRESSION_BASE_NAME}', '{STATEMENT_BASE_NAME}')\n\n")
+    file.write(f'__all__ = ("{EXPRESSION_BASE_NAME}", "{STATEMENT_BASE_NAME}")\n\n')
 
     file.writelines(
         BASE_ABSTRACT_CLASS.format(CLASS_NAME=base_name) + "\n"
@@ -131,7 +124,7 @@ def define_type(
 def define_visitor(
     file: TextIOWrapper, base_name: str, types: NodeDefinitionMapping
 ) -> None:
-    LOG.debug(f"Defining visitor for {base_name}")
+    print(f"defining visitor for {base_name}")
 
     file.write(f"class {base_name}Visitor[T](t.Protocol):\n\t")
 
@@ -145,12 +138,12 @@ def define_visitor(
 
 
 def main() -> int:
-    LOG.info("Generate AST - Starting")
+    print("starting to generate AST classes")
 
     os.makedirs("gustav/ast", exist_ok=True)
 
     with open("gustav/ast/__init__.py", "wt") as file:
-        LOG.info("Writing imports for __init__.py")
+        print("writing imports for __init__.py")
         file.write(INIT_IMPORTS)
 
     with open("gustav/ast/base.py", "wt") as file:
@@ -161,8 +154,8 @@ def main() -> int:
         (STATEMENT_BASE_NAME, as_node_definition_mapping(STATEMENT_TYPES)),
     ):
         with open(f"gustav/ast/{base_name.lower()}.py", "wt") as file:
-            LOG.info(f"Defining ast for types => {tuple(types.keys())}")
+            print(f"defining ast class for types => {tuple(types.keys())}")
             define_ast(file, base_name, types)
 
-    LOG.info("Generate AST - Finished")
+    print("ast classes were generated")
     return os.EX_OK
