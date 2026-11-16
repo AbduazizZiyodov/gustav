@@ -1,20 +1,23 @@
 import math
 import sys
 import typing as t
+from dataclasses import dataclass
 
 from gustav.ast import Expression, Statement
 from gustav.ast import expression as E
 from gustav.ast import statement as S
 from gustav.enums import TokenType as TT
 from gustav.errors import GusParseError, GusRuntimeError, runtime_error
-from gustav.logging import LOG  # noqa: F401
 from gustav.token import Token
 
 
+@dataclass(slots=True, frozen=True)
 class Compiler(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
-    def do_compile(self, statements: list[Statement]) -> None:
+    statements: list[Statement]
+
+    def do(self) -> None:
         try:
-            for statement in statements:
+            for statement in self.statements:
                 self.execute(statement)
 
         except GusRuntimeError as exc:
@@ -175,8 +178,7 @@ class Compiler(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
 
             case TT.PLUS:
                 if any(
-                    isinstance(left, T) and isinstance(right, T)
-                    for T in (int, float)
+                    isinstance(left, T) and isinstance(right, T) for T in (int, float)
                 ):
                     return left + right
 
