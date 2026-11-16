@@ -3,9 +3,9 @@ DEBUG := "yes"
 default: clean check
 
 check:
-	uv run ruff format .
-	uv run ruff check --fix .
-	uv run mypy --strict --ignore-missing-imports --explicit-package-bases .
+	uv run ruff format gustav/ tools/
+	uv run ruff check --fix gustav/ tools/
+	uv run mypy --strict --ignore-missing-imports --explicit-package-bases gustav/ tools/
 
 generate_ast:
 	./.venv/bin/python3.15 -m tools generate_ast

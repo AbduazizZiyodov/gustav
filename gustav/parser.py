@@ -10,9 +10,6 @@ from gustav.token import TokenType as TT
 
 UNINITIALIZED = sentinel("UNINITIALIZED")
 
-P = t.ParamSpec("P")
-T = t.TypeVar("T")
-
 
 @dataclass(slots=True)
 class Parser:
