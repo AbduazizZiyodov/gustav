@@ -6,12 +6,12 @@ from rich import print as printr
 
 from gustav.ast.statement import Statement
 from gustav.compiler import Compiler
-from gustav.enums import TokenType as TT
 from gustav.errors import had_error, had_runtime_error
 from gustav.logging import DEBUG, LOG
 from gustav.parser import Parser
 from gustav.scanner import Scanner
 from gustav.token import Token
+from gustav.token import TokenType as TT
 
 
 def main() -> int:
@@ -64,11 +64,11 @@ def main() -> int:
 
     statements: list[Statement] = Parser(tokens).parse()
 
-    if had_error:
-        LOG.debug('scanning had an error, exiting ...')
+    if had_error:  # type: ignore[truthy-function]
+        LOG.debug("scanning had an error, exiting ...")
         return os.EX_DATAERR
 
-    LOG.debug(f"parsing finished:")
+    LOG.debug("parsing finished:")
 
     if DEBUG:
         for index, statement in enumerate(statements):
@@ -77,6 +77,7 @@ def main() -> int:
             sys.stdout.write("\n")
 
     LOG.debug("compiling ...")
+
     Compiler(statements).do()
 
     if had_runtime_error:

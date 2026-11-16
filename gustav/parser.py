@@ -3,10 +3,10 @@ from dataclasses import dataclass, field
 
 from gustav.ast import expression as E
 from gustav.ast import statement as S
-from gustav.enums import TokenType as TT
 from gustav.errors import GusParseError, error
 from gustav.logging import LOG
 from gustav.token import Token
+from gustav.token import TokenType as TT
 
 UNINITIALIZED = sentinel("UNINITIALIZED")
 

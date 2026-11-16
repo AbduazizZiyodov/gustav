@@ -6,13 +6,15 @@ from dataclasses import dataclass
 from gustav.ast import Expression, Statement
 from gustav.ast import expression as E
 from gustav.ast import statement as S
-from gustav.enums import TokenType as TT
 from gustav.errors import GusParseError, GusRuntimeError, runtime_error
 from gustav.token import Token
+from gustav.token import TokenType as TT
 
 
 @dataclass(slots=True, frozen=True)
 class Compiler(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
+    """This compiler's job is to do AST -> SSA."""
+
     statements: list[Statement]
 
     def do(self) -> None:

@@ -1,9 +1,8 @@
 import typing as t
 
-from gustav.enums import TokenType as TT
 from gustav.errors import panic
-from gustav.mappings import RESERVED_KEYWORDS, SINGLE_TOKEN_MAPPING
 from gustav.token import Token
+from gustav.token import TokenType as TT
 
 
 class Scanner:
@@ -27,8 +26,8 @@ class Scanner:
     def next_token(self) -> None:
         char: str = self.move_current()
 
-        if char in SINGLE_TOKEN_MAPPING:
-            self.add_token(type=SINGLE_TOKEN_MAPPING[char])
+        if char in self.SINGLE_TOKEN_MAPPING:
+            self.add_token(type=self.SINGLE_TOKEN_MAPPING[char])
             return
 
         match char:
@@ -83,7 +82,7 @@ class Scanner:
 
     def peek_next(self) -> str:
         if self.current + 1 >= len(self.source):
-            return "\0"  # pragma: no cover
+            return "\0"
 
         return self.source[self.current + 1]
 
@@ -101,7 +100,7 @@ class Scanner:
 
     def match_token(self, expected: str) -> bool:
         if self.is_end:
-            return False  # pragma: no cover
+            return False
 
         if self.current_char != expected:
             return False
@@ -115,7 +114,7 @@ class Scanner:
             self.move_current()
 
         text: str = self.source[self.start : self.current]
-        type: TT = RESERVED_KEYWORDS.get(text) or TT.IDENTIFIER
+        type: TT = self.RESERVED_KEYWORDS.get(text) or TT.IDENTIFIER
 
         self.add_token(type=type)
 
@@ -187,3 +186,36 @@ class Scanner:
     @staticmethod
     def is_alpha_numeric(char: str) -> bool:
         return char.isascii() and (char.isalnum() or char == "_")
+
+    RESERVED_KEYWORDS: t.Final = {
+        # "fun": TT.FUN,
+        # "return": TT.RETURN,
+        "false": TT.FALSE,
+        "true": TT.TRUE,
+        "nil": TT.NIL,
+        "for": TT.FOR,
+        "while": TT.WHILE,
+        "loop": TT.LOOP,
+        "if": TT.IF,
+        "else": TT.ELSE,
+        "and": TT.AND,
+        "or": TT.OR,
+        "print": TT.PRINT,
+        "var": TT.VAR,
+        "break": TT.BREAK,
+        "continue": TT.CONTINUE,
+    }
+
+    SINGLE_TOKEN_MAPPING: t.Final = {
+        "(": TT.LEFT_PAREN,
+        ")": TT.RIGHT_PAREN,
+        "{": TT.LEFT_BRACE,
+        "}": TT.RIGHT_BRACE,
+        ",": TT.COMMA,
+        ".": TT.DOT,
+        "-": TT.MINUS,
+        ";": TT.SEMICOLON,
+        "*": TT.STAR,
+        "?": TT.QUESTION_MARK,
+        ":": TT.COLON,
+    }

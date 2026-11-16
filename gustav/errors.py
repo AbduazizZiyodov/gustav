@@ -1,10 +1,18 @@
 import sys
 
-from gustav.enums import TokenType as TT
 from gustav.token import Token
+from gustav.token import TokenType as TT
 
 _had_error: bool = False
 _had_runtime_error: bool = False
+
+
+def had_error() -> bool:
+    return _had_error
+
+
+def had_runtime_error() -> bool:
+    return _had_runtime_error
 
 
 class GusParseError(BaseException):
@@ -23,10 +31,6 @@ def panic(line: int, message: str) -> None:
     report(line, "", message)
 
 
-def warning(token: Token, message: str) -> None:
-    sys.stderr.write(f"[WARNING] at line {token.line}: {message}.\n")
-
-
 def error(token: Token, message: str) -> None:
     if token.type == TT.EOF:
         report(token.line, " at end", message)
@@ -43,11 +47,4 @@ def runtime_error(exc: GusRuntimeError) -> None:
 def report(line: int, where: str, message: str) -> None:
     global _had_error
     _had_error = True
-
     sys.stderr.write(f"[at line {line}] Error{where}: {message}.\n")
-
-def had_error() -> bool:
-    return _had_error
-
-def had_runtime_error() -> bool:
-    return _had_runtime_error
