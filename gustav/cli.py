@@ -15,7 +15,7 @@ from gustav.token import TokenType as TT
 
 
 def main() -> int:
-    if len(sys.argv) != 2:  # pragma: no cover
+    if len(sys.argv) != 2:
         sys.stdout.write(f"Usage: {sys.executable} -m gustav [script]")
         return os.EX_USAGE
 
@@ -27,7 +27,7 @@ def main() -> int:
         with open(file_name, "r", encoding="utf-8") as file:
             source = file.read()
 
-    except FileNotFoundError:  # pragma: no cover
+    except FileNotFoundError:
         sys.stderr.write(f"Couldn't find file with {file_name=}")
         return os.EX_NOINPUT
 

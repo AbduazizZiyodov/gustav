@@ -140,7 +140,7 @@ class Compiler(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
                 return not self.is_truthy(right)
 
             # partial coverage
-            case TT.MINUS:  # pragma: no cover
+            case TT.MINUS:
                 self.check_number_operand(expression.operator, right)
                 return -1 * right
 
@@ -204,7 +204,7 @@ class Compiler(E.ExpressionVisitor[t.Any], S.StatementVisitor[None]):
             case TT.EQUAL_EQUAL:
                 return self.is_equal(left, right)
 
-            case _:  # pragma: no cover
+            case _:
                 # should not be possible, anyway
                 raise GusRuntimeError(expression.operator, "Unknown binary operator.")
 
