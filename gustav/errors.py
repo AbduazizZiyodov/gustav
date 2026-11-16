@@ -3,8 +3,8 @@ import sys
 from gustav.enums import TokenType as TT
 from gustav.token import Token
 
-had_error: bool = False
-had_runtime_error: bool = False
+_had_error: bool = False
+_had_runtime_error: bool = False
 
 
 class GusParseError(BaseException):
@@ -35,14 +35,19 @@ def error(token: Token, message: str) -> None:
 
 
 def runtime_error(exc: GusRuntimeError) -> None:
-    global had_runtime_error
-    had_runtime_error = True
-
+    global _had_runtime_error
+    _had_runtime_error = True
     sys.stderr.write(f"[at line {exc.token.line}] {exc.error_message}.\n")
 
 
 def report(line: int, where: str, message: str) -> None:
-    global had_error
-    had_error = True
+    global _had_error
+    _had_error = True
 
     sys.stderr.write(f"[at line {line}] Error{where}: {message}.\n")
+
+def had_error() -> bool:
+    return _had_error
+
+def had_runtime_error() -> bool:
+    return _had_runtime_error

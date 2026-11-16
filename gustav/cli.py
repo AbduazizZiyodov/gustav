@@ -36,7 +36,7 @@ def main() -> int:
 
     tokens: list[Token] = Scanner(source).get_tokens()
 
-    if had_error:
+    if had_error():
         LOG.debug("scanning failed, exiting")
         return os.EX_DATAERR
 
@@ -64,7 +64,11 @@ def main() -> int:
 
     statements: list[Statement] = Parser(tokens).parse()
 
-    LOG.debug("parsing finished:")
+    if had_error:
+        LOG.debug('scanning had an error, exiting ...')
+        return os.EX_DATAERR
+
+    LOG.debug(f"parsing finished:")
 
     if DEBUG:
         for index, statement in enumerate(statements):
